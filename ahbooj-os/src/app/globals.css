@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette */
+  --color-cream:        #F5EDD9;
+  --color-espresso:     #2C1E16;
+  --color-terracotta:   #F26419;
+  --color-gold:         #C9A84C;
+  --color-warm-white:   #FDFAF4;
+  --color-muted:        #8C8177;
+
+  /* Status colours */
+  --color-status-green: #4CAF50;
+  --color-status-amber: #FFC107;
+  --color-status-red:   #F44336;
+
+  /* Typography — loaded via Google Fonts @import above */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans:    'Montserrat', system-ui, sans-serif;
+
+  /* Shadows */
+  --shadow-card:       0 1px 3px 0 rgba(44, 30, 22, 0.08), 0 1px 2px -1px rgba(44, 30, 22, 0.06);
+  --shadow-card-hover: 0 4px 6px -1px rgba(44, 30, 22, 0.12), 0 2px 4px -2px rgba(44, 30, 22, 0.08);
+
+  /* Border radius */
+  --radius-card: 12px;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    background-color: var(--color-warm-white);
+    color: var(--color-espresso);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@utility sidebar-transition {
+  transition: width 250ms ease, transform 250ms ease;
+}
