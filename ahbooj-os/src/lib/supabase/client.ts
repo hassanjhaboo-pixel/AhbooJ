@@ -1,8 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
 
+// Type parameter omitted intentionally — our hand-written Database type doesn't
+// match Supabase's exact generic shape. All query results are cast explicitly.
 export function createClient() {
-  return createBrowserClient<Database>(
+  return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )

@@ -9,7 +9,7 @@ interface Batch {
   planned_yield: number | null
   actual_yield: number | null
   qc_passed: boolean | null
-  recipes: { name: string } | null
+  recipes: { name: string }[] | null
 }
 
 interface ProductionCardProps {
@@ -51,7 +51,7 @@ export function ProductionCard({ batches, pendingOrdersCount }: ProductionCardPr
                   batch.qc_passed === false ? 'bg-status-red' : 'bg-status-amber'
                 )} />
                 <span className="text-xs text-espresso truncate">
-                  {batch.recipes?.name ?? 'Batch'}
+                  {batch.recipes?.[0]?.name ?? 'Batch'}
                 </span>
               </div>
               <span className="text-xs text-muted flex-shrink-0 ml-2">

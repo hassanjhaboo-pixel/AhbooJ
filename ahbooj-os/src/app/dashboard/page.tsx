@@ -124,14 +124,14 @@ async function fetchDashboardData() {
       total: number | null
       due_date: string | null
       order_date: string
-      partners: { name: string } | null
+      partners: { name: string }[] | null
     }>,
     reserve: (reserveRes.data ?? null) as { reserve_weeks_covered: number | null; total_cash: number | null } | null,
     stockAlerts,
     batches: (batchesRes.data ?? []) as Array<{
       id: string; batch_number: string | null; production_date: string
       planned_yield: number | null; actual_yield: number | null
-      qc_passed: boolean | null; recipes: { name: string } | null
+      qc_passed: boolean | null; recipes: { name: string }[] | null
     }>,
     lastBroadcast: (broadcastRes.data ?? null) as import('@/types/database').Broadcast | null,
     daysUntilFriday,

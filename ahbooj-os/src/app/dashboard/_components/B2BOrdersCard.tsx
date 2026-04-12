@@ -9,7 +9,7 @@ interface B2BOrder {
   total: number | null
   due_date: string | null
   order_date: string
-  partners: { name: string } | null
+  partners: { name: string }[] | null
 }
 
 interface B2BOrdersCardProps {
@@ -47,7 +47,7 @@ export function B2BOrdersCard({ orders }: B2BOrdersCardProps) {
             <li key={order.id} className="flex items-center justify-between py-2 border-b border-espresso/5 last:border-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-espresso truncate">
-                  {order.partners?.name ?? 'Partner'}
+                  {order.partners?.[0]?.name ?? 'Partner'}
                 </p>
                 <p className="text-xs text-muted">
                   {order.invoice_number ?? formatDate(order.order_date)}

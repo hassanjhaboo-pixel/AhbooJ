@@ -1,10 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/types/database'
 
+// Type parameter omitted intentionally — our hand-written Database type doesn't
+// match Supabase's exact generic shape. All query results are cast explicitly.
 export async function createClient() {
   const cookieStore = await cookies()
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -18,7 +19,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Component — cookie writes are ignored, fine for read-only
+            // Server Component — cookie writes are ignored for read-only usage
           }
         },
       },
