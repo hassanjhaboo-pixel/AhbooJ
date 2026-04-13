@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const maxDuration = 60
+
 export async function POST() {
   const supabase = createAdminClient()
   const today    = new Date().toISOString().split('T')[0]

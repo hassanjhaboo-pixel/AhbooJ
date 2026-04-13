@@ -1,0 +1,12 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "functions": {
+    "src/app/api/agents/marketing/route.ts":       { "maxDuration": 60 },
+    "src/app/api/agents/pricing/route.ts":         { "maxDuration": 60 },
+    "src/app/api/agents/product-discovery/route.ts": { "maxDuration": 60 },
+    "src/app/api/agents/weekly-review/route.ts":   { "maxDuration": 60 }
+  }
+}

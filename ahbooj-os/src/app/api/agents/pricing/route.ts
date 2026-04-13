@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { MARGIN_RULES } from '@/lib/pricing'
 
+export const maxDuration = 60
+
 export async function POST() {
   const supabase = createAdminClient()
 
