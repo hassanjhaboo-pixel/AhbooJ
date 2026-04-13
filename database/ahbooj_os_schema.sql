@@ -479,3 +479,83 @@ VALUES
   ('monthly', 'June 2026', 4000, 50, 40),
   ('quarterly', 'Q2 2026', 10000, 120, 40)
 ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- GRANTS
+-- Without these, every query returns "permission denied for table X"
+-- even when RLS policies exist. Policies control which rows are
+-- visible; grants control whether the role can access the table at all.
+-- ============================================================
+
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT USAGE ON SCHEMA public TO authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  settings,
+  ingredients,
+  ingredient_purchases,
+  recipes,
+  recipe_ingredients,
+  products,
+  suppliers,
+  supplier_payments,
+  customers,
+  orders,
+  order_items,
+  partners,
+  partner_orders,
+  partner_order_items,
+  production_batches,
+  production_qc_log,
+  production_shopping_lists,
+  shopping_list_items,
+  ledger,
+  owner_draws,
+  reserves,
+  goals,
+  tax_entries,
+  email_campaigns,
+  broadcasts,
+  agent_runs
+TO anon;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  settings,
+  ingredients,
+  ingredient_purchases,
+  recipes,
+  recipe_ingredients,
+  products,
+  suppliers,
+  supplier_payments,
+  customers,
+  orders,
+  order_items,
+  partners,
+  partner_orders,
+  partner_order_items,
+  production_batches,
+  production_qc_log,
+  production_shopping_lists,
+  shopping_list_items,
+  ledger,
+  owner_draws,
+  reserves,
+  goals,
+  tax_entries,
+  email_campaigns,
+  broadcasts,
+  agent_runs
+TO authenticated;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO authenticated;
