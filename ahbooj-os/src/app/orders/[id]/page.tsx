@@ -12,6 +12,7 @@ type OrderDetail = {
   order_number: string | null
   order_date: string
   status: string
+  payment_status: string | null
   channel: string | null
   subtotal: number | null
   total: number | null
@@ -45,7 +46,7 @@ export default async function OrderPage({
   const { data } = await supabase
     .from('orders')
     .select(`
-      id, order_number, order_date, status, channel, subtotal, total, notes,
+      id, order_number, order_date, status, payment_status, channel, subtotal, total, notes,
       customers(id, name, phone, email, instagram_handle),
       order_items(id, quantity, unit_price, line_total, products(id, name, sku))
     `)
@@ -149,7 +150,11 @@ export default async function OrderPage({
         {/* Right: status + customer */}
         <div className="space-y-5">
           {/* Status updater */}
-          <StatusUpdater orderId={data.id} currentStatus={data.status} />
+          <StatusUpdater
+            orderId={data.id}
+            currentStatus={data.status}
+            currentPaymentStatus={data.payment_status ?? 'unpaid'}
+          />
 
           {/* Customer */}
           <div className="bg-cream rounded-card shadow-card border border-cream/60 p-5">

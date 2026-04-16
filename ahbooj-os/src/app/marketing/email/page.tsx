@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { EmailClient } from './_components/EmailClient'
@@ -29,6 +31,12 @@ export default async function EmailCampaignsPage() {
 
   return (
     <PageWrapper>
+      <div className="mb-5">
+        <Link href="/marketing" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-espresso transition-colors">
+          <ChevronLeft size={15} />
+          Marketing
+        </Link>
+      </div>
       <EmailClient
         campaigns={campaignData ?? []}
         emailListCount={emailListCount ?? 0}

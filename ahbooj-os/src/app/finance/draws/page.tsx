@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { DrawsClient } from './_components/DrawsClient'
@@ -24,6 +26,12 @@ export default async function DrawsPage() {
 
   return (
     <PageWrapper>
+      <div className="mb-5">
+        <Link href="/finance" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-espresso transition-colors">
+          <ChevronLeft size={15} />
+          Finance
+        </Link>
+      </div>
       <DrawsClient draws={draws} totalYTD={totalYTD} />
     </PageWrapper>
   )

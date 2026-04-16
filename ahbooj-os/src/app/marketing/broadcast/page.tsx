@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { BroadcastClient } from './_components/BroadcastClient'
@@ -27,6 +29,12 @@ export default async function BroadcastPage() {
 
   return (
     <PageWrapper>
+      <div className="mb-5">
+        <Link href="/marketing" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-espresso transition-colors">
+          <ChevronLeft size={15} />
+          Marketing
+        </Link>
+      </div>
       <BroadcastClient
         broadcasts={broadcastData ?? []}
         whatsappCount={whatsappCount ?? 0}

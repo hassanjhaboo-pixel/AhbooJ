@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, TrendingDown, Wallet, ShieldCheck, Receipt, Truck } from 'lucide-react'
+import { BookOpen, TrendingDown, Wallet, ShieldCheck, Receipt, Truck, BarChart3, FileDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatTTD, formatDate } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
@@ -23,11 +23,13 @@ type Reserve = {
 }
 
 const NAV_CARDS = [
-  { href: '/finance/ledger',    label: 'Ledger',         description: 'All income & expenses',       icon: BookOpen },
-  { href: '/finance/draws',     label: 'Owner Draws',    description: 'Personal draw history',        icon: Wallet },
-  { href: '/finance/reserves',  label: 'Reserves',       description: 'Cash position snapshots',      icon: ShieldCheck },
-  { href: '/finance/tax',       label: 'Tax',            description: 'VAT, income tax, compliance',  icon: Receipt },
-  { href: '/finance/suppliers', label: 'Suppliers',      description: 'Vendor accounts & payments',   icon: Truck },
+  { href: '/finance/ledger',             label: 'Ledger',              description: 'All income & expenses',       icon: BookOpen },
+  { href: '/finance/draws',              label: 'Owner Draws',         description: 'Personal draw history',        icon: Wallet },
+  { href: '/finance/reserves',           label: 'Reserves',            description: 'Cash position snapshots',      icon: ShieldCheck },
+  { href: '/finance/tax',                label: 'Tax',                 description: 'VAT, income tax, compliance',  icon: Receipt },
+  { href: '/finance/suppliers',          label: 'Suppliers',           description: 'Vendor accounts & payments',   icon: Truck },
+  { href: '/finance/production-profit',  label: 'Production Profit',   description: 'Revenue vs cost by batch day', icon: BarChart3 },
+  { href: '/finance/report',             label: 'Monthly Report',       description: 'Download PDF summary',        icon: FileDown },
 ]
 
 export default async function FinancePage() {

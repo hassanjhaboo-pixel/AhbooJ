@@ -74,6 +74,9 @@ export function AddPurchaseModal({ ingredient, onClose }: AddPurchaseModalProps)
       return
     }
 
+    // Propagate cost change to recipes + products (fire-and-forget; don't block UX)
+    fetch(`/api/ingredients/${ingredient.id}/propagate-cost`, { method: 'POST' }).catch(() => {})
+
     router.refresh()
     onClose()
   }

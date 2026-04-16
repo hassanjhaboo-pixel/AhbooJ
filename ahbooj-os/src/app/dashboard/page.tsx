@@ -10,6 +10,10 @@ import { B2BOrdersCard } from './_components/B2BOrdersCard'
 import { ProductionCard } from './_components/ProductionCard'
 import { BroadcastCard } from './_components/BroadcastCard'
 import { QuickActions } from './_components/QuickActions'
+import { TodayCard } from './_components/TodayCard'
+import { BirthdayCard } from './_components/BirthdayCard'
+import { OutstandingInvoicesCard } from './_components/OutstandingInvoicesCard'
+import { PendingOrdersCard } from './_components/PendingOrdersCard'
 
 async function fetchDashboardData() {
   const supabase = await createClient()
@@ -21,6 +25,11 @@ async function fetchDashboardData() {
   const weekEnd    = format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd')
   const monthLabel = format(now, 'MMMM yyyy')
 
+  // Day of week (0=Mon … 6=Sun, matching DB convention)
+  const jsDow = now.getDay() // 0=Sun … 6=Sat
+  const dayOfWeek = jsDow === 0 ? 6 : jsDow - 1
+  const currentMonth = now.getMonth() + 1
+
   const [
     ledgerRes,
     goalRes,
@@ -30,6 +39,10 @@ async function fetchDashboardData() {
     ingredientsRes,
     batchesRes,
     broadcastRes,
+    outstandingInvoicesRes,
+    activePendingOrdersRes,
+    todayTasksRes,
+    birthdayCustomersRes,
   ] = await Promise.all([
     // MTD income
     supabase
@@ -91,6 +104,38 @@ async function fetchDashboardData() {
       .order('broadcast_date', { ascending: false })
       .limit(1)
       .maybeSingle(),
+
+    // Outstanding B2B invoices (invoiced but not paid)
+    supabase
+      .from('partner_orders')
+      .select('id, invoice_number, total, due_date, status, partners(name)')
+      .in('status', ['invoiced', 'confirmed', 'delivered'])
+      .order('due_date', { ascending: true })
+      .limit(10),
+
+    // Active customer orders (draft/pending/confirmed/in_production/ready/dispatched)
+    supabase
+      .from('orders')
+      .select('id, order_number, order_date, status, total, customers(name)')
+      .in('status', ['draft', 'pending', 'confirmed', 'in_production', 'ready', 'dispatched'])
+      .order('order_date', { ascending: false })
+      .limit(10),
+
+    // Today's tasks from weekly_schedule
+    supabase
+      .from('weekly_schedule')
+      .select('id, task_text, task_type, is_done')
+      .eq('week_of', weekStart)
+      .eq('day_of_week', dayOfWeek)
+      .order('sort_order', { ascending: true }),
+
+    // Customers with birthdays this month
+    supabase
+      .from('customers')
+      .select('id, name, birthday_day, birthday_month, phone')
+      .eq('birthday_month', currentMonth)
+      .eq('is_active', true)
+      .order('birthday_day', { ascending: true }),
   ])
 
   // Compute MTD revenue from ledger rows
@@ -136,6 +181,26 @@ async function fetchDashboardData() {
     lastBroadcast: (broadcastRes.data ?? null) as import('@/types/database').Broadcast | null,
     daysUntilFriday,
     greeting: format(now, "EEEE, MMMM d"),
+    dayOfMonth: now.getDate(),
+    daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+    outstandingInvoices: (outstandingInvoicesRes.data ?? []) as Array<{
+      id: string; invoice_number: string | null; total: number | null
+      due_date: string | null; status: string; partners: { name: string }[] | null
+    }>,
+    activePendingOrders: (activePendingOrdersRes.data ?? []) as Array<{
+      id: string; order_number: string | null; order_date: string
+      status: string; total: number | null; customers: { name: string }[] | null
+    }>,
+    todayTasks: (todayTasksRes.data ?? []) as Array<{
+      id: string; task_text: string; task_type: string; is_done: boolean
+    }>,
+    birthdayCustomers: (birthdayCustomersRes.data ?? []) as Array<{
+      id: string; name: string; birthday_day: number | null
+      birthday_month: number | null; phone: string | null
+    }>,
+    weekOf: weekStart,
+    dayOfWeek,
+    currentMonth,
   }
 }
 
@@ -193,23 +258,42 @@ export default async function DashboardPage() {
           actual={data.mtdRevenue}
           target={data.monthlyGoal}
           monthLabel={data.monthLabel}
+          dayOfMonth={data.dayOfMonth}
+          daysInMonth={data.daysInMonth}
         />
       </div>
 
-      {/* Two-column section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+      {/* Three-column section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         {/* Left column */}
         <div className="space-y-5">
+          <TodayCard
+            tasks={data.todayTasks}
+            weekOf={data.weekOf}
+            dayOfWeek={data.dayOfWeek}
+          />
           <ProductionCard
             batches={data.batches}
             pendingOrdersCount={data.pendingOrdersCount}
           />
+        </div>
+
+        {/* Middle column */}
+        <div className="space-y-5">
+          <PendingOrdersCard orders={data.activePendingOrders} />
           <StockAlertsCard alerts={data.stockAlerts as import('@/types/database').Ingredient[]} />
         </div>
 
         {/* Right column */}
         <div className="space-y-5">
+          <OutstandingInvoicesCard invoices={data.outstandingInvoices} />
           <B2BOrdersCard orders={data.b2bOrders} />
+          {data.birthdayCustomers.length > 0 && (
+            <BirthdayCard
+              customers={data.birthdayCustomers}
+              currentMonth={data.currentMonth}
+            />
+          )}
           <BroadcastCard
             lastBroadcast={data.lastBroadcast}
             daysUntilFriday={data.daysUntilFriday}

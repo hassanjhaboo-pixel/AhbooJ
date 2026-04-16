@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { ReservesClient } from './_components/ReservesClient'
@@ -22,6 +24,12 @@ export default async function ReservesPage() {
 
   return (
     <PageWrapper>
+      <div className="mb-5">
+        <Link href="/finance" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-espresso transition-colors">
+          <ChevronLeft size={15} />
+          Finance
+        </Link>
+      </div>
       <ReservesClient reserves={reserveData ?? []} />
     </PageWrapper>
   )

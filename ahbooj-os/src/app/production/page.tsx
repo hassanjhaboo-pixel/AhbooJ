@@ -84,6 +84,9 @@ export default async function ProductionPage() {
           <p className="text-sm text-muted mt-0.5">{batches.length} batches logged</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/production/wastage" className="text-sm text-muted hover:text-espresso transition-colors">
+            Wastage Log →
+          </Link>
           <Link href="/production/shopping-list" className="text-sm text-muted hover:text-espresso transition-colors">
             Shopping List →
           </Link>

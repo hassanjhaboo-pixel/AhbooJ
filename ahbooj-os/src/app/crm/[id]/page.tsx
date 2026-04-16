@@ -6,6 +6,7 @@ import { formatTTD, formatDate } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { CustomerEditForm } from './_components/CustomerEditForm'
+import { MessagingTemplates } from './_components/MessagingTemplates'
 
 type CustomerDetail = {
   id: string
@@ -22,6 +23,8 @@ type CustomerDetail = {
   notes: string | null
   is_active: boolean
   created_at: string
+  birthday_month: number | null
+  birthday_day: number | null
 }
 
 type OrderRow = {
@@ -59,7 +62,7 @@ export default async function CustomerPage({
 
   const { data: customerData } = await supabase
     .from('customers')
-    .select('id, name, phone, email, instagram_handle, channel, on_whatsapp_list, on_email_list, total_orders, total_spend, last_order_date, notes, is_active, created_at')
+    .select('id, name, phone, email, instagram_handle, channel, on_whatsapp_list, on_email_list, total_orders, total_spend, last_order_date, notes, is_active, created_at, birthday_month, birthday_day')
     .eq('id', id)
     .maybeSingle() as unknown as { data: CustomerDetail | null }
 
@@ -191,9 +194,10 @@ export default async function CustomerPage({
           )}
         </div>
 
-        {/* Right: edit form */}
-        <div>
+        {/* Right: edit form + messaging */}
+        <div className="space-y-5">
           <CustomerEditForm customer={customerData} />
+          <MessagingTemplates customer={customerData} />
         </div>
       </div>
     </PageWrapper>

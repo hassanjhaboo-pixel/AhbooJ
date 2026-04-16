@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Package, ShoppingCart } from 'lucide-react'
+import { Package, ShoppingCart, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { formatTTD, formatDate } from '@/lib/formatting'
 import { cn } from '@/lib/utils'
 import { AddPurchaseModal } from './AddPurchaseModal'
 import { StockAdjustModal } from './StockAdjustModal'
+import { AddIngredientModal } from './AddIngredientModal'
+import { ReorderPanel } from './ReorderPanel'
+import { PriceHistoryTab } from './PriceHistoryTab'
 
 interface Ingredient {
   id: string
@@ -27,7 +31,7 @@ interface Purchase {
   cost_per_unit_calculated: number | null
   purchase_date: string
   notes: string | null
-  ingredients: { name: string }[] | null
+  ingredients: { id: string; name: string }[] | null
 }
 
 interface InventoryClientProps {
@@ -54,6 +58,28 @@ const CATEGORY_BADGE: Record<string, 'terracotta' | 'gold' | 'green' | 'muted'> 
   packaging:   'muted',
 }
 
+// Unit conversion factors (to base unit)
+const UNIT_CONVERSIONS: Record<string, Record<string, number>> = {
+  g:  { g: 1, kg: 0.001 },
+  kg: { kg: 1, g: 1000 },
+  ml: { ml: 1, L: 0.001 },
+  L:  { L: 1, ml: 1000 },
+}
+
+function convertUnit(value: number, fromUnit: string, toUnit: string): number {
+  if (fromUnit === toUnit) return value
+  const conversions = UNIT_CONVERSIONS[fromUnit]
+  if (!conversions || !conversions[toUnit]) return value
+  return value * conversions[toUnit]
+}
+
+function getDisplayUnit(baseUnit: string, displayMode: 'base' | 'alt'): string {
+  if (displayMode === 'base') return baseUnit
+  if (baseUnit === 'g') return 'kg'
+  if (baseUnit === 'ml') return 'L'
+  return baseUnit
+}
+
 function stockStatus(ing: Ingredient): 'ok' | 'low' | 'out' {
   if (ing.stock_on_hand <= 0) return 'out'
   if (ing.low_stock_threshold > 0 && ing.stock_on_hand <= ing.low_stock_threshold) return 'low'
@@ -62,8 +88,11 @@ function stockStatus(ing: Ingredient): 'ok' | 'low' | 'out' {
 
 export function InventoryClient({ ingredients, recentPurchases }: InventoryClientProps) {
   const [category, setCategory] = useState('all')
+  const [unitMode, setUnitMode] = useState<'base' | 'alt'>('base')
+  const [logTab, setLogTab] = useState<'purchases' | 'price_history'>('purchases')
   const [purchaseTarget, setPurchaseTarget] = useState<Ingredient | null>(null)
   const [adjustTarget, setAdjustTarget]     = useState<Ingredient | null>(null)
+  const [showAddIngredient, setShowAddIngredient] = useState(false)
 
   const outCount = ingredients.filter(i => stockStatus(i) === 'out').length
   const lowCount = ingredients.filter(i => stockStatus(i) === 'low').length
@@ -78,8 +107,26 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
     return diff !== 0 ? diff : a.name.localeCompare(b.name)
   })
 
+  function displayQty(ing: Ingredient) {
+    const dispUnit = getDisplayUnit(ing.unit, unitMode)
+    const converted = convertUnit(ing.stock_on_hand, ing.unit, dispUnit)
+    const precision = dispUnit === 'kg' || dispUnit === 'L' ? 3 : 0
+    return { value: precision > 0 ? converted.toFixed(precision) : converted, unit: dispUnit }
+  }
+  function displayThreshold(ing: Ingredient) {
+    const dispUnit = getDisplayUnit(ing.unit, unitMode)
+    const converted = convertUnit(ing.low_stock_threshold, ing.unit, dispUnit)
+    const precision = dispUnit === 'kg' || dispUnit === 'L' ? 3 : 0
+    return { value: precision > 0 ? converted.toFixed(precision) : converted, unit: dispUnit }
+  }
+
+  const hasAltUnits = ingredients.some(i => i.unit === 'g' || i.unit === 'ml')
+
   return (
     <>
+      {/* Reorder panel — shown at top if there are alerts */}
+      <ReorderPanel ingredients={ingredients} />
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-cream rounded-card shadow-card border border-cream/60 p-4 text-center">
@@ -108,29 +155,47 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
 
       {/* Ingredient table */}
       <div className="bg-cream rounded-card shadow-card border border-cream/60 mb-6">
-        {/* Category tabs */}
-        <div className="flex items-center gap-1 p-3 border-b border-espresso/10 overflow-x-auto">
-          {CATEGORIES.map(cat => {
-            const catCount = cat.value === 'all'
-              ? ingredients.length
-              : ingredients.filter(i => i.category === cat.value).length
-            if (cat.value !== 'all' && catCount === 0) return null
-            return (
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-3 py-3 border-b border-espresso/10 gap-2 flex-wrap">
+          {/* Category tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {CATEGORIES.map(cat => {
+              const catCount = cat.value === 'all'
+                ? ingredients.length
+                : ingredients.filter(i => i.category === cat.value).length
+              if (cat.value !== 'all' && catCount === 0) return null
+              return (
+                <button
+                  key={cat.value}
+                  onClick={() => setCategory(cat.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
+                    category === cat.value
+                      ? 'bg-espresso text-cream'
+                      : 'text-muted hover:text-espresso hover:bg-espresso/5'
+                  )}
+                >
+                  {cat.label}
+                  <span className="ml-1.5 opacity-60">{catCount}</span>
+                </button>
+              )
+            })}
+          </div>
+          {/* Actions */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {hasAltUnits && (
               <button
-                key={cat.value}
-                onClick={() => setCategory(cat.value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
-                  category === cat.value
-                    ? 'bg-espresso text-cream'
-                    : 'text-muted hover:text-espresso hover:bg-espresso/5'
-                )}
+                onClick={() => setUnitMode(m => m === 'base' ? 'alt' : 'base')}
+                className="px-3 py-1.5 text-xs font-medium text-muted bg-espresso/5 hover:bg-espresso/10 rounded-lg transition-colors"
               >
-                {cat.label}
-                <span className="ml-1.5 opacity-60">{catCount}</span>
+                Show in {unitMode === 'base' ? 'kg / L' : 'g / ml'}
               </button>
-            )
-          })}
+            )}
+            <Button variant="primary" size="sm" onClick={() => setShowAddIngredient(true)}>
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Add Ingredient
+            </Button>
+          </div>
         </div>
 
         {sorted.length === 0 ? (
@@ -164,6 +229,8 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
               <tbody className="divide-y divide-espresso/5">
                 {sorted.map(ing => {
                   const status = stockStatus(ing)
+                  const qty = displayQty(ing)
+                  const thresh = displayThreshold(ing)
                   return (
                     <tr key={ing.id} className="hover:bg-espresso/5 transition-colors">
                       <td className="px-5 py-3">
@@ -189,13 +256,13 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
                           status === 'out' ? 'text-status-red' :
                           status === 'low' ? 'text-amber-700' : 'text-espresso'
                         )}>
-                          {ing.stock_on_hand}
+                          {qty.value}
                         </span>
-                        <span className="text-muted ml-1 text-xs">{ing.unit}</span>
+                        <span className="text-muted ml-1 text-xs">{qty.unit}</span>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-muted text-xs">
                         {ing.low_stock_threshold > 0
-                          ? `${ing.low_stock_threshold} ${ing.unit}`
+                          ? `${thresh.value} ${thresh.unit}`
                           : '—'}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
@@ -227,7 +294,37 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
         )}
       </div>
 
-      {/* Recent Purchases */}
+      {/* Log tabs */}
+      <div className="flex items-center gap-1 border-b border-espresso/10 mb-0 -mt-3 mb-4">
+        {[
+          { value: 'purchases',     label: 'Purchase Log' },
+          { value: 'price_history', label: 'Price History' },
+        ].map(tab => (
+          <button
+            key={tab.value}
+            onClick={() => setLogTab(tab.value as typeof logTab)}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+              logTab === tab.value
+                ? 'border-terracotta text-terracotta'
+                : 'border-transparent text-muted hover:text-espresso'
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {logTab === 'price_history' ? (
+        <PriceHistoryTab
+          purchases={recentPurchases.map(p => ({
+            ...p,
+            ingredients: p.ingredients ? p.ingredients.map(i => ({ id: (i as {id?: string}).id ?? '', name: i.name })) : null,
+          }))}
+          ingredients={ingredients}
+        />
+      ) : (
+      /* Recent Purchases */
       <div className="bg-cream rounded-card shadow-card border border-cream/60">
         <div className="flex items-center justify-between px-5 py-4 border-b border-espresso/10">
           <h3 className="font-display font-semibold text-espresso">Purchase Log</h3>
@@ -281,6 +378,7 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
           </div>
         )}
       </div>
+      )}
 
       {/* Modals */}
       {purchaseTarget && (
@@ -294,6 +392,9 @@ export function InventoryClient({ ingredients, recentPurchases }: InventoryClien
           ingredient={adjustTarget}
           onClose={() => setAdjustTarget(null)}
         />
+      )}
+      {showAddIngredient && (
+        <AddIngredientModal onClose={() => setShowAddIngredient(false)} />
       )}
     </>
   )

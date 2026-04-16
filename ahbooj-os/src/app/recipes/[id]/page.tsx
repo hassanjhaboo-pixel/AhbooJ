@@ -8,6 +8,7 @@ import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { RecipeScaler } from './_components/RecipeScaler'
+import { LiveCostingPanel } from './_components/LiveCostingPanel'
 
 const CATEGORY_LABELS: Record<string, string> = {
   panna_cotta: 'Panna Cotta',
@@ -82,20 +83,28 @@ export default async function RecipePage({
   if (recipeRes.error || !recipeRes.data) notFound()
   const recipe = recipeRes.data!
 
-  const batchesRes = await supabase
-    .from('production_batches')
-    .select('id, batch_number, production_date, planned_yield, actual_yield, batch_cost, qc_passed')
-    .eq('recipe_id', id)
-    .order('production_date', { ascending: false })
-    .limit(8) as unknown as BatchQueryResult
+  const [batchesRes, productRes, allIngredientsRes] = await Promise.all([
+    supabase
+      .from('production_batches')
+      .select('id, batch_number, production_date, planned_yield, actual_yield, batch_cost, qc_passed')
+      .eq('recipe_id', id)
+      .order('production_date', { ascending: false })
+      .limit(8) as unknown as Promise<BatchQueryResult>,
+    supabase
+      .from('products')
+      .select('id, name, direct_price, cafe_price')
+      .eq('recipe_id', id)
+      .maybeSingle() as unknown as Promise<ProductQueryResult>,
+    supabase
+      .from('ingredients')
+      .select('id, name, unit, cost_per_unit')
+      .order('name'),
+  ])
   const batches = batchesRes.data ?? []
-
-  const productRes = await supabase
-    .from('products')
-    .select('id, name, direct_price, cafe_price')
-    .eq('recipe_id', id)
-    .maybeSingle() as unknown as ProductQueryResult
   const product = productRes.data
+  const allIngredients = (allIngredientsRes.data ?? []) as Array<{
+    id: string; name: string; unit: string; cost_per_unit: number
+  }>
 
   // Costing
   const scalerIngredients = recipe.recipe_ingredients
@@ -248,14 +257,8 @@ export default async function RecipePage({
         </div>
 
         {/* Right: scaler + costing (2/5) */}
-        <div className="xl:col-span-2">
-          {scalerIngredients.length === 0 ? (
-            <div className="bg-cream rounded-card shadow-card border border-cream/60 p-8 text-center">
-              <p className="text-muted text-sm">
-                Add ingredients to this recipe to see costing and pricing analysis.
-              </p>
-            </div>
-          ) : (
+        <div className="xl:col-span-2 space-y-5">
+          {scalerIngredients.length > 0 && (
             <RecipeScaler
               baseYield={recipe.base_yield_units}
               yieldUnitLabel={recipe.yield_unit_label}
@@ -264,6 +267,16 @@ export default async function RecipePage({
               existingCafePrice={product?.cafe_price}
             />
           )}
+          <LiveCostingPanel
+            recipeIngredients={recipe.recipe_ingredients.map(ri => ({
+              id: ri.id,
+              quantity: ri.quantity,
+              unit: ri.unit,
+              ingredient: ri.ingredients ?? null,
+            }))}
+            allIngredients={allIngredients}
+            recipe={{ id: recipe.id, base_yield_units: recipe.base_yield_units }}
+          />
         </div>
       </div>
     </PageWrapper>

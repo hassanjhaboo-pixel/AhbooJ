@@ -7,6 +7,7 @@ import { formatTTD, formatPercent } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { ProductEditForm } from './_components/ProductEditForm'
+import { ProductTiersPanel } from './_components/ProductTiersPanel'
 
 type ProductDetail = {
   id: string
@@ -52,11 +53,19 @@ export default async function ProductPage({
 
   if (!productData) notFound()
 
-  const { data: recipeData } = await supabase
-    .from('recipes')
-    .select('id, name, base_yield_units, recipe_ingredients(quantity, ingredients(cost_per_unit))')
-    .eq('is_active', true)
-    .order('name') as unknown as { data: RecipeRow[] | null }
+  const [recipeQueryResult, tiersQueryResult] = await Promise.all([
+    supabase
+      .from('recipes')
+      .select('id, name, base_yield_units, recipe_ingredients(quantity, ingredients(cost_per_unit))')
+      .eq('is_active', true)
+      .order('name') as unknown as Promise<{ data: RecipeRow[] | null }>,
+    supabase
+      .from('product_tiers')
+      .select('id, tier_name, price, is_default, notes')
+      .eq('product_id', id)
+      .order('price', { ascending: true }),
+  ])
+  const recipeData = recipeQueryResult.data
 
   const recipes = (recipeData ?? []).map(r => {
     const ings = r.recipe_ingredients.map(ri => ({
@@ -140,7 +149,14 @@ export default async function ProductPage({
         </div>
       </div>
 
-      <ProductEditForm product={productData} recipes={recipes} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <ProductEditForm product={productData} recipes={recipes} />
+        <ProductTiersPanel
+          productId={productData.id}
+          costPerUnit={productData.cost_per_unit}
+          initial={(tiersQueryResult.data ?? []) as Array<{ id: string; tier_name: string; price: number; is_default: boolean; notes: string | null }>}
+        />
+      </div>
     </PageWrapper>
   )
 }

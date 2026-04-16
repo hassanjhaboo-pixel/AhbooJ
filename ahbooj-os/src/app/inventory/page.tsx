@@ -22,7 +22,7 @@ type Purchase = {
   cost_per_unit_calculated: number | null
   purchase_date: string
   notes: string | null
-  ingredients: { name: string }[] | null
+  ingredients: { id: string; name: string }[] | null
 }
 
 export default async function InventoryPage() {
@@ -35,9 +35,9 @@ export default async function InventoryPage() {
 
   const { data: purchaseData } = await supabase
     .from('ingredient_purchases')
-    .select('id, ingredient_id, quantity_purchased, unit, total_price_paid, cost_per_unit_calculated, purchase_date, notes, ingredients(name)')
+    .select('id, ingredient_id, quantity_purchased, unit, total_price_paid, cost_per_unit_calculated, purchase_date, notes, ingredients(id, name)')
     .order('purchase_date', { ascending: false })
-    .limit(50) as unknown as { data: Purchase[] | null; error: unknown }
+    .limit(200) as unknown as { data: Purchase[] | null; error: unknown }
 
   const ingredients = ingredientData ?? []
   const recentPurchases = purchaseData ?? []

@@ -18,23 +18,27 @@ type Order = {
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  draft:         'Draft',
   pending:       'Pending',
   confirmed:     'Confirmed',
   in_production: 'In Production',
   ready:         'Ready',
+  dispatched:    'Dispatched',
   delivered:     'Delivered',
   cancelled:     'Cancelled',
 }
 const STATUS_VARIANT: Record<string, 'amber' | 'terracotta' | 'gold' | 'green' | 'muted' | 'red'> = {
+  draft:         'muted',
   pending:       'amber',
   confirmed:     'terracotta',
   in_production: 'gold',
   ready:         'green',
+  dispatched:    'green',
   delivered:     'muted',
   cancelled:     'red',
 }
 
-const PIPELINE = ['pending', 'confirmed', 'in_production', 'ready']
+const PIPELINE = ['draft', 'pending', 'confirmed', 'in_production', 'ready', 'dispatched']
 
 export default async function OrdersPage() {
   const supabase = await createClient()

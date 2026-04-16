@@ -44,6 +44,7 @@ export function AddEntryModal({ onClose }: { onClose: () => void }) {
       description: description.trim(),
       amount:      parseFloat(amount),
       entry_date:  entryDate,
+      source_type: 'manual',
     })
 
     if (err) { setError(err.message); setSaving(false); return }

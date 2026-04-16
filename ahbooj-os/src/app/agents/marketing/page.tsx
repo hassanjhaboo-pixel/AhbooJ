@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { AgentRunner } from '../_components/AgentRunner'
@@ -16,6 +18,12 @@ export default async function MarketingAgentPage() {
 
   return (
     <PageWrapper>
+      <div className="mb-5">
+        <Link href="/agents" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-espresso transition-colors">
+          <ChevronLeft size={15} />
+          Agents
+        </Link>
+      </div>
       <AgentRunner
         agentType="marketing"
         title="Marketing Agent"

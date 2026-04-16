@@ -10,6 +10,7 @@ import {
   BarChart2,
   Megaphone,
   Bot,
+  Layers,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -28,7 +29,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Orders',     href: '/orders',     icon: ShoppingCart },
   { label: 'CRM',        href: '/crm',        icon: Users },
   { label: 'Partners',   href: '/partners',   icon: Building2 },
-  { label: 'Finance',    href: '/finance',    icon: BarChart2 },
-  { label: 'Marketing',  href: '/marketing',  icon: Megaphone },
-  { label: 'Agents',     href: '/agents',     icon: Bot },
+  { label: 'Finance',     href: '/finance',     icon: BarChart2 },
+  { label: 'Marketing',   href: '/marketing',   icon: Megaphone },
+  { label: 'Agents',      href: '/agents',      icon: Bot },
+  { label: 'Categories',  href: '/categories',  icon: Layers },
 ]
