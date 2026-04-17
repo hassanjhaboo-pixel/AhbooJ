@@ -22,9 +22,18 @@ interface Product {
   cafe_price: number | null
 }
 
+interface Tier {
+  id: string
+  tier_name: string
+  price: number
+  is_default: boolean
+  notes: string | null
+}
+
 interface LineItem {
   key: number
   product_id: string
+  tier_id: string
   qty: string
   unit_price: string
 }
@@ -54,6 +63,7 @@ function genOrderNumber(): string {
 
 export function OrderForm({ customers, products }: { customers: Customer[]; products: Product[] }) {
   const router = useRouter()
+  const supabase = createClient()
   let nextKey = 1
 
   // Customer
@@ -71,17 +81,56 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
 
   // Line items
   const [rows, setRows] = useState<LineItem[]>([
-    { key: 0, product_id: '', qty: '1', unit_price: '' },
+    { key: 0, product_id: '', tier_id: '', qty: '1', unit_price: '' },
   ])
+
+  // product_id → tiers map; undefined = not yet fetched, [] = fetched but none
+  const [productTiers, setProductTiers] = useState<Record<string, Tier[]>>({})
 
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
 
-  // Derived
   const isNewCustomer = customerId === 'new'
 
+  async function fetchTiersForProduct(productId: string, rowKey: number) {
+    // Already fetched
+    if (productTiers[productId] !== undefined) {
+      const tiers = productTiers[productId]
+      const def = tiers.find(t => t.is_default)
+      if (def) {
+        setRows(r => r.map(row => row.key === rowKey
+          ? { ...row, tier_id: def.id, unit_price: String(def.price) }
+          : row
+        ))
+      }
+      return
+    }
+
+    // Mark as fetching (empty array = in-flight, prevents duplicate requests)
+    setProductTiers(prev => ({ ...prev, [productId]: [] }))
+
+    const { data } = await supabase
+      .from('product_tiers')
+      .select('id, tier_name, price, is_default, notes')
+      .eq('product_id', productId)
+      .order('price', { ascending: true }) as unknown as { data: Tier[] | null }
+
+    const tiers = data ?? []
+    setProductTiers(prev => ({ ...prev, [productId]: tiers }))
+
+    if (tiers.length > 0) {
+      const def = tiers.find(t => t.is_default)
+      if (def) {
+        setRows(r => r.map(row => row.key === rowKey
+          ? { ...row, tier_id: def.id, unit_price: String(def.price) }
+          : row
+        ))
+      }
+    }
+  }
+
   function addRow() {
-    setRows(r => [...r, { key: nextKey++, product_id: '', qty: '1', unit_price: '' }])
+    setRows(r => [...r, { key: nextKey++, product_id: '', tier_id: '', qty: '1', unit_price: '' }])
   }
 
   function removeRow(key: number) {
@@ -92,12 +141,26 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
     setRows(r => r.map(row => {
       if (row.key !== key) return row
       const updated = { ...row, [field]: value }
-      // Auto-fill price when product changes
-      if (field === 'product_id' && value) {
-        const p = products.find(p => p.id === value)
-        if (p) updated.unit_price = (p.direct_price ?? p.cafe_price ?? '').toString()
+      if (field === 'product_id') {
+        updated.tier_id = ''
+        if (value) {
+          const p = products.find(p => p.id === value)
+          if (p) updated.unit_price = String(p.direct_price ?? p.cafe_price ?? '')
+          fetchTiersForProduct(value, key)
+        } else {
+          updated.unit_price = ''
+        }
       }
       return updated
+    }))
+  }
+
+  function selectTier(rowKey: number, productId: string, tierId: string) {
+    const tier = productTiers[productId]?.find(t => t.id === tierId)
+    setRows(r => r.map(row => row.key !== rowKey ? row : {
+      ...row,
+      tier_id:    tierId,
+      unit_price: tier ? String(tier.price) : row.unit_price,
     }))
   }
 
@@ -106,17 +169,12 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (validRows.length === 0) {
-      setError('Add at least one product line item.')
-      return
-    }
+    if (validRows.length === 0) { setError('Add at least one product line item.'); return }
     setSaving(true)
     setError(null)
 
-    const supabase = createClient()
     let resolvedCustomerId: string | null = null
 
-    // Create new customer if needed
     if (isNewCustomer && newName.trim()) {
       const { data: custData, error: custErr } = await supabase
         .from('customers')
@@ -140,7 +198,6 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
       resolvedCustomerId = customerId
     }
 
-    // Insert order
     const orderNumber = genOrderNumber()
     const { data: orderData, error: orderErr } = await supabase
       .from('orders')
@@ -163,15 +220,14 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
       return
     }
 
-    // Insert line items
-    const items = validRows.map(r => ({
-      order_id:   orderData.id,
-      product_id: r.product_id,
-      quantity:   parseInt(r.qty),
-      unit_price: parseFloat(r.unit_price),
-    }))
-
-    const { error: itemsErr } = await supabase.from('order_items').insert(items)
+    const { error: itemsErr } = await supabase.from('order_items').insert(
+      validRows.map(r => ({
+        order_id:   orderData.id,
+        product_id: r.product_id,
+        quantity:   parseInt(r.qty),
+        unit_price: parseFloat(r.unit_price),
+      }))
+    )
 
     if (itemsErr) {
       setError(itemsErr.message)
@@ -252,71 +308,91 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
       {/* Line items */}
       <div className="bg-cream rounded-card shadow-card border border-cream/60 p-5">
         <h3 className="font-display font-semibold text-espresso mb-4">Items</h3>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {rows.map((row, idx) => {
-            const product = products.find(p => p.id === row.product_id)
+            const tiers = row.product_id ? (productTiers[row.product_id] ?? []) : []
             const lineTotal = parseFloat(row.qty) > 0 && parseFloat(row.unit_price) > 0
-              ? parseFloat(row.qty) * parseFloat(row.unit_price)
-              : null
+              ? parseFloat(row.qty) * parseFloat(row.unit_price) : null
 
             return (
-              <div key={row.key} className="grid grid-cols-12 gap-2 items-start">
-                {/* Product */}
-                <div className="col-span-6">
-                  {idx === 0 && <label className={labelCls}>Product</label>}
-                  <select
-                    value={row.product_id}
-                    onChange={e => updateRow(row.key, 'product_id', e.target.value)}
-                    className={inputCls}
-                  >
-                    <option value="">— Select product —</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}{p.sku ? ` (${p.sku})` : ''}
-                      </option>
-                    ))}
-                  </select>
+              <div key={row.key} className="space-y-1.5">
+                <div className="grid grid-cols-12 gap-2 items-start">
+                  {/* Product */}
+                  <div className="col-span-6">
+                    {idx === 0 && <label className={labelCls}>Product</label>}
+                    <select
+                      value={row.product_id}
+                      onChange={e => updateRow(row.key, 'product_id', e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">— Select product —</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}{p.sku ? ` (${p.sku})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Qty */}
+                  <div className="col-span-2">
+                    {idx === 0 && <label className={labelCls}>Qty</label>}
+                    <input
+                      type="number" min="1" step="1"
+                      value={row.qty}
+                      onChange={e => updateRow(row.key, 'qty', e.target.value)}
+                      className={inputCls}
+                    />
+                  </div>
+                  {/* Unit price */}
+                  <div className="col-span-2">
+                    {idx === 0 && <label className={labelCls}>Price</label>}
+                    <input
+                      type="number" min="0" step="0.01"
+                      value={row.unit_price}
+                      onChange={e => updateRow(row.key, 'unit_price', e.target.value)}
+                      className={inputCls}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  {/* Line total */}
+                  <div className="col-span-1 flex items-center justify-end">
+                    {idx === 0 && <div className={labelCls}>&nbsp;</div>}
+                    <span className="text-sm text-muted tabular-nums">
+                      {lineTotal ? formatTTD(lineTotal) : ''}
+                    </span>
+                  </div>
+                  {/* Remove */}
+                  <div className="col-span-1 flex items-center justify-end">
+                    {idx === 0 && <div className={labelCls}>&nbsp;</div>}
+                    <button
+                      type="button"
+                      onClick={() => removeRow(row.key)}
+                      disabled={rows.length === 1}
+                      className="p-1.5 text-muted hover:text-status-red disabled:opacity-30 transition-colors"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
-                {/* Qty */}
-                <div className="col-span-2">
-                  {idx === 0 && <label className={labelCls}>Qty</label>}
-                  <input
-                    type="number" min="1" step="1"
-                    value={row.qty}
-                    onChange={e => updateRow(row.key, 'qty', e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-                {/* Unit price */}
-                <div className="col-span-2">
-                  {idx === 0 && <label className={labelCls}>Price</label>}
-                  <input
-                    type="number" min="0" step="0.01"
-                    value={row.unit_price}
-                    onChange={e => updateRow(row.key, 'unit_price', e.target.value)}
-                    className={inputCls}
-                    placeholder="0.00"
-                  />
-                </div>
-                {/* Line total */}
-                <div className="col-span-1 flex items-center justify-end">
-                  {idx === 0 && <div className={labelCls}>&nbsp;</div>}
-                  <span className="text-sm text-muted tabular-nums">
-                    {lineTotal ? formatTTD(lineTotal) : ''}
-                  </span>
-                </div>
-                {/* Remove */}
-                <div className="col-span-1 flex items-center justify-end">
-                  {idx === 0 && <div className={labelCls}>&nbsp;</div>}
-                  <button
-                    type="button"
-                    onClick={() => removeRow(row.key)}
-                    disabled={rows.length === 1}
-                    className="p-1.5 text-muted hover:text-status-red disabled:opacity-30 transition-colors"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+
+                {/* Tier selector — shown when the selected product has tiers */}
+                {tiers.length > 0 && (
+                  <div className="pl-0 pr-[calc(8.333%*2+0.5rem+0.375rem)]">
+                    <select
+                      value={row.tier_id}
+                      onChange={e => selectTier(row.key, row.product_id, e.target.value)}
+                      className={cn(inputCls, 'text-xs bg-espresso/5 border-espresso/10')}
+                    >
+                      <option value="">— Select tier / size —</option>
+                      {tiers.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.tier_name}{t.notes ? ` — ${t.notes}` : ''} · {formatTTD(t.price)}
+                          {t.is_default ? ' ★' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -331,7 +407,6 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
           Add item
         </button>
 
-        {/* Total */}
         {validRows.length > 0 && (
           <div className="mt-4 pt-3 border-t border-espresso/10 flex items-center justify-between">
             <span className="text-sm text-muted">{validRows.length} item{validRows.length !== 1 ? 's' : ''}</span>

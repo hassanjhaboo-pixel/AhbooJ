@@ -51,11 +51,24 @@ const PAYMENT_VARIANT: Record<string, 'red' | 'amber' | 'green'> = {
 export default async function OrdersPage() {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  // Try with payment_status (v2 schema). If that column doesn't exist yet
+  // (migration pending), fall back silently so the page still loads.
+  let res = await supabase
     .from('orders')
     .select('id, order_number, order_date, status, payment_status, channel, total, customers(name)')
     .order('order_date', { ascending: false })
     .limit(100) as unknown as { data: Order[] | null; error: { message: string } | null }
+
+  if (res.error?.message?.toLowerCase().includes('payment_status')) {
+    const fb = await supabase
+      .from('orders')
+      .select('id, order_number, order_date, status, channel, total, customers(name)')
+      .order('order_date', { ascending: false })
+      .limit(100) as unknown as { data: Order[] | null; error: { message: string } | null }
+    res = { data: (fb.data ?? []).map(o => ({ ...o, payment_status: null })), error: fb.error }
+  }
+
+  const { data, error } = res
 
   const orders = data ?? []
 

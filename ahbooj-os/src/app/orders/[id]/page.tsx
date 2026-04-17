@@ -43,7 +43,9 @@ export default async function OrderPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const { data } = await supabase
+  type QueryResult = { data: OrderDetail | null; error: { message: string } | null }
+
+  let res = await supabase
     .from('orders')
     .select(`
       id, order_number, order_date, status, payment_status, channel, subtotal, total, notes,
@@ -51,9 +53,24 @@ export default async function OrderPage({
       order_items(id, quantity, unit_price, line_total, products(id, name, sku))
     `)
     .eq('id', id)
-    .maybeSingle() as unknown as { data: OrderDetail | null }
+    .maybeSingle() as unknown as QueryResult
 
-  if (!data) notFound()
+  // payment_status column may not exist if v2 migration hasn't been applied yet
+  if (res.error?.message?.toLowerCase().includes('payment_status')) {
+    const fb = await supabase
+      .from('orders')
+      .select(`
+        id, order_number, order_date, status, channel, subtotal, total, notes,
+        customers(id, name, phone, email, instagram_handle),
+        order_items(id, quantity, unit_price, line_total, products(id, name, sku))
+      `)
+      .eq('id', id)
+      .maybeSingle() as unknown as QueryResult
+    res = { data: fb.data ? { ...fb.data, payment_status: null } : null, error: fb.error }
+  }
+
+  if (!res.data) notFound()
+  const data = res.data!
 
   const customer = data.customers?.[0] ?? null
 

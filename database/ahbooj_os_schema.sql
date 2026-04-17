@@ -153,6 +153,9 @@ CREATE TABLE IF NOT EXISTS customers (
   total_orders integer DEFAULT 0,
   total_spend numeric(10,2) DEFAULT 0,
   last_order_date date,
+  birthday_month integer CHECK (birthday_month BETWEEN 1 AND 12),
+  birthday_day integer CHECK (birthday_day BETWEEN 1 AND 31),
+  referral_count integer DEFAULT 0,
   notes text,
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now()
@@ -167,6 +170,9 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_id uuid REFERENCES customers(id),
   order_date date DEFAULT CURRENT_DATE,
   status text DEFAULT 'pending',
+  payment_status text DEFAULT 'unpaid',
+  paid_at timestamptz,
+  delivery_date date,
   channel text,
   subtotal numeric(10,2),
   total numeric(10,2),
@@ -287,6 +293,8 @@ CREATE TABLE IF NOT EXISTS ledger (
   amount numeric(10,2) NOT NULL,
   reference_id uuid,
   reference_type text,
+  source_type text,
+  source_id uuid,
   created_at timestamptz DEFAULT now()
 );
 
@@ -322,6 +330,11 @@ CREATE TABLE IF NOT EXISTS goals (
   order_count_actual integer DEFAULT 0,
   customer_count_target integer,
   customer_count_actual integer DEFAULT 0,
+  milestone_25 boolean DEFAULT false,
+  milestone_50 boolean DEFAULT false,
+  milestone_75 boolean DEFAULT false,
+  milestone_100 boolean DEFAULT false,
+  milestone_notes text,
   notes text,
   created_at timestamptz DEFAULT now()
 );
@@ -383,6 +396,64 @@ CREATE TABLE IF NOT EXISTS agent_runs (
 );
 
 -- ============================================================
+-- CATEGORIES (v2)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS categories (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text UNIQUE NOT NULL,
+  slug text UNIQUE NOT NULL,
+  applies_to text[] DEFAULT '{}',
+  sort_order integer DEFAULT 0,
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- ============================================================
+-- PRODUCT TIERS (v2)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS product_tiers (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id uuid REFERENCES products(id) ON DELETE CASCADE,
+  tier_name text NOT NULL,
+  price numeric(10,2) NOT NULL,
+  is_default boolean DEFAULT false,
+  notes text,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (product_id, tier_name)
+);
+
+-- ============================================================
+-- WASTAGE LOG (v2)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS wastage_log (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  batch_id uuid REFERENCES production_batches(id) ON DELETE SET NULL,
+  ingredient_id uuid REFERENCES ingredients(id) ON DELETE SET NULL,
+  waste_date date DEFAULT CURRENT_DATE,
+  quantity_wasted numeric(10,3) NOT NULL,
+  unit text NOT NULL,
+  estimated_cost numeric(10,2),
+  reason text,
+  notes text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- ============================================================
+-- WEEKLY SCHEDULE / TASK LIST (v2)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS weekly_schedule (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  week_of date NOT NULL,
+  day_of_week integer NOT NULL,
+  task_text text NOT NULL,
+  task_type text DEFAULT 'task',
+  is_done boolean DEFAULT false,
+  done_at timestamptz,
+  sort_order integer DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+
+-- ============================================================
 -- RLS POLICIES
 -- ============================================================
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -411,6 +482,10 @@ ALTER TABLE tax_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE broadcasts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_tiers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wastage_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE weekly_schedule ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE
@@ -421,7 +496,8 @@ DECLARE
     'partners','partner_orders','partner_order_items','production_batches',
     'production_qc_log','production_shopping_lists','shopping_list_items',
     'ledger','owner_draws','reserves','goals','tax_entries',
-    'email_campaigns','broadcasts','agent_runs'
+    'email_campaigns','broadcasts','agent_runs',
+    'categories','product_tiers','wastage_log','weekly_schedule'
   ];
 BEGIN
   FOREACH tbl IN ARRAY tbls LOOP
@@ -435,6 +511,16 @@ END $$;
 -- ============================================================
 -- SEED DATA
 -- ============================================================
+
+-- Default categories
+INSERT INTO categories (name, slug, applies_to, sort_order) VALUES
+  ('Panna Cotta', 'panna_cotta', ARRAY['products','recipes','ingredients'], 1),
+  ('Lemon Bar',   'lemon_bar',   ARRAY['products','recipes','ingredients'], 2),
+  ('Truffle',     'truffle',     ARRAY['products','recipes','ingredients'], 3),
+  ('Chai',        'chai',        ARRAY['products','recipes','ingredients'], 4),
+  ('Packaging',   'packaging',   ARRAY['ingredients'],                      5),
+  ('Shared',      'shared',      ARRAY['ingredients'],                      6)
+ON CONFLICT (slug) DO NOTHING;
 
 -- Kafneo B2B partner
 INSERT INTO partners (name, contact_name, payment_terms, is_active)
@@ -491,61 +577,23 @@ GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON
-  settings,
-  ingredients,
-  ingredient_purchases,
-  recipes,
-  recipe_ingredients,
-  products,
-  suppliers,
-  supplier_payments,
-  customers,
-  orders,
-  order_items,
-  partners,
-  partner_orders,
-  partner_order_items,
-  production_batches,
-  production_qc_log,
-  production_shopping_lists,
-  shopping_list_items,
-  ledger,
-  owner_draws,
-  reserves,
-  goals,
-  tax_entries,
-  email_campaigns,
-  broadcasts,
-  agent_runs
+  settings, ingredients, ingredient_purchases, recipes, recipe_ingredients,
+  products, suppliers, supplier_payments, customers, orders, order_items,
+  partners, partner_orders, partner_order_items, production_batches,
+  production_qc_log, production_shopping_lists, shopping_list_items,
+  ledger, owner_draws, reserves, goals, tax_entries,
+  email_campaigns, broadcasts, agent_runs,
+  categories, product_tiers, wastage_log, weekly_schedule
 TO anon;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON
-  settings,
-  ingredients,
-  ingredient_purchases,
-  recipes,
-  recipe_ingredients,
-  products,
-  suppliers,
-  supplier_payments,
-  customers,
-  orders,
-  order_items,
-  partners,
-  partner_orders,
-  partner_order_items,
-  production_batches,
-  production_qc_log,
-  production_shopping_lists,
-  shopping_list_items,
-  ledger,
-  owner_draws,
-  reserves,
-  goals,
-  tax_entries,
-  email_campaigns,
-  broadcasts,
-  agent_runs
+  settings, ingredients, ingredient_purchases, recipes, recipe_ingredients,
+  products, suppliers, supplier_payments, customers, orders, order_items,
+  partners, partner_orders, partner_order_items, production_batches,
+  production_qc_log, production_shopping_lists, shopping_list_items,
+  ledger, owner_draws, reserves, goals, tax_entries,
+  email_campaigns, broadcasts, agent_runs,
+  categories, product_tiers, wastage_log, weekly_schedule
 TO authenticated;
 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
