@@ -288,12 +288,10 @@ export default async function DashboardPage() {
         <div className="space-y-5">
           <OutstandingInvoicesCard invoices={data.outstandingInvoices} />
           <B2BOrdersCard orders={data.b2bOrders} />
-          {data.birthdayCustomers.length > 0 && (
-            <BirthdayCard
-              customers={data.birthdayCustomers}
-              currentMonth={data.currentMonth}
-            />
-          )}
+          <BirthdayCard
+            customers={data.birthdayCustomers}
+            currentMonth={data.currentMonth}
+          />
           <BroadcastCard
             lastBroadcast={data.lastBroadcast}
             daysUntilFriday={data.daysUntilFriday}

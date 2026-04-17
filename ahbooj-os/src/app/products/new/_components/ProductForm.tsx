@@ -87,7 +87,7 @@ export function ProductForm({ recipes }: { recipes: RecipeOption[] }) {
     setError(null)
 
     const supabase = createClient()
-    const { error: insertErr } = await supabase
+    const { data: inserted, error: insertErr } = await supabase
       .from('products')
       .insert({
         name:          name.trim(),
@@ -102,14 +102,17 @@ export function ProductForm({ recipes }: { recipes: RecipeOption[] }) {
         notes:         notes.trim() || null,
         is_active:     true,
       })
+      .select('id')
+      .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
-    if (insertErr) {
-      setError(insertErr.message)
+    if (insertErr || !inserted) {
+      setError(insertErr?.message ?? 'Failed to create product')
       setSaving(false)
       return
     }
 
-    router.push('/products')
+    // Redirect to product detail so tiers can be added immediately
+    router.push(`/products/${inserted.id}`)
     router.refresh()
   }
 

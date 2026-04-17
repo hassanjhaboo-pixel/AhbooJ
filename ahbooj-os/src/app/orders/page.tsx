@@ -12,6 +12,7 @@ type Order = {
   order_number: string | null
   order_date: string
   status: string
+  payment_status: string | null
   channel: string | null
   total: number | null
   customers: { name: string }[] | null
@@ -40,12 +41,19 @@ const STATUS_VARIANT: Record<string, 'amber' | 'terracotta' | 'gold' | 'green' |
 
 const PIPELINE = ['draft', 'pending', 'confirmed', 'in_production', 'ready', 'dispatched']
 
+const PAYMENT_LABEL: Record<string, string> = {
+  unpaid: 'Unpaid', partial: 'Partial', paid: 'Paid',
+}
+const PAYMENT_VARIANT: Record<string, 'red' | 'amber' | 'green'> = {
+  unpaid: 'red', partial: 'amber', paid: 'green',
+}
+
 export default async function OrdersPage() {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('orders')
-    .select('id, order_number, order_date, status, channel, total, customers(name)')
+    .select('id, order_number, order_date, status, payment_status, channel, total, customers(name)')
     .order('order_date', { ascending: false })
     .limit(100) as unknown as { data: Order[] | null; error: { message: string } | null }
 
@@ -80,6 +88,7 @@ export default async function OrdersPage() {
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Channel</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Date</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Status</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Payment</th>
                 <th className="text-right px-5 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Total</th>
               </tr>
             </thead>
@@ -109,6 +118,15 @@ export default async function OrdersPage() {
                     <Badge variant={STATUS_VARIANT[o.status] ?? 'muted'}>
                       {STATUS_LABEL[o.status] ?? o.status}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {o.payment_status ? (
+                      <Badge variant={PAYMENT_VARIANT[o.payment_status] ?? 'muted'}>
+                        {PAYMENT_LABEL[o.payment_status] ?? o.payment_status}
+                      </Badge>
+                    ) : (
+                      <Badge variant="red">Unpaid</Badge>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-right tabular-nums font-medium text-espresso">
                     {o.total ? formatTTD(o.total) : <span className="text-muted">—</span>}
