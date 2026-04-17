@@ -6,6 +6,7 @@ import { formatTTD, formatPercent } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { RecipeActions } from './_components/RecipeActions'
 import { cn } from '@/lib/utils'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -118,6 +119,7 @@ export default async function RecipesPage() {
                       {h}
                     </th>
                   ))}
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-espresso/5">
@@ -154,6 +156,9 @@ export default async function RecipesPage() {
                     </td>
                     <td className="px-4 py-4 text-right">
                       {r.cafeMargin > 0 ? marginBadge(r.cafeMargin, 'cafe') : <span className="text-muted">—</span>}
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <RecipeActions id={r.id} />
                     </td>
                   </tr>
                 ))}
