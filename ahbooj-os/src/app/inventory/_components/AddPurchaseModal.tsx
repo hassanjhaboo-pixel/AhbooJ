@@ -75,17 +75,25 @@ export function AddPurchaseModal({ ingredient, onClose }: AddPurchaseModalProps)
     }
 
     // Fire ingredient-purchase event (handles ledger, propagate-cost, alerts, restocking)
-    fetch('/api/events/ingredient-purchase', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ingredientId:   ingredient.id,
-        ingredientName: ingredient.name,
-        qty:            qtyNum,
-        totalPrice:     priceNum,
-        purchaseDate:   date,
-      }),
-    }).catch(() => {})
+    try {
+      const res = await fetch('/api/events/ingredient-purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ingredientId:   ingredient.id,
+          ingredientName: ingredient.name,
+          qty:            qtyNum,
+          totalPrice:     priceNum,
+          purchaseDate:   date,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error('[AddPurchaseModal] ingredient-purchase event failed:', res.status, data)
+      }
+    } catch (err) {
+      console.error('[AddPurchaseModal] ingredient-purchase fetch error:', err)
+    }
 
     router.refresh()
     onClose()

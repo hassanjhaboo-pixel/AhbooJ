@@ -82,20 +82,36 @@ export function StatusUpdater({
       return
     }
 
-    // Fire event (fire-and-forget)
-    fetch('/api/events/order-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, oldStatus: status, newStatus }),
-    }).catch(() => {})
+    // Fire order-status event and await + log any failures
+    try {
+      const res = await fetch('/api/events/order-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, oldStatus: status, newStatus }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error('[StatusUpdater] order-status event failed:', res.status, data)
+      }
+    } catch (err) {
+      console.error('[StatusUpdater] order-status fetch error:', err)
+    }
 
     // If payment auto-set to paid on delivery, fire payment event too
     if (newStatus === 'delivered' && payStatus === 'unpaid') {
-      fetch('/api/events/order-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, newPaymentStatus: 'paid' }),
-      }).catch(() => {})
+      try {
+        const res = await fetch('/api/events/order-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, newPaymentStatus: 'paid' }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          console.error('[StatusUpdater] order-payment event (auto-paid on delivery) failed:', res.status, data)
+        }
+      } catch (err) {
+        console.error('[StatusUpdater] order-payment fetch error:', err)
+      }
     }
 
     setStatus(newStatus)
@@ -137,12 +153,20 @@ export function StatusUpdater({
     if (updateErr) {
       setError(updateErr.message)
     } else {
-      // Fire payment event
-      fetch('/api/events/order-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, newPaymentStatus: newPayStatus }),
-      }).catch(() => {})
+      // Fire payment event and log any failures
+      try {
+        const res = await fetch('/api/events/order-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, newPaymentStatus: newPayStatus }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          console.error('[StatusUpdater] order-payment event failed:', res.status, data)
+        }
+      } catch (err) {
+        console.error('[StatusUpdater] order-payment fetch error:', err)
+      }
 
       setPayStatus(newPayStatus)
       router.refresh()

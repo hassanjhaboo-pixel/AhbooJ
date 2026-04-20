@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createEventClient } from './client'
 import { createAlert } from './alerts'
 
 const SPEND_MILESTONES = [500, 1000, 2500, 5000, 10000]
@@ -10,26 +10,37 @@ export async function onCustomerOrderCompleted(params: {
   orderDate: string
 }) {
   const { customerId, orderId, orderTotal, orderDate } = params
-  const supabase = createAdminClient()
+  console.log(`[events/customers] onCustomerOrderCompleted: customer=${customerId} order=${orderId} total=${orderTotal}`)
+
+  const supabase = createEventClient()
 
   type CustRow = { total_orders: number; total_spend: number; name: string }
-  const { data: cust } = await supabase
+  const { data: cust, error: custErr } = await supabase
     .from('customers')
     .select('total_orders, total_spend, name')
     .eq('id', customerId)
-    .single() as unknown as { data: CustRow | null }
+    .single() as unknown as { data: CustRow | null; error: { message: string } | null }
 
-  if (!cust) return
+  if (custErr || !cust) {
+    console.error('[events/customers] customer fetch failed:', custErr?.message)
+    return
+  }
 
   const newOrders = cust.total_orders + 1
   const newSpend  = cust.total_spend + orderTotal
   const prevSpend = cust.total_spend
 
-  await supabase.from('customers').update({
+  const { error: updateErr } = await supabase.from('customers').update({
     total_orders:    newOrders,
     total_spend:     newSpend,
     last_order_date: orderDate,
   }).eq('id', customerId)
+
+  if (updateErr) {
+    console.error('[events/customers] customer stats update failed:', updateErr.message)
+  } else {
+    console.log(`[events/customers] updated ${cust.name}: ${newOrders} orders, TT$${newSpend.toFixed(2)} total spend`)
+  }
 
   // Check spend milestones
   for (const milestone of SPEND_MILESTONES) {
@@ -37,20 +48,20 @@ export async function onCustomerOrderCompleted(params: {
       await Promise.resolve(supabase.from('customer_milestones').insert({
         customer_id: customerId,
         milestone:   `spend_${milestone}`,
-      })).catch(() => {})
+      })).catch(err => console.error('[events/customers] milestone insert failed:', err))
 
       await createAlert({
         type:        'customer_milestone',
         severity:    'info',
         title:       `${cust.name} reached TT$${milestone.toLocaleString()} spend`,
-        message:     `Customer milestone: ${newOrders} orders, TT$${newSpend.toFixed(2)} lifetime spend`,
+        message:     `${newOrders} orders, TT$${newSpend.toFixed(2)} lifetime spend`,
         entity_type: 'customer',
         entity_id:   customerId,
       })
     }
   }
 
-  // 5th, 10th, 20th order milestones
+  // Order count milestones
   if ([5, 10, 20, 50].includes(newOrders)) {
     await createAlert({
       type:        'customer_milestone',
