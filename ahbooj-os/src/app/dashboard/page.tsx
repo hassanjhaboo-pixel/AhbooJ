@@ -14,6 +14,7 @@ import { TodayCard } from './_components/TodayCard'
 import { BirthdayCard } from './_components/BirthdayCard'
 import { OutstandingInvoicesCard } from './_components/OutstandingInvoicesCard'
 import { PendingOrdersCard } from './_components/PendingOrdersCard'
+import { AlertsPanel } from './_components/AlertsPanel'
 
 async function fetchDashboardData() {
   const supabase = await createClient()
@@ -43,6 +44,7 @@ async function fetchDashboardData() {
     activePendingOrdersRes,
     todayTasksRes,
     birthdayCustomersRes,
+    alertsRes,
   ] = await Promise.all([
     // MTD income
     supabase
@@ -136,6 +138,14 @@ async function fetchDashboardData() {
       .eq('birthday_month', currentMonth)
       .eq('is_active', true)
       .order('birthday_day', { ascending: true }),
+
+    // Unread dashboard alerts
+    supabase
+      .from('dashboard_alerts')
+      .select('id, type, severity, title, message, entity_type, entity_id, created_at')
+      .eq('is_read', false)
+      .order('created_at', { ascending: false })
+      .limit(20),
   ])
 
   // Compute MTD revenue from ledger rows
@@ -201,11 +211,19 @@ async function fetchDashboardData() {
     weekOf: weekStart,
     dayOfWeek,
     currentMonth,
+    alerts: (alertsRes.data ?? []) as Array<{
+      id: string; type: string; severity: 'info' | 'warning' | 'critical'
+      title: string; message: string | null
+      entity_type: string | null; entity_id: string | null; created_at: string
+    }>,
   }
 }
 
 export default async function DashboardPage() {
   const data = await fetchDashboardData()
+
+  // Kick off overdue check on every dashboard load (fire-and-forget, no await)
+  fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/cron/check-overdue`).catch(() => {})
 
   const runwayWeeks = data.reserve?.reserve_weeks_covered ?? null
   const runwayLabel = runwayWeeks !== null
@@ -223,6 +241,9 @@ export default async function DashboardPage() {
           Good morning, Hassan
         </h2>
       </div>
+
+      {/* Alerts */}
+      <AlertsPanel alerts={data.alerts} />
 
       {/* Top stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">

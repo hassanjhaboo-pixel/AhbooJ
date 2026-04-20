@@ -74,8 +74,18 @@ export function AddPurchaseModal({ ingredient, onClose }: AddPurchaseModalProps)
       return
     }
 
-    // Propagate cost change to recipes + products (fire-and-forget; don't block UX)
-    fetch(`/api/ingredients/${ingredient.id}/propagate-cost`, { method: 'POST' }).catch(() => {})
+    // Fire ingredient-purchase event (handles ledger, propagate-cost, alerts, restocking)
+    fetch('/api/events/ingredient-purchase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ingredientId:   ingredient.id,
+        ingredientName: ingredient.name,
+        qty:            qtyNum,
+        totalPrice:     priceNum,
+        purchaseDate:   date,
+      }),
+    }).catch(() => {})
 
     router.refresh()
     onClose()

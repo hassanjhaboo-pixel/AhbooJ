@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, FlaskConical } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatTTD, formatDate } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
@@ -25,6 +25,16 @@ type OrderDetail = {
     line_total: number | null
     products: { id: string; name: string; sku: string | null } | null
   }>
+}
+
+type BatchRow = {
+  id: string
+  batch_number: string | null
+  production_date: string
+  planned_yield: number | null
+  actual_yield: number | null
+  qc_passed: boolean | null
+  recipes: { name: string }[] | null
 }
 
 const CHANNEL_LABEL: Record<string, string> = {
@@ -74,6 +84,19 @@ export default async function OrderPage({
 
   const customer = data.customers?.[0] ?? null
 
+  // Linked production batches (v3 schema — graceful skip if column missing)
+  type BatchQueryResult = { data: BatchRow[] | null; error: { message: string } | null }
+  let linkedBatches: BatchRow[] = []
+  const batchRes = await supabase
+    .from('production_batches')
+    .select('id, batch_number, production_date, planned_yield, actual_yield, qc_passed, recipes(name)')
+    .eq('linked_order_id', id)
+    .order('production_date', { ascending: false }) as unknown as BatchQueryResult
+
+  if (!batchRes.error?.message?.toLowerCase().includes('linked_order_id')) {
+    linkedBatches = batchRes.data ?? []
+  }
+
   return (
     <PageWrapper>
       <div className="mb-5">
@@ -107,7 +130,7 @@ export default async function OrderPage({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: items + notes */}
+        {/* Left: items + notes + linked batches */}
         <div className="lg:col-span-2 space-y-5">
           {/* Line items */}
           <div className="bg-cream rounded-card shadow-card border border-cream/60 overflow-hidden">
@@ -160,6 +183,47 @@ export default async function OrderPage({
             <div className="bg-cream rounded-card shadow-card border border-cream/60 p-5">
               <h3 className="font-display font-semibold text-espresso mb-2">Notes</h3>
               <p className="text-sm text-espresso whitespace-pre-wrap">{data.notes}</p>
+            </div>
+          )}
+
+          {/* Linked production batches */}
+          {linkedBatches.length > 0 && (
+            <div className="bg-cream rounded-card shadow-card border border-cream/60 overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-espresso/10 flex items-center gap-2">
+                <FlaskConical size={14} className="text-muted" />
+                <h3 className="font-display font-semibold text-espresso text-sm">Production Batches</h3>
+                <span className="text-xs text-muted">({linkedBatches.length})</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-espresso/10 bg-espresso/5">
+                    <th className="text-left px-5 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Batch</th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Recipe</th>
+                    <th className="text-right px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Yield</th>
+                    <th className="text-right px-5 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">QC</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-espresso/5">
+                  {linkedBatches.map(b => (
+                    <tr key={b.id} className="hover:bg-espresso/5 transition-colors">
+                      <td className="px-5 py-2.5 text-muted text-xs tabular-nums">
+                        {formatDate(b.production_date, 'MMM d, yyyy')}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-espresso">{b.batch_number ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-espresso text-xs">{b.recipes?.[0]?.name ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-xs text-espresso">
+                        {b.actual_yield ?? b.planned_yield ?? '—'}
+                      </td>
+                      <td className="px-5 py-2.5 text-right text-xs">
+                        {b.qc_passed === true  && <span className="text-status-green font-medium">Pass</span>}
+                        {b.qc_passed === false && <span className="text-status-red font-medium">Fail</span>}
+                        {b.qc_passed === null  && <span className="text-muted">—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

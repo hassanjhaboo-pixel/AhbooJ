@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Plus, ShoppingBag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { formatTTD, formatDate } from '@/lib/formatting'
+import { formatTTD, formatDate, formatRelative } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +11,7 @@ type Order = {
   id: string
   order_number: string | null
   order_date: string
+  updated_at?: string | null
   status: string
   payment_status: string | null
   channel: string | null
@@ -51,21 +52,21 @@ const PAYMENT_VARIANT: Record<string, 'red' | 'amber' | 'green'> = {
 export default async function OrdersPage() {
   const supabase = await createClient()
 
-  // Try with payment_status (v2 schema). If that column doesn't exist yet
-  // (migration pending), fall back silently so the page still loads.
+  // Try full query (v3 schema). Fall back if optional columns missing.
   let res = await supabase
     .from('orders')
-    .select('id, order_number, order_date, status, payment_status, channel, total, customers(name)')
+    .select('id, order_number, order_date, updated_at, status, payment_status, channel, total, customers(name)')
     .order('order_date', { ascending: false })
     .limit(100) as unknown as { data: Order[] | null; error: { message: string } | null }
 
-  if (res.error?.message?.toLowerCase().includes('payment_status')) {
+  // Fallback: strip payment_status if column missing
+  if (res.error?.message?.toLowerCase().includes('payment_status') || res.error?.message?.toLowerCase().includes('updated_at')) {
     const fb = await supabase
       .from('orders')
       .select('id, order_number, order_date, status, channel, total, customers(name)')
       .order('order_date', { ascending: false })
       .limit(100) as unknown as { data: Order[] | null; error: { message: string } | null }
-    res = { data: (fb.data ?? []).map(o => ({ ...o, payment_status: null })), error: fb.error }
+    res = { data: (fb.data ?? []).map(o => ({ ...o, payment_status: null, updated_at: null })), error: fb.error }
   }
 
   const { data, error } = res
@@ -100,6 +101,7 @@ export default async function OrdersPage() {
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Customer</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Channel</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Date</th>
+                <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Updated</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Status</th>
                 <th className="text-left px-4 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Payment</th>
                 <th className="text-right px-5 py-2.5 font-medium text-muted text-xs uppercase tracking-wider">Total</th>
@@ -126,6 +128,9 @@ export default async function OrdersPage() {
                   </td>
                   <td className="px-4 py-3 text-muted text-xs tabular-nums">
                     {formatDate(o.order_date, 'MMM d, yyyy')}
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted tabular-nums">
+                    {o.updated_at ? formatRelative(o.updated_at) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[o.status] ?? 'muted'}>

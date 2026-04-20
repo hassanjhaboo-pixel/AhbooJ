@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Plus, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { marginStatus, marginStatusVariant } from '@/lib/pricing'
-import { formatTTD, formatPercent } from '@/lib/formatting'
+import { formatTTD, formatPercent, formatRelative } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -22,6 +22,7 @@ type Product = {
   cafe_margin: number | null
   is_active: boolean
   channel: string
+  updated_at?: string | null
   recipes: { name: string }[] | null
 }
 
@@ -39,10 +40,19 @@ const CHANNEL_VARIANT: Record<string, 'green' | 'terracotta' | 'gold'> = {
 export default async function ProductsPage() {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('products')
-    .select('id, name, sku, category, tier, recipe_id, direct_price, cafe_price, cost_per_unit, direct_margin, cafe_margin, is_active, channel, recipes(name)')
+    .select('id, name, sku, category, tier, recipe_id, direct_price, cafe_price, cost_per_unit, direct_margin, cafe_margin, is_active, channel, updated_at, recipes(name)')
     .order('name') as unknown as { data: Product[] | null; error: { message: string } | null }
+
+  if (error?.message?.toLowerCase().includes('updated_at')) {
+    const fb = await supabase
+      .from('products')
+      .select('id, name, sku, category, tier, recipe_id, direct_price, cafe_price, cost_per_unit, direct_margin, cafe_margin, is_active, channel, recipes(name)')
+      .order('name') as unknown as { data: Product[] | null; error: { message: string } | null }
+    data = fb.data?.map(p => ({ ...p, updated_at: null })) ?? null
+    error = fb.error
+  }
 
   const products = data ?? []
   const active        = products.filter(p => p.is_active).length
@@ -123,6 +133,9 @@ export default async function ProductsPage() {
                         </Link>
                         {p.recipes?.[0]?.name && (
                           <p className="text-xs text-muted mt-0.5">{p.recipes[0].name}</p>
+                        )}
+                        {p.updated_at && (
+                          <p className="text-[10px] text-muted/70 mt-0.5">Updated {formatRelative(p.updated_at)}</p>
                         )}
                       </td>
                       <td className="px-4 py-3 text-muted text-xs font-mono">

@@ -14,6 +14,7 @@ type Customer = {
   total_orders: number
   total_spend: number
   last_order_date: string | null
+  updated_at?: string | null
   is_active: boolean
   referred_by: string | null
   referral_count: number
@@ -24,10 +25,19 @@ type Customer = {
 export default async function CRMPage() {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('customers')
-    .select('id, name, phone, email, instagram_handle, channel, on_whatsapp_list, on_email_list, total_orders, total_spend, last_order_date, is_active, referred_by, referral_count, birthday_month, birthday_day')
+    .select('id, name, phone, email, instagram_handle, channel, on_whatsapp_list, on_email_list, total_orders, total_spend, last_order_date, updated_at, is_active, referred_by, referral_count, birthday_month, birthday_day')
     .order('name') as unknown as { data: Customer[] | null; error: { message: string } | null }
+
+  if (error?.message?.toLowerCase().includes('updated_at')) {
+    const fb = await supabase
+      .from('customers')
+      .select('id, name, phone, email, instagram_handle, channel, on_whatsapp_list, on_email_list, total_orders, total_spend, last_order_date, is_active, referred_by, referral_count, birthday_month, birthday_day')
+      .order('name') as unknown as { data: Customer[] | null; error: { message: string } | null }
+    data = fb.data?.map(c => ({ ...c, updated_at: null })) ?? null
+    error = fb.error
+  }
 
   const customers = data ?? []
 

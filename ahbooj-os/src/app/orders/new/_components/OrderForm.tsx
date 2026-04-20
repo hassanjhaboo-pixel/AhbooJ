@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -61,6 +61,8 @@ function genOrderNumber(): string {
   return `ORD-${ymd}-${rand}`
 }
 
+const DRAFT_KEY = 'order_form_draft'
+
 export function OrderForm({ customers, products }: { customers: Customer[]; products: Product[] }) {
   const router = useRouter()
   const supabase = createClient()
@@ -78,6 +80,35 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
   const [channel,   setChannel]   = useState('direct')
   const [status,    setStatus]    = useState('confirmed')
   const [notes,     setNotes]     = useState('')
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        if (saved.customerId)   setCustomerId(saved.customerId)
+        if (saved.newName)      setNewName(saved.newName)
+        if (saved.newPhone)     setNewPhone(saved.newPhone)
+        if (saved.newEmail)     setNewEmail(saved.newEmail)
+        if (saved.newInstagram) setNewInstagram(saved.newInstagram)
+        if (saved.orderDate)    setOrderDate(saved.orderDate)
+        if (saved.channel)      setChannel(saved.channel)
+        if (saved.status)       setStatus(saved.status)
+        if (saved.notes)        setNotes(saved.notes)
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        customerId, newName, newPhone, newEmail, newInstagram,
+        orderDate, channel, status, notes,
+      }))
+    } catch {}
+  }, [customerId, newName, newPhone, newEmail, newInstagram, orderDate, channel, status, notes])
 
   // Line items
   const [rows, setRows] = useState<LineItem[]>([
@@ -235,6 +266,7 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
       return
     }
 
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
     router.push(`/orders/${orderData.id}`)
     router.refresh()
   }
@@ -424,11 +456,12 @@ export function OrderForm({ customers, products }: { customers: Customer[]; prod
         </div>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex items-center gap-3">
         <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
         <Button type="submit" disabled={saving || validRows.length === 0}>
           {saving ? 'Creating…' : 'Create Order'}
         </Button>
+        <span className="text-[10px] text-muted ml-auto">Draft auto-saved</span>
       </div>
     </form>
   )

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Plus, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { calcBatchCost, calcCostPerUnit, suggestDirectPrice, suggestCafePrice, marginStatus } from '@/lib/pricing'
-import { formatTTD, formatPercent } from '@/lib/formatting'
+import { formatTTD, formatPercent, formatRelative } from '@/lib/formatting'
 import { PageWrapper } from '@/components/layout/PageWrapper'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -38,6 +38,7 @@ type RecipeRow = {
   base_yield_units: number
   yield_unit_label: string
   is_active: boolean
+  updated_at?: string | null
   recipe_ingredients: Array<{
     quantity: number
     ingredients: { cost_per_unit: number } | null
@@ -48,16 +49,28 @@ export default async function RecipesPage() {
   const supabase = await createClient()
 
   type RecipesResult = { data: RecipeRow[] | null; error: { message: string } | null }
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('recipes')
     .select(`
-      id, name, category, base_yield_units, yield_unit_label, is_active,
+      id, name, category, base_yield_units, yield_unit_label, is_active, updated_at,
       recipe_ingredients(
         quantity,
         ingredients(cost_per_unit)
       )
     `)
     .order('name') as unknown as RecipesResult
+
+  if (error?.message?.toLowerCase().includes('updated_at')) {
+    const fb = await supabase
+      .from('recipes')
+      .select(`
+        id, name, category, base_yield_units, yield_unit_label, is_active,
+        recipe_ingredients(quantity, ingredients(cost_per_unit))
+      `)
+      .order('name') as unknown as RecipesResult
+    data = fb.data?.map(r => ({ ...r, updated_at: null })) ?? null
+    error = fb.error
+  }
 
   const recipes = data ?? []
 
@@ -130,6 +143,9 @@ export default async function RecipesPage() {
                         {r.name}
                       </Link>
                       {!r.is_active && <span className="ml-2 text-xs text-muted">(inactive)</span>}
+                      {r.updated_at && (
+                        <p className="text-[10px] text-muted mt-0.5">Updated {formatRelative(r.updated_at)}</p>
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       {r.category

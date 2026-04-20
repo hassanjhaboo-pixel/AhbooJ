@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/Badge'
+import { QCChecklistModal } from './QCChecklistModal'
 import { cn } from '@/lib/utils'
 
 const PIPELINE: Array<{ value: string; label: string }> = [
@@ -52,37 +53,75 @@ export function StatusUpdater({
   currentPaymentStatus?: string
 }) {
   const router = useRouter()
-  const [status, setStatus]   = useState(currentStatus)
+  const [status,    setStatus]    = useState(currentStatus)
   const [payStatus, setPayStatus] = useState(currentPaymentStatus ?? 'unpaid')
-  const [saving,  setSaving]  = useState(false)
-  const [error,   setError]   = useState('')
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState('')
+  const [showQC,    setShowQC]    = useState(false)
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null)
 
   const isCancelled = status === 'cancelled'
 
-  async function updateStatus(newStatus: string) {
-    if (newStatus === status) return
+  async function doStatusUpdate(newStatus: string) {
     setSaving(true)
     setError('')
     const supabase = createClient()
     const updatePayload: Record<string, unknown> = { status: newStatus }
-    // Auto-mark paid when delivered
+
     if (newStatus === 'delivered' && payStatus === 'unpaid') {
       updatePayload.payment_status = 'paid'
       updatePayload.paid_at = new Date().toISOString()
       setPayStatus('paid')
     }
-    const { error: updateErr } = await supabase
-      .from('orders')
-      .update(updatePayload)
-      .eq('id', orderId)
+
+    const { error: updateErr } = await supabase.from('orders').update(updatePayload).eq('id', orderId)
 
     if (updateErr) {
       setError(updateErr.message)
-    } else {
-      setStatus(newStatus)
-      router.refresh()
+      setSaving(false)
+      return
     }
+
+    // Fire event (fire-and-forget)
+    fetch('/api/events/order-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, oldStatus: status, newStatus }),
+    }).catch(() => {})
+
+    // If payment auto-set to paid on delivery, fire payment event too
+    if (newStatus === 'delivered' && payStatus === 'unpaid') {
+      fetch('/api/events/order-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, newPaymentStatus: 'paid' }),
+      }).catch(() => {})
+    }
+
+    setStatus(newStatus)
+    router.refresh()
     setSaving(false)
+  }
+
+  async function updateStatus(newStatus: string) {
+    if (newStatus === status) return
+
+    // QC gate for dispatch
+    if (newStatus === 'dispatched') {
+      setPendingStatus(newStatus)
+      setShowQC(true)
+      return
+    }
+
+    await doStatusUpdate(newStatus)
+  }
+
+  async function handleQCConfirm() {
+    setShowQC(false)
+    if (pendingStatus) {
+      await doStatusUpdate(pendingStatus)
+      setPendingStatus(null)
+    }
   }
 
   async function updatePaymentStatus(newPayStatus: string) {
@@ -98,6 +137,13 @@ export function StatusUpdater({
     if (updateErr) {
       setError(updateErr.message)
     } else {
+      // Fire payment event
+      fetch('/api/events/order-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, newPaymentStatus: newPayStatus }),
+      }).catch(() => {})
+
       setPayStatus(newPayStatus)
       router.refresh()
     }
@@ -105,107 +151,119 @@ export function StatusUpdater({
   }
 
   return (
-    <div className="bg-cream rounded-card shadow-card border border-cream/60 p-5">
-      <h3 className="font-display font-semibold text-espresso mb-4">Order Status</h3>
-
-      {/* Pipeline stepper */}
-      {!isCancelled && (
-        <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-          {PIPELINE.map((step, idx) => {
-            const pipelineValues = PIPELINE.map(s => s.value)
-            const currentIdx = pipelineValues.indexOf(status)
-            const stepIdx    = pipelineValues.indexOf(step.value)
-            const isDone     = stepIdx < currentIdx
-            const isCurrent  = step.value === status
-            const isNext     = stepIdx === currentIdx + 1
-
-            return (
-              <div key={step.value} className="flex items-center gap-1 flex-shrink-0">
-                {idx > 0 && (
-                  <div className={cn('h-px w-4 flex-shrink-0', isDone || isCurrent ? 'bg-terracotta' : 'bg-espresso/15')} />
-                )}
-                <button
-                  type="button"
-                  disabled={saving || (!isNext && !isDone && !isCurrent)}
-                  onClick={() => updateStatus(step.value)}
-                  className={cn(
-                    'px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all',
-                    isCurrent  && 'bg-terracotta text-white shadow-sm',
-                    isDone     && 'bg-espresso/10 text-espresso/60',
-                    isNext     && 'bg-espresso/5 text-espresso hover:bg-terracotta/10 hover:text-terracotta border border-dashed border-espresso/20',
-                    !isCurrent && !isDone && !isNext && 'text-muted/40 cursor-not-allowed',
-                    saving     && 'opacity-50 cursor-wait'
-                  )}
-                >
-                  {step.label}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+    <>
+      {showQC && (
+        <QCChecklistModal
+          orderId={orderId}
+          onConfirm={handleQCConfirm}
+          onClose={() => { setShowQC(false); setPendingStatus(null) }}
+        />
       )}
 
-      {/* Current status badge */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted">Status:</span>
-          <Badge variant={STATUS_VARIANT[status] ?? 'muted'}>
-            {STATUS_LABEL[status] ?? status}
-          </Badge>
-        </div>
+      <div className="bg-cream rounded-card shadow-card border border-cream/60 p-5">
+        <h3 className="font-display font-semibold text-espresso mb-4">Order Status</h3>
 
-        {/* Cancel / uncancel */}
-        {!isCancelled ? (
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => updateStatus('cancelled')}
-            className="text-xs text-status-red hover:underline disabled:opacity-50"
-          >
-            Cancel order
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => updateStatus('pending')}
-            className="text-xs text-terracotta hover:underline disabled:opacity-50"
-          >
-            Reopen order
-          </button>
+        {/* Pipeline stepper */}
+        {!isCancelled && (
+          <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+            {PIPELINE.map((step, idx) => {
+              const pipelineValues = PIPELINE.map(s => s.value)
+              const currentIdx = pipelineValues.indexOf(status)
+              const stepIdx    = pipelineValues.indexOf(step.value)
+              const isDone     = stepIdx < currentIdx
+              const isCurrent  = step.value === status
+              const isNext     = stepIdx === currentIdx + 1
+
+              return (
+                <div key={step.value} className="flex items-center gap-1 flex-shrink-0">
+                  {idx > 0 && (
+                    <div className={cn('h-px w-4 flex-shrink-0', isDone || isCurrent ? 'bg-terracotta' : 'bg-espresso/15')} />
+                  )}
+                  <button
+                    type="button"
+                    disabled={saving || (!isNext && !isDone && !isCurrent)}
+                    onClick={() => updateStatus(step.value)}
+                    className={cn(
+                      'px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all',
+                      isCurrent  && 'bg-terracotta text-white shadow-sm',
+                      isDone     && 'bg-espresso/10 text-espresso/60',
+                      isNext     && 'bg-espresso/5 text-espresso hover:bg-terracotta/10 hover:text-terracotta border border-dashed border-espresso/20',
+                      !isCurrent && !isDone && !isNext && 'text-muted/40 cursor-not-allowed',
+                      saving     && 'opacity-50 cursor-wait'
+                    )}
+                  >
+                    {step.label}
+                    {isNext && step.value === 'dispatched' && (
+                      <span className="ml-1 text-[10px] opacity-60">(QC)</span>
+                    )}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
         )}
-      </div>
 
-      {/* Payment status */}
-      <div>
-        <p className="text-xs font-medium text-espresso mb-2">Payment</p>
-        <div className="flex gap-2">
-          {PAYMENT_STATUS_OPTIONS.map(opt => (
+        {/* Current status badge */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted">Status:</span>
+            <Badge variant={STATUS_VARIANT[status] ?? 'muted'}>
+              {STATUS_LABEL[status] ?? status}
+            </Badge>
+          </div>
+
+          {!isCancelled ? (
             <button
-              key={opt.value}
               type="button"
               disabled={saving}
-              onClick={() => updatePaymentStatus(opt.value)}
-              className={cn(
-                'flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                payStatus === opt.value
-                  ? opt.value === 'paid'
-                    ? 'bg-status-green text-white border-status-green'
-                    : opt.value === 'partial'
-                    ? 'bg-status-amber text-espresso border-status-amber'
-                    : 'bg-status-red text-white border-status-red'
-                  : 'bg-white text-muted border-espresso/20 hover:border-espresso/40'
-              )}
+              onClick={() => updateStatus('cancelled')}
+              className="text-xs text-status-red hover:underline disabled:opacity-50"
             >
-              {opt.label}
+              Cancel order
             </button>
-          ))}
+          ) : (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => updateStatus('pending')}
+              className="text-xs text-terracotta hover:underline disabled:opacity-50"
+            >
+              Reopen order
+            </button>
+          )}
         </div>
-      </div>
 
-      {error && (
-        <p className="mt-2 text-xs text-status-red">{error}</p>
-      )}
-    </div>
+        {/* Payment status */}
+        <div>
+          <p className="text-xs font-medium text-espresso mb-2">Payment</p>
+          <div className="flex gap-2">
+            {PAYMENT_STATUS_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={saving}
+                onClick={() => updatePaymentStatus(opt.value)}
+                className={cn(
+                  'flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                  payStatus === opt.value
+                    ? opt.value === 'paid'
+                      ? 'bg-status-green text-white border-status-green'
+                      : opt.value === 'partial'
+                      ? 'bg-status-amber text-espresso border-status-amber'
+                      : 'bg-status-red text-white border-status-red'
+                    : 'bg-white text-muted border-espresso/20 hover:border-espresso/40'
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <p className="mt-2 text-xs text-status-red">{error}</p>
+        )}
+      </div>
+    </>
   )
 }
