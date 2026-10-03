@@ -58,7 +58,7 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
 - Negative `amp` on `flap`/`sway` mirrors the motion (use it for left/right wing pairs).
 
 ### Effects (`in.fx` / `out.fx`)
-`cut` · `fade` · `pop` · `pop-soft` · `rise` · `sink` · `mask-up` · `mask-down` · `slide-left` · `slide-right` · `slide-up` · `slide-down` · `drop` (bounce) · `drop-soft` · `fly` (from below with tilt) · `grow` (scaleX from anchor) · `grow-y` · `scale` · `scale-down` · `spin-in` · `blur-in` · `draw` (paths and rings) · `wipe` (left→right reveal) · `iris` (circular reveal) · `dot-expand` · `type` (typewriter, text only)
+`cut` · `fade` · `pop` · `pop-soft` · `rise` · `sink` · `mask-up` · `mask-down` · `slide-left` · `slide-right` · `slide-up` · `slide-down` · `drop` (bounce, from above the frame) · `drop-near` (bounce, shorter fall, fades in) · `drop-soft` · `fly` (from below with tilt) · `grow` (scaleX from anchor) · `grow-y` · `scale` · `scale-down` · `spin-in` · `blur-in` · `draw` (paths and rings) · `wipe` (left→right reveal) · `iris` (circular reveal) · `dot-expand` · `type` (typewriter, text only)
 
 ### Easings
 `linear inQuad outQuad inOutQuad inCubic outCubic inOutCubic outQuart inOutQuart inExpo outExpo inOutExpo outBack outBackSoft inBack outElastic outBounce`
@@ -72,6 +72,8 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
   "lineHeight": 1.0, "maxWidth": 0.84, "align": "center|left|right",
   "split": "none|line|word|char", "stagger": 0.06,
   "highlight": { "fill": "accent", "pad": 0.25, "radius": null },   // chip behind the text
+  "outline": { "color": "bg", "w": 0.06 },                          // sticker border around glyphs (fraction of font size)
+  "bubble": 0.03,                                                   // fattens + rounds glyphs with a same-colour stroke (bubbly look)
   "dotColor": "onPrimary" }                                        // for dot-expand
 ```
 With `split` set, the `in` effect plays per unit, staggered. Text wraps automatically at `maxWidth`.
@@ -100,6 +102,8 @@ Uses `brand.logo.src` (or `srcOnDark` when `onDark: true`). With no file, it ren
 ```jsonc
 { "type": "circle",     "r": 0.1, "fill": "accent", "stroke": null, "strokeW": 0.008 }  // r × short side
 { "type": "ring",       "r": 0.1, "fill": "ink", "strokeW": 0.008, "startAngle": -90 }  // in: "draw" draws it on
+{ "type": "heart",      "r": 0.04, "fill": "primary" }                                    // r × short side; rotate with rot
+{ "type": "sparkle",    "r": 0.04, "fill": "bg" }                                         // four-point star
 { "type": "semicircle", "r": 0.1, "fill": "dark" }                                      // flat edge at bottom; rotate with rot
 { "type": "rect",       "w": 0.5, "wUnit": "W|U", "h": 0.05, "hUnit": "U|H", "radius": 0.02, "fill": "primary" }
 { "type": "pill",       "w": 0.3, "h": 0.08, "fill": "bg" }

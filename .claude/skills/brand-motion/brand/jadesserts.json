@@ -1,0 +1,90 @@
+{
+  "name": "Jadesserts",
+  "tagline": "A little box of sweet surprises",
+  "url": "",
+
+  "voice": {
+    "tone": "cutesy, whimsical, affectionate",
+    "maxWordsPerCard": 6,
+    "case": "sentence",
+    "cta": "Order your sweet box"
+  },
+
+  "palette": {
+    "bg": "#fef9f6",
+    "ink": "#4a2c33",
+    "primary": "#f4636f",
+    "onPrimary": "#ffffff",
+    "secondary": "#c9b3ea",
+    "onSecondary": "#4a2c33",
+    "accent": "#ffab55",
+    "onAccent": "#4a2c33",
+    "dark": "#4a2c33",
+    "onDark": "#fef9f6",
+
+    "chapter1": "#ffe4e8",
+    "chapter2": "#e3d5f7",
+    "chapter3": "#d9f0e2",
+    "chapter4": "#ffdcb0",
+
+    "blush": "#ffc7cf",
+    "blushDeep": "#ffa3ae",
+    "mint": "#7fd2a2",
+    "lavender": "#a687d9",
+    "white": "#ffffff"
+  },
+
+  "type": {
+    "fontUrls": ["https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;600;700&display=swap"],
+    "display":  { "family": "Baloo 2", "fallback": "'DejaVu Sans', 'Liberation Sans', sans-serif", "weight": 800, "case": "none", "tracking": -0.01, "lineHeight": 0.98 },
+    "headline": { "family": "Baloo 2", "fallback": "'DejaVu Sans', 'Liberation Sans', sans-serif", "weight": 700, "case": "none", "tracking": 0, "lineHeight": 1.02 },
+    "body":     { "family": "Quicksand", "fallback": "'DejaVu Sans', 'Liberation Sans', sans-serif", "weight": 700, "case": "none", "tracking": 0.01, "lineHeight": 1.25 },
+    "scale": { "display": 0.14, "headline": 0.09, "title": 0.065, "body": 0.042, "caption": 0.03 }
+  },
+
+  "logo": {
+    "src": "assets/jadesserts/logo-full.svg",
+    "srcOnDark": "assets/jadesserts/logo-full.svg",
+    "wordmark": "Jadesserts",
+    "color": "primary",
+    "clearSpace": 0.5
+  },
+
+  "shape": {
+    "language": "circles",
+    "radius": 0.035,
+    "strokeW": 0.006,
+    "motif": "heart bullets + pastel confetti (circles, sparkles, hearts); a 4-segment pastel bar that stands for the 4 items in the box"
+  },
+
+  "motion": {
+    "energy": "balanced",
+    "bpm": 120,
+    "exit": "inCubic",
+    "move": "inOutCubic",
+    "transition": "inOutCubic",
+    "stagger": 0.07,
+    "signatureTransition": "wipe"
+  },
+
+  "layout": { "safe": 0.08, "alignment": "center" },
+
+  "rules": {
+    "do": [
+      "Warm cream is the default background; stage colours are pastels (pink, lavender, mint, peach)",
+      "Use heart glyphs as the list bullet and confetti shapes for texture",
+      "Everything rounded; soft, bouncy motion (overshoot) rather than mechanical",
+      "Price is its own oversized callout"
+    ],
+    "dont": [
+      "No stark white or grey backgrounds, no black shadows (tint shadows plum/pink)",
+      "Never put white small text on the coral primary (3.1:1) — display sizes only",
+      "No more than one saturated coral block per scene"
+    ]
+  },
+
+  "_notes": {
+    "fonts": "Baloo 2 + Quicksand are the design system's flagged substitutes for the real bubble wordmark font. If they cannot load (offline/proxy), the fallback stack renders instead; supply woff2/ttf via type.fontFiles to render exactly.",
+    "extraRoles": "blush, blushDeep, mint, lavender, white are Jadesserts-specific extras used for the sweet box and hearts."
+  }
+}

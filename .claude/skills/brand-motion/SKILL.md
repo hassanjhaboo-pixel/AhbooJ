@@ -27,6 +27,8 @@ brand/<brand>.json  +  storyboards/<style>.json  ──build.mjs──▶  out/<
 | `references/qa-checklist.md` | Run before you deliver. |
 | `engine/motion.js`, `engine/player.html` | Deterministic canvas engine and preview player. No dependencies. |
 | `scripts/build.mjs`, `scripts/render.mjs` | Bundle to one HTML file; render to MP4/stills/contact sheet. |
+| `scripts/cutout.mjs` | Prepare product photos: strips white / checkerboard / black backgrounds, crops, resizes → transparent PNG. |
+| `projects/<client>-<name>/` | Worked examples of a blend (e.g. `jadesserts-sweet-box`: IKEA + Red Bull, 1:1 and 9:16 from one generator `make.mjs`). |
 
 ## Workflow
 
@@ -66,6 +68,9 @@ Rules that make it read like the references:
 - Replace copy, keep the timing skeleton, then adjust.
 - Use `"4b"` beat times when there is music. Set `bpm` in the story and keep entrances on beats.
 - Products, photos and footage stills use `image` elements with `src`. With no asset yet, leave `src: ""` and set `label`. The engine draws a labelled placeholder so the timing can be reviewed first.
+- **Messy product photos** (white or fake-checkerboard backgrounds, loose framing): run `node scripts/cutout.mjs in.jpg assets/products/name.png` (add `--tol 34 --light 150` for soft shadows; `--bg none --crop x,y,w,h` to just frame an already-transparent PNG). Look at the result on a coloured background before using it. It frames and keys only. **It does not remove stock-site watermarks**: if a supplied image is watermarked, say so and treat the render as a draft until the clean licensed file is dropped in under the same name.
+- **Two formats from one idea** (e.g. 1:1 and 9:16): positions are fractions, so don't just switch `--format`. Write a small generator (see `projects/jadesserts-sweet-box/make.mjs`) that takes pixel offsets per format, and view a contact sheet for each.
+- **Blends** (two playbooks in one film): take the hook and transitions from one, the "world/proof" scenes from the other, and keep ONE signature transition plus `cut`. Map each playbook's continuity device to brand-native objects (cord-pull → a cherry on a string, wings → hearts, segmented bar → four pastel segments for four box items).
 - Format presets: `1080x1920` (Reels/TikTok/Stories, default), `1080x1350` (feed 4:5), `1080x1080` (square), `1920x1080` (YouTube/web). Positions are fractions, so they scale. After a format change, re-check the layout with a contact sheet.
 
 ### 5. Build, check, render

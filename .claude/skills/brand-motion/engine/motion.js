@@ -62,6 +62,7 @@
     'slide-up': { ease: 'outExpo', f: (e, k) => ({ dy: (1 - e) * k.H }) },
     'slide-down': { ease: 'outExpo', f: (e, k) => ({ dy: -(1 - e) * k.H }) },
     drop: { ease: 'outBounce', f: (e, k) => ({ dy: -(1 - e) * k.H * 0.7 }) },
+    'drop-near': { ease: 'outBounce', f: (e, k) => ({ dy: -(1 - e) * k.U * 0.62, o: clamp(e * 8) }) },
     'drop-soft': { ease: 'outBack', f: (e, k) => ({ dy: -(1 - e) * k.H * 0.5, o: clamp(e * 5) }) },
     fly: { ease: 'outBack', f: (e, k) => ({ dy: (1 - e) * k.H * 0.75, r: -(1 - e) * 35 * DEG }) },
     grow: { ease: 'outExpo', f: e => ({ sx: Math.max(0, e) }) },
@@ -267,6 +268,7 @@
         case 'text': return null; // computed via layout
         case 'circle': case 'ring': { const d = (el.r || 0.1) * 2 * U; return { w: d, h: d }; }
         case 'semicircle': { const d = (el.r || 0.1) * 2 * U; return { w: d, h: d / 2 }; }
+        case 'heart': case 'sparkle': { const d = (el.r || 0.05) * 2 * U; return { w: d, h: d }; }
         case 'rect': case 'pill': case 'segbar': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.05) * (el.hUnit === 'H' ? H : U) };
         case 'image': case 'logo': {
           const src = el.type === 'logo' ? el.src || logoSrc(el) : el.src;
@@ -330,7 +332,7 @@
       }
       const L = el.loop;
       if (L) {
-        const lt = t - (el.in ? el.in.at + el.in.dur : 0);
+        const lt = Math.max(0, t - (el.in ? el.in.at + el.in.dur : 0));
         const per = T(L.period || 1.6), amp = L.amp != null ? L.amp : 1;
         const ph = (2 * Math.PI * lt) / per + (L.phase || 0);
         if (L.fx === 'float') st.dy += Math.sin(ph) * amp * U * 0.012;
@@ -369,6 +371,20 @@
         }
         p.arc(x0 + r, y0 + r, r, 0, Math.PI * 2);
         if (el.type === 'ring' && !el.stroke) { ctx.strokeStyle = C(el.fill); ctx.lineWidth = (el.strokeW || 0.008) * U; ctx.stroke(p); return; }
+      } else if (el.type === 'heart') {
+        const hx = x0 + w / 2, top = h * 0.3;
+        p.moveTo(hx, y0 + top);
+        p.bezierCurveTo(hx, y0, x0, y0, x0, y0 + top);
+        p.bezierCurveTo(x0, y0 + (h + top) / 2, hx, y0 + (h + top) / 2, hx, y0 + h);
+        p.bezierCurveTo(hx, y0 + (h + top) / 2, x0 + w, y0 + (h + top) / 2, x0 + w, y0 + top);
+        p.bezierCurveTo(x0 + w, y0, hx, y0, hx, y0 + top);
+      } else if (el.type === 'sparkle') {
+        const cx = x0 + w / 2, cy = y0 + h / 2, r = w / 2, k = r * 0.16;
+        p.moveTo(cx, cy - r);
+        p.quadraticCurveTo(cx + k, cy - k, cx + r, cy);
+        p.quadraticCurveTo(cx + k, cy + k, cx, cy + r);
+        p.quadraticCurveTo(cx - k, cy + k, cx - r, cy);
+        p.quadraticCurveTo(cx - k, cy - k, cx, cy - r);
       } else if (el.type === 'semicircle') {
         p.moveTo(x0, y0 + h); p.arc(x0 + w / 2, y0 + h, w / 2, Math.PI, 0); p.closePath();
       } else if (el.type === 'rect' || el.type === 'pill') {
@@ -517,8 +533,19 @@
         const cx = x0 + u.x + u.w / 2, cy = y0 + u.y + u.h / 2;
         ctx.translate(cx + (us.dx || 0), cy + (us.dy || 0)); ctx.rotate(us.r || 0); ctx.scale(us.s, us.s);
         ctx.globalAlpha *= us.o;
-        if (u.all) u.all.forEach(a => ctx.fillText(a.text, a.x - u.w / 2, a.y + a.h / 2 - u.h / 2));
-        else ctx.fillText(u.text, -u.w / 2, 0);
+        const paint = (txt, px, py) => {
+          // outline = sticker border around the glyphs; bubble = fattens glyphs with a same-colour round stroke
+          if (el.outline || el.bubble) {
+            const b = (el.bubble || 0) * lay.f.size, ow = el.outline ? 2 * (el.outline.w || 0.06) * lay.f.size : 0;
+            ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.miterLimit = 2;
+            if (el.outline) { ctx.strokeStyle = C(el.outline.color || 'bg'); ctx.lineWidth = b + ow; ctx.strokeText(txt, px, py); }
+            if (b > 0) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = b; ctx.strokeText(txt, px, py); }
+            ctx.restore();
+          }
+          ctx.fillText(txt, px, py);
+        };
+        if (u.all) u.all.forEach(a => paint(a.text, a.x - u.w / 2, a.y + a.h / 2 - u.h / 2));
+        else paint(u.text, -u.w / 2, 0);
         ctx.restore();
       });
     }
