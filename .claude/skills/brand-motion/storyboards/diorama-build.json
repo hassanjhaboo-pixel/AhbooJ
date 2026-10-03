@@ -1,0 +1,479 @@
+{
+  "title": "Diorama Build — 22s product-world story",
+  "_style": "Decoded from the IKEA 'Together' reference. A hand/cursor is the agent that makes things happen (pull a cord, slide a toggle, push the end card). Each room/use-case is a flat colour stage where objects DROP in with a bounce. A segmented bar bookends the film. The last scene shrinks into a card and the logo is revealed behind it.",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 104,
+  "scenes": [
+    {
+      "id": "switch-on",
+      "_beat": "Warm accent stage. A hand reaches in and pulls a cord; the pull 'turns on' the logo and the segmented bar grows.",
+      "dur": 4.2,
+      "bg": "chapter4",
+      "elements": [
+        {
+          "type": "rect",
+          "w": 0.006,
+          "h": 0.25,
+          "hUnit": "H",
+          "fill": "accent",
+          "x": 0.68,
+          "y": 0.0,
+          "anchor": "top",
+          "moves": [
+            {
+              "at": 1.0,
+              "dur": 0.25,
+              "y": 0.035,
+              "ease": "outQuad"
+            },
+            {
+              "at": 1.25,
+              "dur": 0.5,
+              "y": 0.0,
+              "ease": "outBack"
+            }
+          ]
+        },
+        {
+          "type": "circle",
+          "r": 0.05,
+          "fill": "secondary",
+          "x": 0.68,
+          "y": 0.27,
+          "moves": [
+            {
+              "at": 1.0,
+              "dur": 0.25,
+              "y": 0.305,
+              "ease": "outQuad"
+            },
+            {
+              "at": 1.25,
+              "dur": 0.5,
+              "y": 0.27,
+              "ease": "outBack"
+            }
+          ]
+        },
+        {
+          "type": "pill",
+          "w": 0.12,
+          "h": 0.22,
+          "fill": "onPrimary",
+          "stroke": "ink",
+          "strokeW": 0.004,
+          "x": 0.76,
+          "y": 0.36,
+          "rot": -25,
+          "in": {
+            "fx": "slide-left",
+            "at": 0.3,
+            "dur": 0.6
+          },
+          "moves": [
+            {
+              "at": 1.0,
+              "dur": 0.25,
+              "y": 0.395,
+              "ease": "outQuad"
+            },
+            {
+              "at": 1.25,
+              "dur": 0.5,
+              "y": 0.36,
+              "ease": "outBack"
+            }
+          ],
+          "out": {
+            "fx": "slide-left",
+            "at": 1.9,
+            "dur": 0.5
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "logo",
+          "x": 0.5,
+          "y": 0.5,
+          "w": 0.6,
+          "in": {
+            "fx": "cut",
+            "at": 1.15,
+            "dur": 0.01
+          }
+        },
+        {
+          "type": "segbar",
+          "w": 0.6,
+          "h": 0.016,
+          "segments": 4,
+          "gap": 0.012,
+          "fill": "primary",
+          "x": 0.2,
+          "y": 0.58,
+          "anchor": "left",
+          "in": {
+            "at": 1.4,
+            "dur": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "room-1",
+      "_beat": "Chapter colour stage. Objects drop in one per beat with a bounce, biggest first, smallest last.",
+      "dur": "6b",
+      "bg": "chapter1",
+      "transition": {
+        "type": "cover",
+        "dir": "down",
+        "color": "primary",
+        "dur": 0.6
+      },
+      "elements": [
+        {
+          "type": "rect",
+          "w": 1.2,
+          "h": 0.32,
+          "hUnit": "H",
+          "fill": "dark",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 1.0,
+          "anchor": "bottom"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "SOFA",
+          "placeholder": "secondary",
+          "w": 0.6,
+          "h": 0.28,
+          "mask": "rounded",
+          "radius": 0.04,
+          "x": 0.5,
+          "y": 0.62,
+          "shadow": {
+            "blur": 0.03
+          },
+          "in": {
+            "fx": "drop",
+            "at": "0.5b",
+            "dur": 0.8
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "LAMP",
+          "placeholder": "dark",
+          "w": 0.12,
+          "h": 0.6,
+          "mask": "rounded",
+          "radius": 0.02,
+          "x": 0.13,
+          "y": 0.5,
+          "in": {
+            "fx": "drop",
+            "at": "1.5b",
+            "dur": 0.8
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "TABLE",
+          "placeholder": "accent",
+          "w": 0.3,
+          "h": 0.12,
+          "mask": "rounded",
+          "radius": 0.02,
+          "x": 0.5,
+          "y": 0.8,
+          "shadow": {
+            "blur": 0.02
+          },
+          "in": {
+            "fx": "drop",
+            "at": "2.5b",
+            "dur": 0.8
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "circle",
+          "r": 0.04,
+          "fill": "bg",
+          "x": 0.5,
+          "y": 0.73,
+          "in": {
+            "fx": "drop",
+            "at": "3.5b",
+            "dur": 0.7
+          }
+        },
+        {
+          "type": "text",
+          "text": "The little things",
+          "role": "headline",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.18,
+          "in": {
+            "fx": "mask-up",
+            "at": "1b",
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "room-2",
+      "_beat": "Same layout, new colour, new objects — the cut IS the change (no transition). Repetition builds rhythm.",
+      "dur": "4b",
+      "bg": "chapter2",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "rect",
+          "w": 1.2,
+          "h": 0.32,
+          "hUnit": "H",
+          "fill": "dark",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 1.0,
+          "anchor": "bottom"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "CABINET",
+          "placeholder": "bg",
+          "w": 0.22,
+          "h": 0.42,
+          "mask": "rounded",
+          "radius": 0.02,
+          "x": 0.17,
+          "y": 0.58,
+          "in": {
+            "fx": "drop",
+            "at": 0.05,
+            "dur": 0.7
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "SOFA",
+          "placeholder": "dark",
+          "w": 0.5,
+          "h": 0.24,
+          "mask": "rounded",
+          "radius": 0.04,
+          "x": 0.6,
+          "y": 0.66,
+          "in": {
+            "fx": "drop",
+            "at": "1b",
+            "dur": 0.7
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "rect",
+          "w": 0.4,
+          "h": 0.012,
+          "fill": "bg",
+          "x": 0.6,
+          "y": 0.42,
+          "in": {
+            "fx": "grow",
+            "at": "2b",
+            "dur": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "made yours",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.18,
+          "in": {
+            "fx": "cut",
+            "at": 0.0,
+            "dur": 0.01
+          }
+        }
+      ]
+    },
+    {
+      "id": "toggle",
+      "_beat": "Interaction moment: a finger slides a toggle and the scene changes state (mirror appears, clock pops).",
+      "dur": 4.4,
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "pill",
+          "w": 0.5,
+          "h": 0.07,
+          "fill": "dark",
+          "opacity": 0.35,
+          "x": 0.5,
+          "y": 0.3,
+          "wUnit": "U"
+        },
+        {
+          "type": "circle",
+          "r": 0.05,
+          "fill": "bg",
+          "x": 0.3,
+          "y": 0.3,
+          "moves": [
+            {
+              "at": 1.0,
+              "dur": 0.7,
+              "x": 0.7,
+              "ease": "inOutCubic"
+            }
+          ]
+        },
+        {
+          "type": "pill",
+          "w": 0.1,
+          "h": 0.2,
+          "fill": "onPrimary",
+          "stroke": "ink",
+          "strokeW": 0.004,
+          "x": 0.3,
+          "y": 0.2,
+          "anchor": "bottom",
+          "in": {
+            "fx": "slide-down",
+            "at": 0.2,
+            "dur": 0.6
+          },
+          "moves": [
+            {
+              "at": 1.0,
+              "dur": 0.7,
+              "x": 0.7,
+              "ease": "inOutCubic"
+            }
+          ],
+          "out": {
+            "fx": "slide-down",
+            "at": 2.0,
+            "dur": 0.5
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "circle",
+          "r": 0.13,
+          "fill": "bg",
+          "stroke": "accent",
+          "strokeW": 0.012,
+          "x": 0.5,
+          "y": 0.55,
+          "in": {
+            "fx": "pop",
+            "at": 1.6,
+            "dur": 0.5
+          }
+        },
+        {
+          "type": "ring",
+          "r": 0.05,
+          "fill": "onPrimary",
+          "strokeW": 0.008,
+          "x": 0.82,
+          "y": 0.5,
+          "in": {
+            "fx": "spin-in",
+            "at": 1.9,
+            "dur": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Switch it up",
+          "role": "headline",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.8,
+          "in": {
+            "fx": "pop",
+            "at": 1.8,
+            "dur": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "together",
+      "_beat": "Close-out: the stage shrinks into a framed card over the warm colour, then the logo + one word + the bar reprise.",
+      "dur": 5.0,
+      "bg": "chapter4",
+      "transition": {
+        "type": "shrink",
+        "to": 0.0,
+        "border": "bg",
+        "borderW": 0.025,
+        "dur": 1.1,
+        "ease": "inOutExpo"
+      },
+      "elements": [
+        {
+          "type": "logo",
+          "x": 0.5,
+          "y": 0.46,
+          "w": 0.6,
+          "in": {
+            "fx": "rise",
+            "at": 1.0,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "TOGETHER",
+          "role": "title",
+          "color": "primary",
+          "tracking": 0.3,
+          "x": 0.5,
+          "y": 0.53,
+          "in": {
+            "fx": "fade",
+            "at": 1.4,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "segbar",
+          "w": 0.6,
+          "h": 0.016,
+          "segments": 4,
+          "gap": 0.012,
+          "fill": "primary",
+          "x": 0.2,
+          "y": 0.58,
+          "anchor": "left",
+          "in": {
+            "at": 1.6,
+            "dur": 1.0
+          }
+        }
+      ]
+    }
+  ]
+}

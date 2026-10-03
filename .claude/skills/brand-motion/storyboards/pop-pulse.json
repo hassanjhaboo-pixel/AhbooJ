@@ -1,0 +1,485 @@
+{
+  "title": "Pop Pulse — 15s product hit",
+  "_style": "Decoded from the Red Bull reference. Flat saturated colour blocks, one idea per scene, product as hero that holds its position across cuts, mascot/motif animates on the product, wipe-with-colour-bands transitions, white end card.",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 120,
+  "scenes": [
+    {
+      "id": "hook",
+      "_beat": "QUESTION. 4 beats. A single dot pops dead-centre then bursts into the hook line.",
+      "dur": "4b",
+      "bg": "primary",
+      "elements": [
+        {
+          "type": "text",
+          "text": "Need energy?",
+          "role": "display",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.5,
+          "maxWidth": 0.8,
+          "dotColor": "onPrimary",
+          "in": {
+            "fx": "dot-expand",
+            "at": 0.1,
+            "dur": 0.9
+          },
+          "loop": {
+            "fx": "beat",
+            "period": "1b",
+            "amp": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "product-in",
+      "_beat": "ANSWER. Product flies in tilted on the downbeat over a light field of motif dots + arcs.",
+      "dur": "4.5b",
+      "bg": "bg",
+      "transition": {
+        "type": "wipe",
+        "dir": "up",
+        "bands": [
+          "onPrimary",
+          "primary"
+        ],
+        "bandW": 0.14,
+        "dur": 0.45
+      },
+      "elements": [
+        {
+          "type": "dots",
+          "count": 26,
+          "seed": 7,
+          "fill": [
+            "primary",
+            "secondary"
+          ],
+          "r": 0.012,
+          "area": [
+            0.05,
+            0.08,
+            0.95,
+            0.92
+          ],
+          "in": {
+            "at": 0.15
+          },
+          "spread": 0.5
+        },
+        {
+          "type": "path",
+          "points": [
+            [
+              -0.05,
+              0.22
+            ],
+            [
+              0.3,
+              0.14
+            ],
+            [
+              0.62,
+              0.24
+            ],
+            [
+              1.05,
+              0.16
+            ]
+          ],
+          "stroke": "primary",
+          "strokeW": 0.008,
+          "in": {
+            "fx": "draw",
+            "at": 0.2,
+            "dur": 0.8
+          }
+        },
+        {
+          "type": "path",
+          "points": [
+            [
+              -0.05,
+              0.84
+            ],
+            [
+              0.35,
+              0.9
+            ],
+            [
+              0.7,
+              0.8
+            ],
+            [
+              1.05,
+              0.88
+            ]
+          ],
+          "stroke": "secondary",
+          "strokeW": 0.008,
+          "in": {
+            "fx": "draw",
+            "at": 0.3,
+            "dur": 0.8
+          }
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "PRODUCT",
+          "placeholder": "primary",
+          "w": 0.3,
+          "h": 0.62,
+          "mask": "rounded",
+          "radius": 0.06,
+          "x": 0.5,
+          "y": 0.52,
+          "rot": -18,
+          "shadow": {
+            "blur": 0.05,
+            "y": 0.025
+          },
+          "in": {
+            "fx": "fly",
+            "at": 0.15,
+            "dur": 0.7
+          },
+          "wUnit": "U"
+        }
+      ]
+    },
+    {
+      "id": "range",
+      "_beat": "PROOF. Hero holds centre (match-cut), variants pop in either side on consecutive beats.",
+      "dur": "5b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "image",
+          "src": "",
+          "label": "VARIANT A",
+          "placeholder": "secondary",
+          "w": 0.24,
+          "h": 0.5,
+          "mask": "rounded",
+          "radius": 0.05,
+          "x": 0.2,
+          "y": 0.52,
+          "shadow": {
+            "blur": 0.04
+          },
+          "in": {
+            "fx": "drop-soft",
+            "at": "1b",
+            "dur": 0.5
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "VARIANT B",
+          "placeholder": "accent",
+          "w": 0.24,
+          "h": 0.5,
+          "mask": "rounded",
+          "radius": 0.05,
+          "x": 0.8,
+          "y": 0.52,
+          "shadow": {
+            "blur": 0.04
+          },
+          "in": {
+            "fx": "drop-soft",
+            "at": "2b",
+            "dur": 0.5
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "PRODUCT",
+          "placeholder": "bg",
+          "w": 0.3,
+          "h": 0.62,
+          "mask": "rounded",
+          "radius": 0.06,
+          "x": 0.5,
+          "y": 0.52,
+          "rot": -18,
+          "shadow": {
+            "blur": 0.05
+          },
+          "moves": [
+            {
+              "at": 0,
+              "dur": 0.45,
+              "rot": 0,
+              "ease": "outBack"
+            }
+          ],
+          "wUnit": "U"
+        },
+        {
+          "type": "text",
+          "text": "Three ways to go",
+          "role": "headline",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.13,
+          "split": "word",
+          "in": {
+            "fx": "mask-up",
+            "at": "2.5b",
+            "dur": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "motif",
+      "_beat": "CHARACTER. Brand motif (here: a wing pair) animates on the hero. Chapter colour.",
+      "dur": "4.5b",
+      "bg": "secondary",
+      "transition": {
+        "type": "wipe",
+        "dir": "left",
+        "bands": [
+          "bg"
+        ],
+        "bandW": 0.12,
+        "dur": 0.4
+      },
+      "elements": [
+        {
+          "type": "semicircle",
+          "r": 0.17,
+          "fill": "bg",
+          "x": 0.31,
+          "y": 0.42,
+          "rot": -70,
+          "anchor": "bottom",
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "flap",
+            "period": "1b",
+            "amp": 1
+          }
+        },
+        {
+          "type": "semicircle",
+          "r": 0.17,
+          "fill": "bg",
+          "x": 0.69,
+          "y": 0.42,
+          "rot": 70,
+          "anchor": "bottom",
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "flap",
+            "period": "1b",
+            "amp": -1
+          }
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "PRODUCT",
+          "placeholder": "primary",
+          "w": 0.3,
+          "h": 0.62,
+          "mask": "rounded",
+          "radius": 0.06,
+          "x": 0.5,
+          "y": 0.52,
+          "shadow": {
+            "blur": 0.05
+          },
+          "loop": {
+            "fx": "float",
+            "period": "2b"
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "text",
+          "text": "Zero sugar",
+          "role": "headline",
+          "color": "onSecondary",
+          "x": 0.5,
+          "y": 0.88,
+          "highlight": {
+            "fill": "dark"
+          },
+          "in": {
+            "fx": "pop",
+            "at": "1b",
+            "dur": 0.45
+          }
+        }
+      ]
+    },
+    {
+      "id": "claim",
+      "_beat": "CLAIM. Tagline lands while the frame gets a little handheld shake for energy.",
+      "dur": "6b",
+      "bg": "primary",
+      "camera": {
+        "shake": 0.35,
+        "zoom": [
+          1,
+          1.04
+        ]
+      },
+      "transition": {
+        "type": "wipe",
+        "dir": "up",
+        "bands": [
+          "bg",
+          "accent"
+        ],
+        "bandW": 0.12,
+        "dur": 0.45
+      },
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.19,
+          "fill": "accent",
+          "x": 0.5,
+          "y": 0.4,
+          "in": {
+            "fx": "scale",
+            "at": 0.2,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "semicircle",
+          "r": 0.17,
+          "fill": "bg",
+          "x": 0.31,
+          "y": 0.56,
+          "rot": -70,
+          "anchor": "bottom",
+          "loop": {
+            "fx": "flap",
+            "period": "1b",
+            "amp": 1
+          }
+        },
+        {
+          "type": "semicircle",
+          "r": 0.17,
+          "fill": "bg",
+          "x": 0.69,
+          "y": 0.56,
+          "rot": 70,
+          "anchor": "bottom",
+          "loop": {
+            "fx": "flap",
+            "period": "1b",
+            "amp": -1
+          }
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "PRODUCT",
+          "placeholder": "secondary",
+          "w": 0.3,
+          "h": 0.62,
+          "mask": "rounded",
+          "radius": 0.06,
+          "x": 0.5,
+          "y": 0.66,
+          "shadow": {
+            "blur": 0.05
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "text",
+          "text": "Charge your day",
+          "role": "display",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.15,
+          "maxWidth": 0.86,
+          "split": "word",
+          "stagger": "0.5b",
+          "in": {
+            "fx": "pop",
+            "at": "1b",
+            "dur": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "id": "endcard",
+      "_beat": "SIGN-OFF. Clean bg, logo centred upper-third, name/tagline under. Hold ≥ 2s.",
+      "dur": "6b",
+      "bg": "bg",
+      "transition": {
+        "type": "flash",
+        "color": "bg",
+        "dur": 0.35
+      },
+      "elements": [
+        {
+          "type": "logo",
+          "x": 0.5,
+          "y": 0.44,
+          "w": 0.5,
+          "in": {
+            "fx": "pop-soft",
+            "at": 0.15,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "Charge your day",
+          "role": "title",
+          "color": "primary",
+          "x": 0.5,
+          "y": 0.54,
+          "in": {
+            "fx": "rise",
+            "at": 0.6,
+            "dur": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "volta.example",
+          "role": "caption",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.9,
+          "in": {
+            "fx": "fade",
+            "at": 1.0,
+            "dur": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}

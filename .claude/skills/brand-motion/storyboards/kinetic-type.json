@@ -1,0 +1,70 @@
+{
+  "title": "Kinetic Type — 12s beat-cut offer",
+  "_style": "Decoded from the Spotify reference. Monochrome type-only opener, HARD cut to the brand colour, logo parked top-centre, a word list that changes every beat in the exact same spot, price punch, logo-only hold, frame shrinks into a border then black.",
+  "format": { "w": 1080, "h": 1920, "fps": 30 },
+  "bpm": 120,
+  "scenes": [
+    {
+      "id": "setup",
+      "_beat": "8 beats of type on near-black. Each line arrives ON a beat, stays centred, no decoration.",
+      "dur": "8b",
+      "bg": "dark",
+      "elements": [
+        { "type": "text", "text": "Your commute.", "role": "headline", "color": "onDark", "x": 0.5, "y": 0.44, "in": { "fx": "cut", "at": "0.5b", "dur": 0.01 } },
+        { "type": "text", "text": "Your workout.", "role": "headline", "color": "onDark", "x": 0.5, "y": 0.5, "in": { "fx": "cut", "at": "2.5b", "dur": 0.01 } },
+        { "type": "text", "text": "Your everything.", "role": "headline", "color": "onDark", "x": 0.5, "y": 0.56, "in": { "fx": "cut", "at": "4.5b", "dur": 0.01 } }
+      ]
+    },
+    {
+      "id": "brand-drop",
+      "_beat": "Hard cut. Logo locks top-centre and STAYS there through the list (anchor element).",
+      "dur": "2b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        { "type": "logo", "onDark": true, "x": 0.5, "y": 0.26, "w": 0.34, "color": "onPrimary", "role": "title", "in": { "fx": "pop-soft", "at": 0, "dur": 0.4 } }
+      ]
+    },
+    {
+      "id": "list",
+      "_beat": "One word per beat in the exact same position. No transition between words — the beat IS the transition.",
+      "dur": "6b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        { "type": "logo", "onDark": true, "x": 0.5, "y": 0.26, "w": 0.34, "color": "onPrimary", "role": "title" },
+        { "type": "cycler", "items": ["Playlists", "Podcasts", "Audiobooks", "Live", "Anytime."], "every": "1b", "at": 0, "role": "display", "color": "onPrimary", "x": 0.5, "y": 0.52, "fx": "cut", "holdLast": true }
+      ]
+    },
+    {
+      "id": "offer",
+      "_beat": "Price punch: accent chip pops in on the downbeat, small qualifier underneath.",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        { "type": "logo", "onDark": true, "x": 0.5, "y": 0.26, "w": 0.34, "color": "onPrimary", "role": "title" },
+        { "type": "text", "text": "$9.99", "role": "display", "color": "onAccent", "x": 0.5, "y": 0.52, "highlight": { "fill": "accent", "pad": 0.22 }, "in": { "fx": "pop", "at": 0, "dur": 0.4 } },
+        { "type": "text", "text": "per month · cancel anytime", "role": "caption", "color": "onPrimary", "x": 0.5, "y": 0.62, "in": { "fx": "fade", "at": "1b", "dur": 0.3 } }
+      ]
+    },
+    {
+      "id": "logo-hold",
+      "_beat": "Everything clears except the logo, which slides to dead centre and holds.",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        { "type": "logo", "onDark": true, "x": 0.5, "y": 0.26, "w": 0.34, "color": "onPrimary", "role": "title", "moves": [{ "at": 0, "dur": 0.6, "y": 0.5, "scale": 1.5, "ease": "inOutExpo" }] }
+      ]
+    },
+    {
+      "id": "out",
+      "_beat": "The whole frame shrinks into a dark border, then black. Ends the spot like a closing door.",
+      "dur": "2b",
+      "bg": "dark",
+      "transition": { "type": "shrink", "to": 0.0, "border": "dark", "borderW": 0.03, "dur": 0.8, "ease": "inExpo" },
+      "elements": []
+    }
+  ]
+}

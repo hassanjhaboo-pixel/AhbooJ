@@ -1,0 +1,725 @@
+{
+  "title": "Line Journey — 24s brand launch / explainer",
+  "_style": "Decoded from the Fresco (Buff Motion) reference. Calm cream canvas, ONE continuous line with a marker on its tip threads the whole film, a geometric system of circles/semicircles, a new chapter colour per idea, real footage inside circular masks, two shapes merge into the logo.",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 110,
+  "scenes": [
+    {
+      "id": "thread",
+      "_beat": "The line enters from the left edge, loops once, and a heart/dot pops at its tip. Copy fades in beside the tip.",
+      "dur": 3.4,
+      "bg": "bg",
+      "elements": [
+        {
+          "type": "path",
+          "points": [
+            [
+              -0.05,
+              0.5
+            ],
+            [
+              0.2,
+              0.46
+            ],
+            [
+              0.38,
+              0.36
+            ],
+            [
+              0.32,
+              0.28
+            ],
+            [
+              0.22,
+              0.33
+            ],
+            [
+              0.32,
+              0.43
+            ],
+            [
+              0.5,
+              0.44
+            ]
+          ],
+          "stroke": "ink",
+          "strokeW": 0.007,
+          "head": {
+            "r": 0.026,
+            "fill": "accent"
+          },
+          "in": {
+            "fx": "draw",
+            "at": 0.1,
+            "dur": 1.6,
+            "ease": "inOutCubic"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Fresh food,",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.53,
+          "anchor": "center",
+          "align": "center",
+          "in": {
+            "fx": "rise",
+            "at": 1.5,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "made near you",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.59,
+          "anchor": "center",
+          "align": "center",
+          "in": {
+            "fx": "rise",
+            "at": 1.9,
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "big-idea",
+      "_beat": "Iris opens from where the line ended into the first chapter colour. Big bg-coloured disc holds the idea; darker semicircles orbit it.",
+      "dur": 4.2,
+      "bg": "chapter2",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.5,
+        "dur": 0.7
+      },
+      "elements": [
+        {
+          "type": "semicircle",
+          "r": 0.18,
+          "fill": "dark",
+          "opacity": 0.18,
+          "x": 0.18,
+          "y": 0.3,
+          "rot": 90,
+          "in": {
+            "fx": "scale",
+            "at": 0.5,
+            "dur": 0.7
+          },
+          "loop": {
+            "fx": "sway",
+            "period": 3
+          }
+        },
+        {
+          "type": "semicircle",
+          "r": 0.22,
+          "fill": "dark",
+          "opacity": 0.18,
+          "x": 0.84,
+          "y": 0.74,
+          "rot": -90,
+          "in": {
+            "fx": "scale",
+            "at": 0.65,
+            "dur": 0.7
+          },
+          "loop": {
+            "fx": "sway",
+            "period": 3.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.36,
+          "fill": "bg",
+          "x": 0.5,
+          "y": 0.5,
+          "in": {
+            "fx": "scale",
+            "at": 0.2,
+            "dur": 0.8
+          }
+        },
+        {
+          "type": "dots",
+          "count": 10,
+          "seed": 3,
+          "fill": [
+            "bg"
+          ],
+          "r": 0.014,
+          "area": [
+            0.06,
+            0.12,
+            0.94,
+            0.88
+          ],
+          "in": {
+            "at": 0.9
+          },
+          "motion": "drift"
+        },
+        {
+          "type": "text",
+          "text": "Cook like\na local",
+          "role": "display",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.5,
+          "split": "word",
+          "stagger": 0.12,
+          "in": {
+            "fx": "mask-up",
+            "at": 0.6,
+            "dur": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "grid",
+      "_beat": "Second chapter colour. A grid of discs; ONE disc in accent = the 'you are here' moment. The line returns and weaves through.",
+      "dur": 3.6,
+      "bg": "chapter3",
+      "transition": {
+        "type": "cover",
+        "dir": "left",
+        "color": "bg",
+        "dur": 0.7
+      },
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.2,
+          "y": 0.3,
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.5,
+          "y": 0.3,
+          "in": {
+            "fx": "pop",
+            "at": 0.36,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.8,
+          "y": 0.3,
+          "in": {
+            "fx": "pop",
+            "at": 0.42,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.2,
+          "y": 0.42,
+          "in": {
+            "fx": "pop",
+            "at": 0.48,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "accent",
+          "x": 0.5,
+          "y": 0.42,
+          "in": {
+            "fx": "pop",
+            "at": 0.9,
+            "dur": 0.5
+          },
+          "loop": {
+            "fx": "pulse",
+            "period": 1.1
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.8,
+          "y": 0.42,
+          "in": {
+            "fx": "pop",
+            "at": 0.54,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.2,
+          "y": 0.54,
+          "in": {
+            "fx": "pop",
+            "at": 0.6,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.5,
+          "y": 0.54,
+          "in": {
+            "fx": "pop",
+            "at": 0.66,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.07,
+          "fill": "bg",
+          "x": 0.8,
+          "y": 0.54,
+          "in": {
+            "fx": "pop",
+            "at": 0.72,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "path",
+          "points": [
+            [
+              -0.05,
+              0.24
+            ],
+            [
+              0.35,
+              0.36
+            ],
+            [
+              0.65,
+              0.48
+            ],
+            [
+              1.05,
+              0.6
+            ]
+          ],
+          "stroke": "ink",
+          "strokeW": 0.007,
+          "trail": 0.45,
+          "head": {
+            "r": 0.02,
+            "fill": "accent"
+          },
+          "in": {
+            "fx": "draw",
+            "at": 1.0,
+            "dur": 2.2
+          }
+        },
+        {
+          "type": "text",
+          "text": "Chefs in your\nneighbourhood",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.76,
+          "in": {
+            "fx": "rise",
+            "at": 1.3,
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "footage",
+      "_beat": "Real-world proof: footage/photo inside a circular mask, ringed by accent dots that echo the food colour.",
+      "dur": 3.8,
+      "bg": "chapter3",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "dots",
+          "count": 9,
+          "seed": 11,
+          "fill": [
+            "accent"
+          ],
+          "r": 0.02,
+          "area": [
+            0.12,
+            0.2,
+            0.88,
+            0.62
+          ],
+          "in": {
+            "at": 0.4
+          },
+          "spread": 0.6
+        },
+        {
+          "type": "image",
+          "src": "",
+          "label": "PHOTO / VIDEO STILL",
+          "placeholder": "secondary",
+          "w": 0.62,
+          "h": 0.62,
+          "mask": "circle",
+          "x": 0.5,
+          "y": 0.41,
+          "in": {
+            "fx": "iris",
+            "at": 0.05,
+            "dur": 0.7
+          },
+          "moves": [
+            {
+              "at": 0.7,
+              "dur": 3,
+              "scale": 1.05,
+              "ease": "linear"
+            }
+          ],
+          "wUnit": "U"
+        },
+        {
+          "type": "text",
+          "text": "Real dishes.\nReal people.",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.77,
+          "split": "line",
+          "stagger": 0.25,
+          "in": {
+            "fx": "rise",
+            "at": 0.8,
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "_beat": "Third chapter colour. Two organic pill shapes joined by a thin line pulse gently — 'connection'.",
+      "dur": 3.4,
+      "bg": "chapter4",
+      "transition": {
+        "type": "push",
+        "dir": "up",
+        "dur": 0.6
+      },
+      "elements": [
+        {
+          "type": "path",
+          "points": [
+            [
+              0.25,
+              0.45
+            ],
+            [
+              0.5,
+              0.42
+            ],
+            [
+              0.75,
+              0.45
+            ]
+          ],
+          "stroke": "ink",
+          "strokeW": 0.006,
+          "in": {
+            "fx": "draw",
+            "at": 0.5,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "pill",
+          "w": 0.3,
+          "h": 0.17,
+          "fill": "bg",
+          "x": 0.25,
+          "y": 0.45,
+          "rot": -20,
+          "in": {
+            "fx": "pop",
+            "at": 0.2,
+            "dur": 0.5
+          },
+          "loop": {
+            "fx": "pulse",
+            "period": 1.6
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "pill",
+          "w": 0.3,
+          "h": 0.17,
+          "fill": "bg",
+          "x": 0.75,
+          "y": 0.45,
+          "rot": 20,
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.5
+          },
+          "loop": {
+            "fx": "pulse",
+            "period": 1.6,
+            "phase": 1.5
+          },
+          "wUnit": "U"
+        },
+        {
+          "type": "text",
+          "text": "Order direct",
+          "role": "title",
+          "color": "ink",
+          "x": 0.25,
+          "y": 0.45,
+          "rot": -20,
+          "size": 0.04,
+          "in": {
+            "fx": "fade",
+            "at": 0.6,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "Pick up fresh",
+          "role": "title",
+          "color": "ink",
+          "x": 0.75,
+          "y": 0.45,
+          "rot": 20,
+          "size": 0.04,
+          "in": {
+            "fx": "fade",
+            "at": 0.7,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "No middlemen.",
+          "role": "display",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.66,
+          "size": 0.1,
+          "in": {
+            "fx": "mask-up",
+            "at": 1.1,
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "merge",
+      "_beat": "Back to bg. Two accent discs carrying words slide together and merge; the merge becomes the logo.",
+      "dur": 2.6,
+      "bg": "bg",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.45,
+        "dur": 0.6
+      },
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.16,
+          "fill": "chapter3",
+          "x": 0.2,
+          "y": 0.45,
+          "moves": [
+            {
+              "at": 0.5,
+              "dur": 1.1,
+              "x": 0.5,
+              "scale": 0.6,
+              "ease": "inOutExpo"
+            }
+          ],
+          "out": {
+            "fx": "scale",
+            "at": 1.6,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "circle",
+          "r": 0.16,
+          "fill": "chapter3",
+          "x": 0.8,
+          "y": 0.45,
+          "moves": [
+            {
+              "at": 0.5,
+              "dur": 1.1,
+              "x": 0.5,
+              "scale": 0.6,
+              "ease": "inOutExpo"
+            }
+          ],
+          "out": {
+            "fx": "scale",
+            "at": 1.6,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "cook",
+          "role": "title",
+          "color": "ink",
+          "x": 0.2,
+          "y": 0.45,
+          "moves": [
+            {
+              "at": 0.5,
+              "dur": 1.1,
+              "x": 0.5,
+              "ease": "inOutExpo"
+            }
+          ],
+          "out": {
+            "fx": "fade",
+            "at": 1.2,
+            "dur": 0.3
+          }
+        },
+        {
+          "type": "text",
+          "text": "eat",
+          "role": "title",
+          "color": "ink",
+          "x": 0.8,
+          "y": 0.45,
+          "moves": [
+            {
+              "at": 0.5,
+              "dur": 1.1,
+              "x": 0.5,
+              "ease": "inOutExpo"
+            }
+          ],
+          "out": {
+            "fx": "fade",
+            "at": 1.2,
+            "dur": 0.3
+          }
+        },
+        {
+          "type": "logo",
+          "x": 0.5,
+          "y": 0.45,
+          "w": 0.55,
+          "in": {
+            "fx": "pop",
+            "at": 1.6,
+            "dur": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "endcard",
+      "_beat": "Logo holds in brand colour on bg; one line + URL below. Longest hold of the film.",
+      "dur": 3.4,
+      "bg": "bg",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "logo",
+          "x": 0.5,
+          "y": 0.45,
+          "w": 0.55
+        },
+        {
+          "type": "path",
+          "points": [
+            [
+              0.3,
+              0.52
+            ],
+            [
+              0.5,
+              0.535
+            ],
+            [
+              0.7,
+              0.52
+            ]
+          ],
+          "stroke": "accent",
+          "strokeW": 0.006,
+          "in": {
+            "fx": "draw",
+            "at": 0.1,
+            "dur": 0.7
+          }
+        },
+        {
+          "type": "text",
+          "text": "Charge your day",
+          "role": "body",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.58,
+          "in": {
+            "fx": "rise",
+            "at": 0.4,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "volta.example",
+          "role": "caption",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.9,
+          "in": {
+            "fx": "fade",
+            "at": 0.8,
+            "dur": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+{{FONT_LINKS}}
+<style>
+  :root { --ui-bg: #111; --ui-fg: #eee; --ui-muted: #888; }
+  html, body { margin: 0; height: 100%; background: var(--ui-bg); color: var(--ui-fg); font: 13px/1.4 system-ui, sans-serif; }
+  .stage { position: fixed; inset: 0 0 56px 0; display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  canvas { max-width: 100%; max-height: 100%; box-shadow: 0 10px 40px rgba(0,0,0,.5); background: #000; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; display: flex; gap: 12px; align-items: center; padding: 0 16px; box-sizing: border-box; border-top: 1px solid #222; }
+  .bar button { background: #222; color: var(--ui-fg); border: 1px solid #333; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  .bar input[type=range] { flex: 1; min-width: 0; }
+  .bar .t { font-variant-numeric: tabular-nums; color: var(--ui-muted); min-width: 92px; text-align: right; }
+  body.render .bar { display: none; }
+  body.render .stage { inset: 0; padding: 0; }
+  body.render canvas { box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="stage"><canvas id="c"></canvas></div>
+<div class="bar">
+  <button id="play">Play</button>
+  <button id="restart">⟲</button>
+  <input id="scrub" type="range" min="0" max="1000" value="0">
+  <span class="t" id="time">0.00s</span>
+</div>
+<script>{{ENGINE}}</script>
+<script id="brand" type="application/json">{{BRAND}}</script>
+<script id="story" type="application/json">{{STORY}}</script>
+<script>
+(function () {
+  const brand = JSON.parse(document.getElementById('brand').textContent);
+  const story = JSON.parse(document.getElementById('story').textContent);
+  const canvas = document.getElementById('c');
+  const mg = MG.create(canvas, brand, story);
+  const isRender = new URLSearchParams(location.search).has('render');
+  if (isRender) document.body.classList.add('render');
+  // Render hooks used by scripts/render.mjs
+  window.MG_duration = mg.duration; window.MG_fps = mg.fps;
+  window.MG_size = [mg.width, mg.height];
+  window.MG_seek = t => mg.seek(t);
+  window.MG_ready = mg.ready.then(() => { mg.seek(0); return true; });
+
+  const scrub = document.getElementById('scrub'), time = document.getElementById('time'), btn = document.getElementById('play');
+  let t = 0, playing = false, last = 0;
+  const show = () => { mg.seek(t); scrub.value = Math.round((t / mg.duration) * 1000); time.textContent = t.toFixed(2) + 's / ' + mg.duration.toFixed(1) + 's'; };
+  const loop = now => { if (!playing) return; t += (now - last) / 1000; last = now; if (t >= mg.duration) t = 0; show(); requestAnimationFrame(loop); };
+  btn.onclick = () => { playing = !playing; btn.textContent = playing ? 'Pause' : 'Play'; last = performance.now(); if (playing) requestAnimationFrame(loop); };
+  document.getElementById('restart').onclick = () => { t = 0; show(); };
+  scrub.oninput = () => { t = (scrub.value / 1000) * mg.duration; show(); };
+  addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); btn.click(); } });
+  mg.ready.then(() => { show(); if (!isRender) btn.click(); });
+})();
+</script>
+</body>
+</html>

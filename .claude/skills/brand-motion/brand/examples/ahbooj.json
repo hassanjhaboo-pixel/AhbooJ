@@ -1,0 +1,36 @@
+{
+  "name": "Ahbooj",
+  "tagline": "",
+  "url": "",
+  "voice": { "tone": "warm, crafted, confident", "maxWordsPerCard": 4, "case": "sentence", "cta": "Order now" },
+  "palette": {
+    "bg": "#FDFAF4",
+    "ink": "#2C1E16",
+    "primary": "#F26419",
+    "onPrimary": "#FDFAF4",
+    "secondary": "#2C1E16",
+    "onSecondary": "#F5EDD9",
+    "accent": "#C9A84C",
+    "onAccent": "#2C1E16",
+    "dark": "#2C1E16",
+    "onDark": "#F5EDD9",
+    "chapter1": "#F5EDD9",
+    "chapter2": "#F26419",
+    "chapter3": "#2C1E16",
+    "chapter4": "#C9A84C"
+  },
+  "type": {
+    "fontUrls": ["https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;500;600;700&display=swap"],
+    "display": { "family": "Playfair Display", "fallback": "Georgia, serif", "weight": 700, "case": "none", "tracking": -0.01, "lineHeight": 1.0 },
+    "headline": { "family": "Playfair Display", "fallback": "Georgia, serif", "weight": 600, "case": "none", "tracking": 0, "lineHeight": 1.05 },
+    "body": { "family": "Montserrat", "fallback": "system-ui, sans-serif", "weight": 500, "case": "none", "tracking": 0.02, "lineHeight": 1.35 }
+  },
+  "logo": { "src": "", "srcOnDark": "", "wordmark": "Ahbooj", "color": "ink", "clearSpace": 0.5 },
+  "shape": { "language": "rounded", "radius": 0.03, "strokeW": 0.006, "motif": "thin gold line that draws on and frames the product" },
+  "motion": { "energy": "balanced", "bpm": 100, "exit": "inCubic", "move": "inOutCubic", "transition": "inOutCubic", "stagger": 0.07, "signatureTransition": "cover" },
+  "layout": { "safe": 0.09, "alignment": "center" },
+  "rules": {
+    "do": ["Pair Playfair headlines with small Montserrat captions", "Use gold as a hairline accent, never a big fill"],
+    "dont": ["Never set terracotta text on gold", "No more than one terracotta block per scene"]
+  }
+}
