@@ -1,0 +1,487 @@
+{
+  "title": "Lineup Reveal — 14s weekly drop / menu reveal",
+  "_style": "Decoded from Crumbl's official weekly-lineup shorts. ONE flat brand colour for the whole film, a top-down collage that opens and closes it (bookend), then one product per 2 seconds dead-centre, drifting diagonally with a slight handheld jitter, name in big bold type. Upbeat pop bed, a pop on every product.",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 120,
+  "scenes": [
+    {
+      "id": "collage",
+      "dur": "4b",
+      "bg": "primary",
+      "_beat": "Hook: the whole lineup scattered top-down, popping in fast. Product is on screen in frame 1.",
+      "elements": [
+        {
+          "type": "repeat",
+          "mode": "grid",
+          "count": 4,
+          "cols": 2,
+          "gap": [
+            0.48,
+            0.48
+          ],
+          "x": 0.5,
+          "y": 0.52,
+          "stagger": 0.08,
+          "seed": 4,
+          "vary": {
+            "rot": 18,
+            "pos": 0.05
+          },
+          "child": {
+            "type": "image",
+            "src": "",
+            "label": "PRODUCT",
+            "placeholder": "bg",
+            "w": 0.36,
+            "wUnit": "U",
+            "h": 0.36,
+            "mask": "circle",
+            "shadow": {
+              "blur": 0.03,
+              "y": 0.015
+            },
+            "in": {
+              "fx": "pop",
+              "at": -0.2,
+              "dur": 0.4
+            },
+            "loop": {
+              "fx": "boil",
+              "amp": 0.6
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "This week's lineup",
+          "role": "display",
+          "size": 0.1,
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.13,
+          "maxWidth": 0.9,
+          "split": "word",
+          "stagger": 0.08,
+          "in": {
+            "fx": "pop",
+            "at": 0.15,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "wave",
+            "period": "2b",
+            "amp": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "item1",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "_beat": "Spotlight: product spins in centre, drifts diagonally, name masks up underneath. Same stage colour every time.",
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.33,
+          "fill": "onPrimary",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 0.47
+        },
+        {
+          "type": "image",
+          "id": "p1",
+          "src": "",
+          "label": "PRODUCT 1",
+          "placeholder": "bg",
+          "w": 0.56,
+          "wUnit": "U",
+          "h": 0.56,
+          "mask": "circle",
+          "x": 0.46,
+          "y": 0.5,
+          "shadow": {
+            "blur": 0.04,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": -0.06,
+            "dur": 0.5
+          },
+          "moves": [
+            {
+              "at": 0.2,
+              "dur": 1.8,
+              "x": 0.54,
+              "y": 0.44,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Product one",
+          "role": "display",
+          "size": 0.1,
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.78,
+          "in": {
+            "fx": "mask-up",
+            "at": "@p1+0.15",
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "text",
+          "text": "01 / 04",
+          "role": "caption",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.86,
+          "in": {
+            "fx": "fade",
+            "at": "@p1.end",
+            "dur": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "item2",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.33,
+          "fill": "onPrimary",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 0.47
+        },
+        {
+          "type": "image",
+          "id": "p2",
+          "src": "",
+          "label": "PRODUCT 2",
+          "placeholder": "bg",
+          "w": 0.56,
+          "wUnit": "U",
+          "h": 0.56,
+          "mask": "circle",
+          "x": 0.54,
+          "y": 0.5,
+          "shadow": {
+            "blur": 0.04,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": -0.06,
+            "dur": 0.5
+          },
+          "moves": [
+            {
+              "at": 0.2,
+              "dur": 1.8,
+              "x": 0.46,
+              "y": 0.44,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Product two",
+          "role": "display",
+          "size": 0.1,
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.78,
+          "in": {
+            "fx": "mask-up",
+            "at": "@p2+0.15",
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "text",
+          "text": "02 / 04",
+          "role": "caption",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.86,
+          "in": {
+            "fx": "fade",
+            "at": "@p2.end",
+            "dur": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "item3",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.33,
+          "fill": "onPrimary",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 0.47
+        },
+        {
+          "type": "image",
+          "id": "p3",
+          "src": "",
+          "label": "PRODUCT 3",
+          "placeholder": "bg",
+          "w": 0.56,
+          "wUnit": "U",
+          "h": 0.56,
+          "mask": "circle",
+          "x": 0.46,
+          "y": 0.44,
+          "shadow": {
+            "blur": 0.04,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": -0.06,
+            "dur": 0.5
+          },
+          "moves": [
+            {
+              "at": 0.2,
+              "dur": 1.8,
+              "x": 0.54,
+              "y": 0.5,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Product three",
+          "role": "display",
+          "size": 0.1,
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.78,
+          "in": {
+            "fx": "mask-up",
+            "at": "@p3+0.15",
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "text",
+          "text": "03 / 04",
+          "role": "caption",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.86,
+          "in": {
+            "fx": "fade",
+            "at": "@p3.end",
+            "dur": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "item4",
+      "dur": "4b",
+      "bg": "primary",
+      "transition": "cut",
+      "elements": [
+        {
+          "type": "circle",
+          "r": 0.33,
+          "fill": "onPrimary",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 0.47
+        },
+        {
+          "type": "image",
+          "id": "p4",
+          "src": "",
+          "label": "PRODUCT 4",
+          "placeholder": "bg",
+          "w": 0.56,
+          "wUnit": "U",
+          "h": 0.56,
+          "mask": "circle",
+          "x": 0.54,
+          "y": 0.44,
+          "shadow": {
+            "blur": 0.04,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": -0.06,
+            "dur": 0.5
+          },
+          "moves": [
+            {
+              "at": 0.2,
+              "dur": 1.8,
+              "x": 0.46,
+              "y": 0.5,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Product four",
+          "role": "display",
+          "size": 0.1,
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.78,
+          "in": {
+            "fx": "mask-up",
+            "at": "@p4+0.15",
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "text",
+          "text": "04 / 04",
+          "role": "caption",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.86,
+          "in": {
+            "fx": "fade",
+            "at": "@p4.end",
+            "dur": 0.3
+          }
+        }
+      ]
+    },
+    {
+      "id": "collage-end",
+      "dur": "8b",
+      "bg": "primary",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.47,
+        "ring": "onPrimary",
+        "dur": 0.45
+      },
+      "_beat": "Bookend: the collage returns, smaller, around the logo. Living loops so the end card never freezes.",
+      "elements": [
+        {
+          "type": "repeat",
+          "mode": "radial",
+          "count": 4,
+          "radius": 0.36,
+          "angle0": -135,
+          "x": 0.5,
+          "y": 0.45,
+          "stagger": 0.07,
+          "seed": 9,
+          "vary": {
+            "rot": 14
+          },
+          "child": {
+            "type": "image",
+            "src": "",
+            "label": "P",
+            "placeholder": "bg",
+            "w": 0.26,
+            "wUnit": "U",
+            "h": 0.26,
+            "mask": "circle",
+            "shadow": {
+              "blur": 0.03,
+              "y": 0.015
+            },
+            "in": {
+              "fx": "pop",
+              "at": 0.1,
+              "dur": 0.4
+            },
+            "loop": {
+              "fx": "float",
+              "period": "4b"
+            }
+          }
+        },
+        {
+          "type": "logo",
+          "w": 0.5,
+          "x": 0.5,
+          "y": 0.45,
+          "color": "onPrimary",
+          "in": {
+            "fx": "pop-soft",
+            "at": 0.5,
+            "dur": 0.6
+          },
+          "loop": {
+            "fx": "jelly",
+            "period": "2b",
+            "amp": 0.6
+          }
+        },
+        {
+          "type": "text",
+          "text": "Order now",
+          "role": "title",
+          "color": "primary",
+          "x": 0.5,
+          "y": 0.8,
+          "highlight": {
+            "fill": "onPrimary",
+            "pad": 0.4
+          },
+          "in": {
+            "fx": "pop",
+            "at": 1.0,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "beat",
+            "period": "1b",
+            "amp": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -11,7 +11,10 @@
 }
 ```
 
-**Times** anywhere: number = seconds, `"4b"` = beats at `bpm`, `"12f"` = frames, `"1.5s"` = seconds.
+**Times** anywhere: number = seconds, `"4b"` = beats at `bpm`, `"12f"` = frames, `"1.5s"` = seconds, or an **expression** of terms joined by `+`/`-`:
+- `"cueName"`: from `scene.cues` (scene-local) or `story.cues` (absolute, for overlays)
+- `"@id"` / `"@id.end"`: the entrance start / end of the element with that `id` in the same scene (MotionGfx-style chaining)
+- e.g. `"@box.end+0.5b"`, `"open-0.15"`. Ids and cue names must not contain `+` or `-`. Negative times are allowed (`-0.2` = already mid-entrance on frame 0).
 **Colours** anywhere: a palette role (`"primary"`) or a literal CSS colour (avoid literals).
 **Coordinates:** `x`,`y` are fractions of frame width/height. Sizes: see each element.
 
@@ -23,6 +26,8 @@
   "bg": "primary",
   "transition": "cut" | { "type": "wipe|iris|cover|push|shrink|flash|fade|zoom|cut", "dur": 0.5, "ease": "inOutCubic", ...typeOptions },
   "camera": { "zoom": [1, 1.05], "shake": 0.3, "pan": [[0,0],[0.02,0]], "ease": "inOutQuad" },
+  "cues": { "open": 1.55 },                                     // named moments for this scene
+  "bgTo": [ { "at": 2, "dur": 0.5, "bg": "chapter2", "ease": "inOutCubic" } ],  // background colour morphs
   "elements": [ Element, ... ]    // drawn in order (later = on top); times are relative to scene start
 }
 ```
@@ -39,15 +44,17 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
 ## Element (common fields)
 ```jsonc
 {
-  "type": "text|cycler|logo|image|circle|ring|semicircle|rect|pill|segbar|path|dots",
+  "type": "text|cycler|logo|image|group|repeat|poly|circle|ring|semicircle|heart|sparkle|star|polygon|scallop|blob|rays|rect|pill|segbar|path|dots",
+  "id": "box",                    // optional; lets other elements time themselves with "@box" / "@box.end"
+  "sfx": "chime",                 // optional audio.mjs override ("pop","plop","bloop","whoosh","tick","twinkle","chime","shimmer"), or false to mute
   "x": 0.5, "y": 0.5,             // position of the anchor point
   "anchor": "center",             // center|left|right|top|bottom|top-left|top-right|bottom-left|bottom-right
   "scale": 1, "rot": 0,           // rot in degrees
   "opacity": 1,
   "in":  { "fx": "pop", "at": 0.2, "dur": 0.5, "ease": "outBack" },   // or just "pop"
   "out": { "fx": "fade", "at": 2.5, "dur": 0.3 },                      // exits continue direction of travel
-  "moves": [ { "at": 1, "dur": 0.6, "x": 0.5, "y": 0.4, "scale": 1.2, "rot": 0, "opacity": 1, "ease": "inOutCubic" } ],
-  "loop": { "fx": "float|pulse|sway|flap|spin|shake|beat", "period": "1b", "amp": 1, "phase": 0 },
+  "moves": [ { "at": 1, "dur": 0.6, "x": 0.5, "y": 0.4, "scale": 1.2, "rot": 0, "opacity": 1, "fill": "accent", "color": "ink", "ease": "inOutCubic" } ],
+  "loop": { "fx": "float|pulse|sway|flap|spin|shake|beat|jelly|boil|wave", "period": "1b", "amp": 1, "phase": 0, "seed": 0 },
   "shadow": { "color": "rgba(0,0,0,.25)", "blur": 0.03, "y": 0.015 },
   "blend": "multiply",            // optional canvas composite mode
   "from": 0                       // optional: hidden before this time
@@ -56,9 +63,11 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
 - An element with no `in` is visible from the start of its scene. With no `out`, it stays until the scene ends.
 - `moves` apply in order; each one interpolates from the current state to its targets.
 - Negative `amp` on `flap`/`sway` mirrors the motion (use it for left/right wing pairs).
+- `moves` can tween colours: `fill` / `color` (role or literal) blend from the current colour.
+- Loops: `jelly` = squishy alternating squash (desserts, soft goods) · `boil` = stepped hand-held jitter at 8fps (sticker / handmade / Crumbl handheld feel) · `wave` (text with `split`) = letters or words bob in sequence.
 
 ### Effects (`in.fx` / `out.fx`)
-`cut` · `fade` · `pop` · `pop-soft` · `rise` · `sink` · `mask-up` · `mask-down` · `slide-left` · `slide-right` · `slide-up` · `slide-down` · `drop` (bounce, from above the frame) · `drop-near` (bounce, shorter fall, fades in) · `drop-soft` · `fly` (from below with tilt) · `grow` (scaleX from anchor) · `grow-y` · `scale` · `scale-down` · `spin-in` · `blur-in` · `draw` (paths and rings) · `wipe` (left→right reveal) · `iris` (circular reveal) · `dot-expand` · `type` (typewriter, text only)
+`plop` (gravity fall + squash & stretch landing, use `anchor: "bottom"`) · `swing` (elastic swing-in, great for hanging signs and stickers) · `zoom-in` (settles from 150%) · `cut` · `fade` · `pop` · `pop-soft` · `rise` · `sink` · `mask-up` · `mask-down` · `slide-left` · `slide-right` · `slide-up` · `slide-down` · `drop` (bounce, from above the frame) · `drop-near` (bounce, shorter fall, fades in) · `drop-soft` · `fly` (from below with tilt) · `grow` (scaleX from anchor) · `grow-y` · `scale` · `scale-down` · `spin-in` · `blur-in` · `draw` (paths and rings) · `wipe` (left→right reveal) · `iris` (circular reveal) · `dot-expand` · `type` (typewriter, text only)
 
 ### Easings
 `linear inQuad outQuad inOutQuad inCubic outCubic inOutCubic outQuart inOutQuart inExpo outExpo inOutExpo outBack outBackSoft inBack outElastic outBounce`
@@ -110,6 +119,40 @@ Uses `brand.logo.src` (or `srcOnDark` when `onDark: true`). With no file, it ren
 { "type": "segbar",     "w": 0.6, "h": 0.016, "segments": 4, "gap": 0.012, "fill": "primary" | ["primary","accent"], "stagger": 0.15 }
 ```
 
+### `group` (hierarchy: move, scale, rotate, fade many things as one)
+```jsonc
+{ "type": "group", "x": 0.5, "y": 0.7, "scale": 1.1, "rot": -4, "in": { "fx": "plop" },
+  "children": [ /* any elements; their x/y are OFFSETS in short-side units (U) from the group origin; default 0,0 */ ] }
+```
+Groups nest. Children keep their own `in/out/moves/loop` (same scene clock). Use a group per physical object (a box, a lid, a sticker with its product).
+
+### `poly` (custom shapes: boxes, ribbons, bags, cups)
+```jsonc
+{ "type": "poly", "pts": [[-0.25,0],[0.25,0],[0.25,-0.22],[-0.25,-0.22]], "radius": 0.012, "fill": "blush", "stroke": null, "dash": null }
+```
+`pts` are U offsets from the element's x/y (or the group origin). `radius` rounds every corner (U).
+
+### Generators (Graphite-inspired)
+```jsonc
+{ "type": "star",    "r": 0.05, "points": 5, "inner": 0.5, "round": 0.15 }   // round = corner rounding (fraction of r)
+{ "type": "polygon", "r": 0.05, "sides": 6, "round": 0.1 }
+{ "type": "scallop", "r": 0.2,  "bumps": 16, "depth": 0.08 }                 // badges, plates, stickers, cloud frames
+{ "type": "blob",    "r": 0.3,  "wobble": 0.08, "speed": 1, "seed": 1 }       // organic shape that keeps morphing over time
+{ "type": "rays",    "r": 0.9,  "count": 18 }                                  // sunburst; add loop spin
+```
+All accept `fill`, `stroke`, `strokeW`, `dash` (e.g. `[0.012, 0.01]` for a stitched outline), `opacity`, `shadow`.
+
+### `repeat` (copies with colour cycling, organic variation and a stagger)
+```jsonc
+{ "type": "repeat", "mode": "radial|line|grid", "count": 12, "x": 0.5, "y": 0.5,
+  "radius": 0.4, "angle0": -90, "arc": 360, "orient": true,          // radial
+  "step": [0.1, 0],                                                   // line (U per copy)
+  "cols": 3, "gap": [0.2, 0.2],                                       // grid
+  "fills": ["primary","accent"], "texts": ["A","B"], "stagger": 0.05, "seed": 4,
+  "vary": { "rot": 20, "scale": 0.4, "pos": 0.05 },                  // per-copy randomness (deterministic)
+  "child": { "type": "heart", "r": 0.03, "in": { "fx": "pop", "at": 0.5 } } }
+```
+
 ### `path` (lines that draw on, travel, and carry a marker)
 ```jsonc
 { "type": "path", "points": [[-0.05,0.5],[0.3,0.4],[0.6,0.55],[1.05,0.45]],   // frame fractions; may start off-frame
@@ -133,3 +176,4 @@ Uses `brand.logo.src` (or `srcOnDark` when `onDark: true`). With no file, it ren
 
 ## Player / render hooks
 The built HTML exposes `window.MG_ready` (Promise), `MG_seek(t)`, `MG_duration`, `MG_fps` and `MG_size`. Add `?render=1` to hide the controls.
+`MG.normalize(story)` returns the resolved timeline without a canvas (used by `audio.mjs` and the build lint). Load `engine/motion.js` in Node with `vm`.

@@ -1,10 +1,12 @@
-# Style DNA: the four reference spots, decoded
+# Style DNA: the six reference spots, decoded
 
 Source videos (vertical/horizontal social motion ads):
 1. Red Bull motion graphic ad: https://youtu.be/yP6t1k5OGNI (15s), → **Pop Pulse**
 2. IKEA, "Together" (allkustom): https://youtu.be/XU3jwFbg79w (60s), → **Diorama Build**
 3. Fresco brand launch promo (Buff Motion): https://youtu.be/EfCkoqafS8k (45s), → **Line Journey**
 4. Spotify motion graphics ad: https://youtu.be/eH8t7ZQQaNg (12s), → **Kinetic Type**
+5. Crumbl "This Week at Crumbl" (official short): https://www.youtube.com/shorts/phw1rtZMJGY (23s), → **Lineup Reveal**
+6. Starbucks-style spots: https://www.youtube.com/watch?v=DX7SJcdWXMI (animated ad) and https://www.youtube.com/watch?v=Sf0ufoUz4UQ (fan-made motion piece, used for its structure only), → **Hero Constant**
 
 > These breakdowns come from a scene-by-scene analysis of each video (timestamps, backgrounds, elements, motion, audio). Exact easing and frame counts are reconstructed from standard motion-design practice for each look. Treat the numbers as starting points, not measurements. If the user can provide the source files, re-check timings against them.
 
@@ -116,3 +118,34 @@ Source videos (vertical/horizontal social motion ads):
 - **Have a story about people/place/service?** Line Journey.
 - **Have many products or use-cases?** Diorama Build.
 - **Mix:** Kinetic Type hook (2–4s) → Pop Pulse product (4–6s) → Line Journey end card is a strong 12–15s formula. Use one signature transition throughout (`brand.motion.signatureTransition`).
+
+---
+
+## 5 · Lineup Reveal (Crumbl weekly lineup) · 12–25s · punchy
+
+**Feel:** craveable, collectible, weekly ritual. One flat brand colour for the WHOLE film (Crumbl pink), and the products do all the talking.
+
+| # | Time | BG | What happens | Motion detail | Carry-over |
+|---|---|---|---|---|---|
+| 1 | 0:00–0:01 | brand pink | Top-down collage of the whole lineup; a hand reaches in | Products are already on screen in frame 1 | Collage → bookend |
+| 2–10 | 0:01–0:19 | same pink | One product per ~2s, centred, cookies often in pairs floating diagonally, name on screen | Slight **handheld jitter**, gentle diagonal drift, tilt toward camera | Same stage, same framing, new product: rhythm by repetition |
+| 11 | 0:19–0:23 | same pink | The collage returns (bookend), static, CTA | Hold | — |
+
+**Signature moves:** product-first hook (no logo intro) · constant stage colour · one product per ~2 seconds on the beat · diagonal drift + handheld jitter (`boil`) · name in big type · collage bookend · upbeat synth-pop with claps.
+**Marketing context (public reporting):** the weekly Sunday reveal is the growth engine. The pink box is a recognisable, shareable object, and box-opening and ranking videos drive the reach.
+**Do with it:** bakeries, cafés, menus, drops, "what's inside" boxes, product ranges. Pair it with a box-open (IKEA physics) for gift boxes.
+
+## 6 · Hero Constant (Starbucks-style) · 12–20s · calm
+
+**Feel:** calm confidence. The hero product holds one fixed position while the *world* around it changes: background colour, context, seasonal decoration, even the drink inside the cup.
+
+| Pattern | From the analysed spots |
+|---|---|
+| Brand colour opener with a round logo badge and soft gradient circles drifting | Animated ad: green bg, Siren badge, orange-brown gradient circles floating |
+| Product illustration fades in over a big simple shape | Iced coffee over a large gradient triangle |
+| Feature icons pop in a vertical list, **one pop sound per icon** | Four line icons, sequential, each with a "pop" SFX |
+| Hero stays put while backgrounds swap (café → nature → home → kitchen → holiday) | Fan-made piece: the same white cup in every setting, drink changes in place |
+| Logo with a **chime**, slow fade | Both |
+
+**Signature moves:** `overlays` for the constant hero · `iris` from the product so each new world radiates out of it · drifting `blob`s · `repeat` line of icons with pops · chime on the logo · slower easing (`inOutCubic`, 0.7–1s moves).
+**Note:** Starbucks' official Creative Expression site (creative.starbucks.com) describes the brand as spanning "functional to expressive", with "calm confidence" that is "optimistic, joyful". Its motion pages could not be read from this environment, so treat the motion details here as decoded from the two videos, not from the official guide.

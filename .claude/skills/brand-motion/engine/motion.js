@@ -83,7 +83,30 @@
       },
     },
     type: { ease: 'linear', f: e => ({ o: e > 0 ? 1 : 0 }) }, // used per-character, see text drawer
+    // Gravity fall then a damped squash & stretch on landing. Use anchor "bottom" so it squashes on the floor.
+    plop: {
+      ease: 'linear',
+      f: (e, k) => {
+        if (e < 0.42) { const q = e / 0.42; return { dy: -(1 - q * q) * k.U * 0.6, sy: 1.1, sx: 0.92, o: clamp(q * 6) }; }
+        const q = (e - 0.42) / 0.58, d = Math.exp(-5 * q) * Math.cos(3 * Math.PI * q);
+        return { sy: 1 - 0.2 * d, sx: 1 + 0.14 * d };
+      },
+    },
+    swing: { ease: 'outElastic', f: e => ({ r: (1 - e) * 38 * DEG, o: clamp(e * 6) }) },
+    'zoom-in': { ease: 'outExpo', f: e => ({ s: 1.5 - 0.5 * e, o: clamp(e * 2.5) }) },
   };
+
+  // ---------- colour helpers (for colour tweens) ----------
+  function rgbOf(c) {
+    if (!c || typeof c !== 'string') return [0, 0, 0, 1];
+    if (c[0] === '#') {
+      let h = c.slice(1); if (h.length === 3) h = h.split('').map(x => x + x).join('');
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length >= 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+    }
+    const m = c.match(/rgba?\(([^)]+)\)/); if (m) { const v = m[1].split(',').map(Number); return [v[0], v[1], v[2], v[3] != null ? v[3] : 1]; }
+    return [0, 0, 0, 1];
+  }
+  function mixRGB(a, b, e) { const A = rgbOf(a), B = rgbOf(b); return `rgba(${Math.round(lerp(A[0], B[0], e))},${Math.round(lerp(A[1], B[1], e))},${Math.round(lerp(A[2], B[2], e))},${lerp(A[3], B[3], e).toFixed(3)})`; }
 
   // ---------- color + token resolution ----------
   function makeResolver(brand) {
@@ -97,18 +120,156 @@
     return color;
   }
 
-  // ---------- time parsing: numbers are seconds; "4b" = 4 beats at story.bpm; "12f" = 12 frames ----------
+  // ---------- time ----------
+  // A time is a number (seconds) or an expression of terms joined by + / - :
+  //   "2.5"  "4b" (beats at story.bpm)  "12f" (frames)  "1.2s"  "cueName" (scene.cues / story.cues)
+  //   "@id" (element id's entrance start)  "@id.end" (entrance end)  e.g. "@box.end+0.5b"
+  // This is MotionGfx-style relative sequencing: chain things off each other instead of hand-computing seconds.
   function makeTime(story) {
     const bpm = story.bpm || 120, fps = (story.format && story.format.fps) || 30;
-    return v => {
+    const unit = str => { const m = /^(-?\d*\.?\d+)\s*(b|f|s)?$/.exec(str); if (!m) return null; const n = parseFloat(m[1]); return m[2] === 'b' ? (n * 60) / bpm : m[2] === 'f' ? n / fps : n; };
+    const T = (v, scope, depth = 0) => {
       if (v == null) return v;
       if (typeof v === 'number') return v;
-      const s = String(v).trim();
-      if (s.endsWith('b')) return (parseFloat(s) * 60) / bpm;
-      if (s.endsWith('f')) return parseFloat(s) / fps;
-      if (s.endsWith('s')) return parseFloat(s);
-      return parseFloat(s);
+      const str = String(v).trim();
+      const direct = unit(str); if (direct != null) return direct;
+      if (depth > 8) return undefined;
+      let total = 0;
+      const re = /([+-]?)\s*([^+\-]+)/g; let m, any = false;
+      while ((m = re.exec(str))) {
+        const term = m[2].trim(); if (!term) continue; any = true;
+        const sign = m[1] === '-' ? -1 : 1;
+        let val = unit(term);
+        if (val == null && term[0] === '@') {
+          const [id, part] = term.slice(1).split('.');
+          const ref = scope && scope.refs && scope.refs[id];
+          if (!ref) return undefined; // not resolved yet
+          val = part === 'end' ? ref.end : ref.start;
+        } else if (val == null) {
+          const cue = (scope && scope.cues && scope.cues[term] != null) ? scope.cues[term] : (scope && scope.storyCues && scope.storyCues[term] != null ? scope.storyCues[term] : null);
+          if (cue == null) return NaN;
+          val = T(cue, scope, depth + 1);
+          if (val === undefined || Number.isNaN(val)) return val;
+        }
+        total += sign * val;
+      }
+      return any ? total : NaN;
     };
+    return T;
+  }
+
+  // Resolve every time field in a scene's elements (incl. group children and repeat children),
+  // iterating so "@id" references can point at elements defined later.
+  function resolveScene(rawEls, scope, T, warn) {
+    const flat = [];
+    const walk = arr => (arr || []).forEach(e => { flat.push(e); if (e.children) walk(e.children); if (e.child) walk([e.child]); });
+    walk(rawEls);
+    const done = new Map();
+    const tryResolve = (e, force) => {
+      let pending = false;
+      const t = v => { if (v == null) return v; const r = T(v, scope); if (r === undefined || Number.isNaN(r)) { pending = true; return 0; } return r; };
+      const o = Object.assign({}, e);
+      const fx = (spec, defAt, defDur) => { if (!spec) return null; if (typeof spec === 'string') spec = { fx: spec }; return Object.assign({}, spec, { at: t(spec.at != null ? spec.at : defAt), dur: t(spec.dur != null ? spec.dur : defDur) }); };
+      o.in = fx(e.in, 0, 0.6); o.out = fx(e.out, 0, 0.4);
+      if (e.moves) o.moves = e.moves.map(m => Object.assign({}, m, { at: t(m.at || 0), dur: t(m.dur != null ? m.dur : 0.8) }));
+      ['stagger', 'at', 'every', 'from', 'outDur', 'fxDur'].forEach(k => { if (e[k] != null) o[k] = t(e[k]); });
+      if (e.loop) o.loop = Object.assign({}, e.loop, { period: t(e.loop.period || 1.6) });
+      if (pending && !force) return null;
+      return o;
+    };
+    const refOf = r => {
+      if (r.type === 'cycler') return { start: r.at || 0, end: (r.at || 0) + (r.every || 1) * (r.items || []).length };
+      if (r.in) return { start: r.in.at, end: r.in.at + r.in.dur + (r.type === 'repeat' ? (r.stagger || 0) * ((r.count || 6) - 1) : 0) };
+      return { start: 0, end: 0 };
+    };
+    for (let pass = 0; pass < 10 && done.size < flat.length; pass++) {
+      flat.forEach(e => { if (done.has(e)) return; const r = tryResolve(e, false); if (r) { done.set(e, r); if (e.id) scope.refs[e.id] = refOf(r); } });
+    }
+    flat.forEach(e => { if (!done.has(e)) { warn(`unresolved time in element "${e.id || e.type}" (check cue names / @ids; ids must not contain + or -)`); done.set(e, tryResolve(e, true)); } });
+    const rebuild = arr => arr.map(e => { const r = done.get(e); if (e.children) r.children = rebuild(e.children); if (e.child) r.child = done.get(e.child); return r; });
+    return rebuild(rawEls || []);
+  }
+
+  // Shift every time field of an element (used by repeat/stagger expansion).
+  function shiftEl(el, dt) {
+    if (!dt) return el;
+    const o = Object.assign({}, el);
+    if (o.in) o.in = Object.assign({}, o.in, { at: o.in.at + dt });
+    if (o.out) o.out = Object.assign({}, o.out, { at: o.out.at + dt });
+    if (o.moves) o.moves = o.moves.map(m => Object.assign({}, m, { at: m.at + dt }));
+    if (o.at != null) o.at += dt;
+    return o;
+  }
+
+  // Story → concrete timeline (no canvas needed). Shared by the renderer, audio.mjs and build-time lint.
+  function normalize(story, warn = msg => console.warn('[brand-motion] ' + msg)) {
+    const fmt = Object.assign({ w: 1080, h: 1920, fps: 30 }, story.format || {});
+    const W = fmt.w, H = fmt.h, U = Math.min(W, H);
+    const T = makeTime(story);
+    const expand = (els, inGroup) => {
+      const res = [];
+      (els || []).forEach(el => {
+        if (el.type === 'cycler') {
+          // A cycler becomes N text elements that hand off to each other on a fixed cadence (beat-synced lists).
+          const at = el.at || 0, every = el.every || 1, n = el.items.length;
+          el.items.forEach((txt, i) => {
+            const last = i === n - 1, soft = el.outFx && el.outFx !== 'cut', od = soft ? (el.outDur || 0.2) : 0.0001;
+            res.push(Object.assign({}, el, {
+              type: 'text', text: txt, items: undefined, id: el.id ? `${el.id}_${i}` : undefined,
+              in: { fx: el.fx || 'cut', dur: el.fxDur || 0.25, at: at + i * every, ease: el.ease },
+              out: last && el.holdLast !== false ? el.out || null : { fx: el.outFx || 'cut', at: at + (i + 1) * every - od, dur: od },
+            }));
+          });
+        } else if (el.type === 'repeat') {
+          // Graphite-style repeat: radial / line / grid copies with colour cycling, organic variation and a stagger.
+          const n = el.count || 6, child = el.child || { type: 'circle', r: 0.02, fill: 'accent' }, mode = el.mode || 'radial';
+          const R = rng(el.seed || 11), vary = el.vary || {};
+          const cx = el.x != null ? el.x : (inGroup ? 0 : 0.5), cy = el.y != null ? el.y : (inGroup ? 0 : 0.5);
+          for (let i = 0; i < n; i++) {
+            let px = 0, py = 0, rot = child.rot || 0;
+            if (mode === 'radial') {
+              const arc = el.arc || 360, a = ((el.angle0 != null ? el.angle0 : -90) + (arc * i) / (arc >= 360 ? n : Math.max(1, n - 1))) * DEG;
+              const rr = el.radius || 0.3; px = Math.cos(a) * rr; py = Math.sin(a) * rr; if (el.orient) rot += a / DEG + 90;
+            } else if (mode === 'line') {
+              const st = el.step || [0.1, 0]; px = st[0] * (i - (n - 1) / 2); py = st[1] * (i - (n - 1) / 2);
+            } else {
+              const cols = el.cols || 3, g = el.gap || [0.2, 0.2], c = i % cols, r = Math.floor(i / cols), rows = Math.ceil(n / cols);
+              px = (c - (cols - 1) / 2) * g[0]; py = (r - (rows - 1) / 2) * g[1];
+            }
+            if (vary.pos) { px += (R() - 0.5) * vary.pos; py += (R() - 0.5) * vary.pos; }
+            if (vary.rot) rot += (R() - 0.5) * 2 * vary.rot;
+            const c = Object.assign({}, child, { id: undefined, rot,
+              x: inGroup ? cx + px : cx + (px * U) / W, y: inGroup ? cy + py : cy + (py * U) / H });
+            if (vary.scale) c.scale = (child.scale || 1) * (1 - vary.scale / 2 + R() * vary.scale);
+            const fills = el.fills; if (fills) { const f = fills[i % fills.length]; if (c.type === 'text') c.color = f; else c.fill = f; }
+            const texts = el.texts; if (texts) c.text = texts[i % texts.length];
+            res.push(...expand([shiftEl(c, (el.stagger || 0) * i + (el.in ? el.in.at : 0))], inGroup));
+          }
+        } else if (el.type === 'group') {
+          res.push(Object.assign({}, el, { children: expand(el.children, true) }));
+        } else res.push(el);
+      });
+      return res;
+    };
+    let cursor = 0;
+    const storyCues = story.cues || {};
+    const scenes = (story.scenes || []).map((sc, si) => {
+      const scope = { cues: sc.cues || {}, storyCues, refs: {} };
+      const s = Object.assign({}, sc);
+      s.dur = T(sc.dur, scope);
+      if (!(s.dur > 0)) { warn(`scene ${sc.id || si} has an invalid dur "${sc.dur}"`); s.dur = 1; }
+      s.start = cursor; cursor += s.dur;
+      s.elements = expand(resolveScene(sc.elements, scope, T, warn), false);
+      if (sc.transition) {
+        const tr = typeof sc.transition === 'string' ? { type: sc.transition } : sc.transition;
+        s.transition = Object.assign({ dur: 0.5 }, tr, { dur: T(tr.dur != null ? tr.dur : 0.5, scope) });
+      }
+      if (sc.bgTo) s.bgTo = sc.bgTo.map(b => Object.assign({}, b, { at: T(b.at || 0, scope), dur: T(b.dur != null ? b.dur : 0.6, scope) }));
+      return s;
+    });
+    const duration = story.duration ? T(story.duration, { storyCues, refs: {} }) : cursor;
+    const overlays = expand(resolveScene(story.overlays, { cues: storyCues, storyCues, refs: {} }, T, warn), false);
+    return { fmt, W, H, U, T, scenes, overlays, duration };
   }
 
   // ---------- engine ----------
@@ -118,62 +279,17 @@
     canvas.width = fmt.w; canvas.height = fmt.h;
     const W = fmt.w, H = fmt.h, U = Math.min(W, H);
     const C = makeResolver(brand);
-    const T = makeTime(story);
     const motion = Object.assign({ exit: 'inCubic', move: 'inOutCubic', transition: 'inOutCubic', stagger: 0.06 }, brand.motion || {});
     const type = brand.type || {};
     const images = {};
-
-    // --- normalise story: resolve times, expand cyclers, compute scene starts ---
-    function normFx(spec, defAt, defDur) {
-      if (!spec) return null;
-      if (typeof spec === 'string') spec = { fx: spec };
-      return Object.assign({}, spec, { at: T(spec.at != null ? spec.at : defAt), dur: T(spec.dur != null ? spec.dur : defDur) });
-    }
-    function normEl(el) {
-      const out = Object.assign({}, el);
-      out.in = normFx(el.in, 0, 0.6);
-      out.out = normFx(el.out, 0, 0.4);
-      if (el.moves) out.moves = el.moves.map(m => Object.assign({}, m, { at: T(m.at || 0), dur: T(m.dur != null ? m.dur : 0.8) }));
-      if (el.stagger != null) out.stagger = T(el.stagger);
-      return out;
-    }
-    function expand(els) {
-      const res = [];
-      (els || []).forEach(el => {
-        if (el.type === 'cycler') {
-          // A cycler becomes N text elements that hand off to each other on a fixed cadence (beat-synced lists).
-          const at = T(el.at || 0), every = T(el.every || 1), n = el.items.length;
-          el.items.forEach((txt, i) => {
-            const last = i === n - 1;
-            res.push(normEl(Object.assign({}, el, {
-              type: 'text', text: txt, items: undefined,
-              in: Object.assign({ fx: el.fx || 'cut', dur: el.fxDur || 0.25 }, { at: at + i * every }),
-              out: last && el.holdLast !== false ? el.out || null : { fx: el.outFx || 'cut', at: at + (i + 1) * every - (el.outFx && el.outFx !== 'cut' ? T(el.outDur || 0.2) : 0.0001), dur: el.outFx && el.outFx !== 'cut' ? el.outDur || 0.2 : 0.0001 },
-            })));
-          });
-        } else res.push(normEl(el));
-      });
-      return res;
-    }
-    let cursor = 0;
-    const scenes = (story.scenes || []).map(sc => {
-      const s = Object.assign({}, sc);
-      s.dur = T(sc.dur);
-      s.start = cursor; cursor += s.dur;
-      s.elements = expand(sc.elements);
-      if (sc.transition) {
-        const tr = typeof sc.transition === 'string' ? { type: sc.transition } : sc.transition;
-        s.transition = Object.assign({ dur: 0.5 }, tr, { dur: T(tr.dur != null ? tr.dur : 0.5) });
-      }
-      return s;
-    });
-    const duration = story.duration ? T(story.duration) : cursor;
-    const overlays = expand(story.overlays);
+    const { T, scenes, overlays, duration } = normalize(story);
+    const TOP = { w: W, h: H, cx: W / 2, cy: H / 2, inGroup: false };
+    const GROUP = { w: U, h: U, cx: 0, cy: 0, inGroup: true };
 
     // --- assets ---
     function collectSrcs() {
       const srcs = new Set();
-      const visit = el => { if (el.src) srcs.add(el.src); };
+      const visit = el => { if (el.src) srcs.add(el.src); if (el.head && el.head.src) srcs.add(el.head.src); if (el.children) el.children.forEach(visit); };
       scenes.forEach(s => s.elements.forEach(visit)); overlays.forEach(visit);
       if (brand.logo && brand.logo.src) srcs.add(brand.logo.src);
       if (brand.logo && brand.logo.srcOnDark) srcs.add(brand.logo.srcOnDark);
@@ -268,7 +384,9 @@
         case 'text': return null; // computed via layout
         case 'circle': case 'ring': { const d = (el.r || 0.1) * 2 * U; return { w: d, h: d }; }
         case 'semicircle': { const d = (el.r || 0.1) * 2 * U; return { w: d, h: d / 2 }; }
-        case 'heart': case 'sparkle': { const d = (el.r || 0.05) * 2 * U; return { w: d, h: d }; }
+        case 'heart': case 'sparkle': case 'star': case 'polygon': case 'scallop': case 'blob': case 'rays': { const d = (el.r || 0.05) * 2 * U; return { w: d, h: d }; }
+        case 'poly': { const xs = el.pts.map(p => p[0]), ys = el.pts.map(p => p[1]); return { w: (Math.max(...xs) - Math.min(...xs)) * U, h: (Math.max(...ys) - Math.min(...ys)) * U }; }
+        case 'group': return { w: 0, h: 0 };
         case 'rect': case 'pill': case 'segbar': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.05) * (el.hUnit === 'H' ? H : U) };
         case 'image': case 'logo': {
           const src = el.type === 'logo' ? el.src || logoSrc(el) : el.src;
@@ -287,8 +405,8 @@
     }
 
     // --- per-element state at local time t ---
-    function stateAt(el, t, k) {
-      const st = { x: el.x != null ? el.x : 0.5, y: el.y != null ? el.y : 0.5, s: el.scale != null ? el.scale : 1, sx: 1, sy: 1, r: (el.rot || 0) * DEG, o: el.opacity != null ? el.opacity : 1, dx: 0, dy: 0, extra: {} };
+    function stateAt(el, t, k, sp = TOP) {
+      const st = { x: el.x != null ? el.x : (sp.inGroup ? 0 : 0.5), y: el.y != null ? el.y : (sp.inGroup ? 0 : 0.5), s: el.scale != null ? el.scale : 1, sx: 1, sy: 1, r: (el.rot || 0) * DEG, o: el.opacity != null ? el.opacity : 1, dx: 0, dy: 0, extra: {} };
       if (el.from != null && t < T(el.from)) return null;
       // moves: keyframed position / scale / rotation (also how elements "travel" between layouts)
       (el.moves || []).forEach(m => {
@@ -299,6 +417,8 @@
         if (m.scale != null) st.s = lerp(st.s, m.scale, e);
         if (m.rot != null) st.r = lerp(st.r, m.rot * DEG, e);
         if (m.opacity != null) st.o = lerp(st.o, m.opacity, e);
+        if (m.fill != null) st.fill = mixRGB(C(st.fill || el.fill), C(m.fill), e);
+        if (m.color != null) st.color = mixRGB(C(st.color || el.color), C(m.color), e);
       });
       const apply = d => {
         if (d.o != null) st.o *= d.o;
@@ -341,6 +461,8 @@
         if (L.fx === 'sway' || L.fx === 'flap') st.r += Math.sin(ph) * (L.fx === 'flap' ? 18 : 5) * amp * DEG;
         if (L.fx === 'shake') { const R = rng(Math.floor(lt * 24) + 7); st.dx += (R() - 0.5) * amp * U * 0.01; st.dy += (R() - 0.5) * amp * U * 0.01; }
         if (L.fx === 'beat') { const b = (lt % per) / per; st.s *= 1 + 0.06 * amp * Math.pow(1 - b, 3); }
+        if (L.fx === 'jelly') { st.sx *= 1 + Math.sin(ph) * 0.035 * amp; st.sy *= 1 - Math.sin(ph) * 0.035 * amp; }
+        if (L.fx === 'boil') { const R = rng(Math.floor(lt * 8) + 31 + (L.seed || 0)); st.r += (R() - 0.5) * 3 * amp * DEG; st.dx += (R() - 0.5) * amp * U * 0.003; st.dy += (R() - 0.5) * amp * U * 0.003; }
       }
       return st;
     }
@@ -353,8 +475,21 @@
     }
     function fillStroke(el, path) {
       if (el.fill) { ctx.fillStyle = C(el.fill); ctx.fill(path); }
-      if (el.stroke) { ctx.strokeStyle = C(el.stroke); ctx.lineWidth = (el.strokeW || 0.008) * U; ctx.stroke(path); }
+      if (el.stroke) {
+        ctx.strokeStyle = C(el.stroke); ctx.lineWidth = (el.strokeW || 0.008) * U; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        if (el.dash) ctx.setLineDash(el.dash.map(v => v * U));
+        ctx.stroke(path); ctx.setLineDash([]);
+      }
     }
+    // closed polygon through pts with each corner rounded by r (px) — Graphite's "round corners"
+    function roundedPoly(p, pts, r) {
+      const n = pts.length; if (n < 3 || !r) { pts.forEach((q, i) => (i ? p.lineTo(q[0], q[1]) : p.moveTo(q[0], q[1]))); p.closePath(); return; }
+      const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      const s0 = mid(pts[n - 1], pts[0]); p.moveTo(s0[0], s0[1]);
+      for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; p.arcTo(a[0], a[1], b[0], b[1], r); }
+      p.closePath();
+    }
+    function polar(p, cx, cy, fn, steps = 240) { for (let i = 0; i <= steps; i++) { const a = (i / steps) * Math.PI * 2 - Math.PI / 2, rr = fn(a); const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr; i ? p.lineTo(x, y) : p.moveTo(x, y); } p.closePath(); }
 
     function drawShape(el, st, w, h) {
       const [ax, ay] = anchorOf(el);
@@ -385,6 +520,22 @@
         p.quadraticCurveTo(cx + k, cy + k, cx, cy + r);
         p.quadraticCurveTo(cx - k, cy + k, cx - r, cy);
         p.quadraticCurveTo(cx - k, cy - k, cx, cy - r);
+      } else if (el.type === 'star' || el.type === 'polygon') {
+        const cx = x0 + w / 2, cy = y0 + h / 2, r = w / 2, n = el.points || el.sides || (el.type === 'star' ? 5 : 6), pts = [];
+        const steps = el.type === 'star' ? n * 2 : n;
+        for (let i = 0; i < steps; i++) { const a = -Math.PI / 2 + (i * Math.PI * 2) / steps, rr = el.type === 'star' && i % 2 ? r * (el.inner || 0.5) : r; pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
+        roundedPoly(p, pts, (el.round || 0) * r);
+      } else if (el.type === 'scallop') {
+        const n = el.bumps || 14, d = el.depth != null ? el.depth : 0.07;
+        polar(p, x0 + w / 2, y0 + h / 2, a => (w / 2) * (1 - d * (1 - Math.abs(Math.cos((n * (a + Math.PI / 2)) / 2)))), Math.max(240, n * 24));
+      } else if (el.type === 'blob') {
+        const tt = (el._t || 0) * (el.speed != null ? el.speed : 0.6), wob = el.wobble != null ? el.wobble : 0.08, sd = (el.seed || 1) * 1.7;
+        polar(p, x0 + w / 2, y0 + h / 2, a => (w / 2) * (1 - wob + wob * (0.5 * Math.sin(3 * a + sd + tt) + 0.3 * Math.sin(5 * a + sd * 2 - 0.7 * tt) + 0.2 * Math.sin(2 * a - sd + 1.3 * tt))));
+      } else if (el.type === 'rays') {
+        const cx = x0 + w / 2, cy = y0 + h / 2, r = w / 2, n = el.count || 16, span = Math.PI / n;
+        for (let i = 0; i < n; i++) { const a = (i * Math.PI * 2) / n; p.moveTo(cx, cy); p.lineTo(cx + Math.cos(a - span / 2) * r, cy + Math.sin(a - span / 2) * r); p.lineTo(cx + Math.cos(a + span / 2) * r, cy + Math.sin(a + span / 2) * r); p.closePath(); }
+      } else if (el.type === 'poly') {
+        roundedPoly(p, el.pts.map(q => [q[0] * U, q[1] * U]), (el.radius || 0) * U);
       } else if (el.type === 'semicircle') {
         p.moveTo(x0, y0 + h); p.arc(x0 + w / 2, y0 + h, w / 2, Math.PI, 0); p.closePath();
       } else if (el.type === 'rect' || el.type === 'pill') {
@@ -431,9 +582,9 @@
 
     // Smooth path through points (Catmull-Rom) sampled to a polyline so we can draw it on by length.
     const pathCache = new WeakMap();
-    function samplePath(el) {
+    function samplePath(el, sp = TOP) {
       if (pathCache.has(el)) return pathCache.get(el);
-      const P = el.points.map(([x, y]) => [x * W, y * H]);
+      const P = el.points.map(([x, y]) => [x * sp.w, y * sp.h]);
       const pts = [];
       if (el.smooth === false || P.length < 3) P.forEach(p => pts.push(p));
       else {
@@ -456,9 +607,9 @@
       const seg = sp.cum[i] - sp.cum[i - 1] || 1, f = clamp((d - sp.cum[i - 1]) / seg);
       return [lerp(sp.pts[i - 1][0], sp.pts[i][0], f), lerp(sp.pts[i - 1][1], sp.pts[i][1], f), Math.atan2(sp.pts[i][1] - sp.pts[i - 1][1], sp.pts[i][0] - sp.pts[i - 1][0])];
     }
-    function drawPath(el, st) {
-      // Paths are in absolute frame fractions, so they ignore x/y; transforms still apply about frame center.
-      const sp = samplePath(el);
+    function drawPath(el, st, space = TOP) {
+      // Paths are in absolute frame fractions (or U offsets inside a group), so they ignore x/y; transforms apply about the frame centre / group origin.
+      const sp = samplePath(el, space);
       const head = (st.extra.reveal != null ? st.extra.reveal : 1) * sp.len;
       let tail = st.extra.tail != null ? st.extra.tail * sp.len : 0;
       if (el.trail) tail = Math.max(tail, head - el.trail * sp.len); // travelling segment
@@ -481,7 +632,8 @@
     }
 
     const dotsCache = new WeakMap();
-    function drawDots(el, t) {
+    function drawDots(el, t, sp = TOP) {
+      const W = sp.w, H = sp.h;
       // Particle fields: confetti fall, scatter pop-in, burst from a point, slow drift.
       if (!dotsCache.has(el)) {
         const R = rng(el.seed || 42), n = el.count || 30, area = el.area || [0, 0, 1, 1];
@@ -527,6 +679,10 @@
           const d = fx.f((EASE[el.in.ease || fx.ease] || EASE.outCubic)(p), Object.assign({ h: u.h }, k));
           us = Object.assign(us, d, { o: d.o != null ? d.o : 1, s: d.s != null ? d.s : 1 });
         } else if (st.extra.clip) us.clip = true;
+        if (el.loop && el.loop.fx === 'wave') { // letters/words bob in sequence
+          const per = el.loop.period || 1, lt = Math.max(0, t - (el.in ? el.in.at + el.in.dur : 0));
+          us.dy = (us.dy || 0) + Math.sin((2 * Math.PI * lt) / per - i * 0.55) * (el.loop.amp != null ? el.loop.amp : 1) * lay.f.size * 0.08;
+        }
         if (us.o <= 0) return;
         ctx.save();
         if (us.clip) { ctx.beginPath(); ctx.rect(x0 + u.x - lay.f.size, y0 + u.y, u.w + lay.f.size * 2, u.h); ctx.clip(); }
@@ -550,7 +706,7 @@
       });
     }
 
-    function drawElement(el, t) {
+    function drawElement(el, t, sp = TOP) {
       const k = { W, H, U, h: 0 };
       let lay = null, box;
       if (el.type === 'text' || (el.type === 'logo' && !logoSrc(el) && !el.src)) {
@@ -558,19 +714,21 @@
         lay = layoutText(tel); box = { w: lay.w, h: lay.h }; el = tel;
       } else box = boxOf(el);
       k.h = box.h;
-      const st = stateAt(el, t, k);
+      const st = stateAt(el, t, k, sp);
       if (!st || st.o <= 0.001) return;
+      if (st.fill || st.color) el = Object.assign({}, el, st.fill ? { fill: st.fill } : {}, st.color ? { color: st.color } : {});
+      if (el.type === 'blob') el = Object.assign({}, el, { _t: t });
       ctx.save();
       ctx.globalAlpha *= st.o;
       if (el.blend) ctx.globalCompositeOperation = el.blend;
       if (st.extra.blur) ctx.filter = `blur(${st.extra.blur}px)`;
       if (el.shadow) { const sh = el.shadow; ctx.shadowColor = C(sh.color || 'rgba(0,0,0,0.25)'); ctx.shadowBlur = (sh.blur || 0.03) * U; ctx.shadowOffsetY = (sh.y != null ? sh.y : 0.015) * U; }
       if (el.type === 'path') {
-        ctx.translate(W / 2 + st.dx, H / 2 + st.dy); ctx.rotate(st.r); ctx.scale(st.s * st.sx, st.s * st.sy); ctx.translate(-W / 2, -H / 2);
-        drawPath(el, st); ctx.restore(); return;
+        ctx.translate(sp.cx + st.dx, sp.cy + st.dy); ctx.rotate(st.r); ctx.scale(st.s * st.sx, st.s * st.sy); ctx.translate(-sp.cx, -sp.cy);
+        drawPath(el, st, sp); ctx.restore(); return;
       }
-      if (el.type === 'dots') { drawDots(el, t); ctx.restore(); return; }
-      ctx.translate(st.x * W + st.dx, st.y * H + st.dy);
+      if (el.type === 'dots') { drawDots(el, t, sp); ctx.restore(); return; }
+      ctx.translate(st.x * sp.w + st.dx, st.y * sp.h + st.dy);
       ctx.rotate(st.r);
       ctx.scale(st.s * st.sx, st.s * st.sy);
       if (st.extra.dot) { // dot-expand: the seed dot
@@ -578,8 +736,8 @@
         ctx.beginPath(); ctx.arc(0, 0, st.extra.dot.r / Math.max(0.05, st.s), 0, Math.PI * 2); ctx.fill(); ctx.restore();
       }
       const [ax, ay] = anchorOf(el);
-      if (st.extra.wipe != null) { ctx.beginPath(); ctx.rect(-ax * box.w - 2, -ay * box.h - 2, (box.w + 4) * st.extra.wipe, box.h + 4); ctx.clip(); }
-      if (st.extra.iris != null) { ctx.beginPath(); ctx.arc((0.5 - ax) * box.w, (0.5 - ay) * box.h, (Math.hypot(box.w, box.h) / 2) * st.extra.iris, 0, Math.PI * 2); ctx.clip(); }
+      if (st.extra.wipe != null && box.w) { ctx.beginPath(); ctx.rect(-ax * box.w - 2, -ay * box.h - 2, (box.w + 4) * st.extra.wipe, box.h + 4); ctx.clip(); }
+      if (st.extra.iris != null && box.w) { ctx.beginPath(); ctx.arc((0.5 - ax) * box.w, (0.5 - ay) * box.h, (Math.hypot(box.w, box.h) / 2) * st.extra.iris, 0, Math.PI * 2); ctx.clip(); }
       switch (el.type) {
         case 'text': case 'logo':
           if (lay) drawText(el, st, lay, t);
@@ -587,6 +745,7 @@
           break;
         case 'image': drawImage(el, st, box.w, box.h, el.src); break;
         case 'segbar': drawSegbar(el, st, box.w, box.h, t); break;
+        case 'group': (el.children || []).forEach(c => drawElement(c, t, GROUP)); break;
         default: drawShape(el, st, box.w, box.h);
       }
       ctx.restore();
@@ -604,7 +763,9 @@
         const pan = cam.pan ? [lerp(cam.pan[0][0], cam.pan[1][0], p) * W, lerp(cam.pan[0][1], cam.pan[1][1], p) * H] : [0, 0];
         ctx.translate(W / 2 + sx + pan[0], H / 2 + sy + pan[1]); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
       }
-      ctx.fillStyle = C(sc.bg || 'bg'); ctx.fillRect(-W, -H, W * 3, H * 3);
+      let bg = C(sc.bg || 'bg');
+      (sc.bgTo || []).forEach(b => { if (lt < b.at) return; bg = mixRGB(bg, C(b.bg), (EASE[b.ease || 'inOutCubic'] || EASE.inOutCubic)(clamp((lt - b.at) / b.dur))); });
+      ctx.fillStyle = bg; ctx.fillRect(-W, -H, W * 3, H * 3);
       sc.elements.forEach(el => drawElement(el, lt));
       ctx.restore();
     }
@@ -688,5 +849,5 @@
     return { ready, seek, duration, fps: fmt.fps, width: W, height: H, scenes };
   }
 
-  global.MG = { create, EASE, FX: Object.keys(FX) };
+  global.MG = { create, normalize, EASE, FX: Object.keys(FX) };
 })(typeof window !== 'undefined' ? window : globalThis);

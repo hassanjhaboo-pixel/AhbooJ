@@ -5,7 +5,7 @@ Two skills that produce on-brand animated motion graphics for **any** brand:
 | Skill | Job |
 |---|---|
 | `brand-kit-intake/` | Turns a brand (logo, site, guide, CSS, or a description) into `brand-motion/brand/<slug>.json` from the blank template. |
-| `brand-motion/` | Writes a storyboard in one of four decoded ad styles (Pop Pulse / Kinetic Type / Line Journey / Diorama Build), then builds a live HTML preview and renders an MP4. |
+| `brand-motion/` | Writes a storyboard in one of six decoded ad styles (Pop Pulse / Kinetic Type / Line Journey / Diorama Build / Lineup Reveal / Hero Constant), builds a live HTML preview, generates a synced soundtrack, QA-checks motion, and renders an MP4 with motion blur. |
 
 ## Use in Claude Code
 These live in `.claude/skills/`, so Claude Code picks them up automatically in this repo. Example asks:
@@ -25,5 +25,7 @@ Rendering MP4 needs Node 18+, Playwright/Chromium and ffmpeg. Where those aren't
 cd .claude/skills/brand-motion
 node scripts/build.mjs  --brand brand/examples/demo-brand.json --story storyboards/pop-pulse.json --out out/pop.html
 node scripts/render.mjs out/pop.html --sheet 12     # QA contact sheet
-node scripts/render.mjs out/pop.html                # MP4
+node scripts/render.mjs out/pop.html --qa           # dead-air / blank-frame report
+node scripts/audio.mjs --story storyboards/pop-pulse.json --out out/pop.wav --bed pulse
+node scripts/render.mjs out/pop.html --audio out/pop.wav --blur 3   # MP4 with sound + motion blur
 ```

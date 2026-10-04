@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, arr) => (v.startsWith('--') ? a.concat([[v.slice(2), arr[i + 1]]]) : a), []));
@@ -28,7 +29,7 @@ function inline(src, baseDir) {
 }
 const bdir = path.dirname(brandPath), sdir = path.dirname(storyPath);
 if (brand.logo) { brand.logo.src = inline(brand.logo.src, bdir); brand.logo.srcOnDark = inline(brand.logo.srcOnDark, bdir); }
-const walk = els => (els || []).forEach(el => { if (el.src) el.src = inline(el.src, sdir); if (el.head && el.head.src) el.head.src = inline(el.head.src, sdir); });
+const walk = els => (els || []).forEach(el => { if (el.src) el.src = inline(el.src, sdir); if (el.head && el.head.src) el.head.src = inline(el.head.src, sdir); walk(el.children); if (el.child) walk([el.child]); });
 (story.scenes || []).forEach(s => walk(s.elements)); walk(story.overlays);
 
 // Validate token references early — the #1 cause of off-brand output is a typo'd colour token.
@@ -36,8 +37,45 @@ const tokens = new Set(Object.keys(brand.palette || {}));
 const looksLiteral = c => typeof c !== 'string' || /^(#|rgb|hsl|transparent)/.test(c);
 const bad = new Set();
 const checkColor = c => { (Array.isArray(c) ? c : [c]).forEach(v => { if (v && !looksLiteral(v) && !tokens.has(v)) bad.add(v); }); };
-(story.scenes || []).forEach(s => { checkColor(s.bg); if (s.transition && typeof s.transition === 'object') { checkColor(s.transition.color); checkColor(s.transition.border); checkColor(s.transition.ring); checkColor(s.transition.bands); } (s.elements || []).forEach(el => ['fill', 'stroke', 'color', 'dotColor'].forEach(k => checkColor(el[k]))); });
+const checkEl = el => {
+  ['fill', 'stroke', 'color', 'dotColor', 'placeholder', 'fills'].forEach(k => checkColor(el[k]));
+  if (el.highlight) checkColor(el.highlight.fill); if (el.outline) checkColor(el.outline.color); if (el.head) checkColor(el.head.fill);
+  (el.moves || []).forEach(m => { checkColor(m.fill); checkColor(m.color); });
+  (el.children || []).forEach(checkEl); if (el.child) checkEl(el.child);
+};
+(story.scenes || []).forEach(s => {
+  checkColor(s.bg); (s.bgTo || []).forEach(b => checkColor(b.bg));
+  if (s.transition && typeof s.transition === 'object') { checkColor(s.transition.color); checkColor(s.transition.border); checkColor(s.transition.ring); checkColor(s.transition.bands); }
+  (s.elements || []).forEach(checkEl);
+});
+(story.overlays || []).forEach(checkEl);
 if (bad.size) console.warn(`! unknown colour tokens (not in brand.palette): ${[...bad].join(', ')}`);
+
+// Timeline lint (MotionGfx-style conflict reporting), using the engine's own normaliser.
+{
+  const sandbox = { console }; vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(here, '..', 'engine', 'motion.js'), 'utf8'), sandbox);
+  const warns = [];
+  const TL = sandbox.MG.normalize(story, m => warns.push(m));
+  const maxWords = (brand.voice && brand.voice.maxWordsPerCard) || 6;
+  TL.scenes.forEach((sc, si) => {
+    const name = sc.id || `scene ${si + 1}`;
+    const walk = (el, inGroup) => {
+      const label = el.id || el.text || el.type;
+      if (el.in && el.in.at >= sc.dur) warns.push(`${name}: "${label}" enters at ${el.in.at.toFixed(2)}s but the scene is ${sc.dur.toFixed(2)}s long, so it never appears`);
+      const byProp = {};
+      (el.moves || []).forEach(m => ['x', 'y', 'scale', 'rot', 'opacity', 'fill', 'color'].forEach(k => { if (m[k] != null) (byProp[k] = byProp[k] || []).push(m); }));
+      Object.entries(byProp).forEach(([k, ms]) => { ms.sort((a, b) => a.at - b.at); for (let i = 1; i < ms.length; i++) if (ms[i].at < ms[i - 1].at + ms[i - 1].dur - 1e-6) warns.push(`${name}: "${label}" has overlapping moves on "${k}" (${ms[i - 1].at.toFixed(2)}s+${ms[i - 1].dur.toFixed(2)} vs ${ms[i].at.toFixed(2)}s)`); });
+      if (el.type === 'text' && ['display', 'headline'].includes(el.role) && String(el.text || '').split(/\s+/).filter(Boolean).length > maxWords) warns.push(`${name}: "${label}" has more than ${maxWords} words for a ${el.role} card`);
+      (el.children || []).forEach(c => walk(c, true));
+    };
+    sc.elements.forEach(el => walk(el, false));
+  });
+  // an element-less final scene is a closer (e.g. shrink to black); judge the hold on the scene before it
+  const sc = TL.scenes, last = sc.length > 1 && !sc[sc.length - 1].elements.length ? sc[sc.length - 2] : sc[sc.length - 1];
+  if (last && last.dur < 2) warns.push(`end card is ${last.dur.toFixed(2)}s, hold the final scene for at least 2s`);
+  if (warns.length) console.warn(warns.map(w => '! ' + w).join('\n'));
+}
 
 const fonts = (brand.type && brand.type.fontUrls) || [];
 // Local font files (woff2/ttf/otf) are inlined as @font-face — works offline and behind strict proxies.

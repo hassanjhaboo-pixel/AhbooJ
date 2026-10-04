@@ -16,6 +16,11 @@
 - [ ] Hero is centred or deliberately placed; pairs and trios have equal gutters.
 - [ ] Contrast is readable on every stage colour (small text ≥ 4.5:1, display ≥ 3:1).
 
+## Measured (run these, don't eyeball)
+- [ ] `render.mjs --qa` → `✓ no dead air`. Blank frames only where an intentional `flash` sits.
+- [ ] Frame 0 shows the product or hook (not an empty background).
+- [ ] Soundtrack generated (`audio.mjs`) or supplied, muxed, around -14 LUFS. Every pop, landing, wipe and logo has its sound.
+
 ## Motion
 - [ ] Every scene has exactly one hero motion; ambient loops are subtle.
 - [ ] Entrances land on beats (if `bpm` is set); scene lengths are whole or half bars.

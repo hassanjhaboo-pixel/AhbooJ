@@ -1,0 +1,1550 @@
+{
+  "title": "Jadesserts Sweet Box Drop v2 — 20s (9x16)",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 120,
+  "scenes": [
+    {
+      "id": "hook",
+      "dur": "4b",
+      "bg": "primary",
+      "elements": [
+        {
+          "type": "rays",
+          "r": 1,
+          "count": 20,
+          "fill": "white",
+          "opacity": 0.12,
+          "x": 0.5,
+          "y": 0.5,
+          "loop": {
+            "fx": "spin",
+            "period": "32b"
+          }
+        },
+        {
+          "type": "group",
+          "x": 0.25,
+          "y": 0.2083,
+          "rot": -12,
+          "in": {
+            "fx": "pop",
+            "at": -0.4,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "boil",
+            "amp": 0.8,
+            "seed": 0
+          },
+          "children": [
+            {
+              "type": "scallop",
+              "r": 0.2,
+              "bumps": 16,
+              "depth": 0.08,
+              "fill": "bg",
+              "shadow": {
+                "color": "rgba(74,44,51,0.22)",
+                "blur": 0.02,
+                "y": 0.012
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/chicken-puff.png",
+              "w": 0.27,
+              "wUnit": "U",
+              "x": 0,
+              "y": 0
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "x": 0.75,
+          "y": 0.2188,
+          "rot": 10,
+          "in": {
+            "fx": "pop",
+            "at": -0.33,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "boil",
+            "amp": 0.8,
+            "seed": 1
+          },
+          "children": [
+            {
+              "type": "scallop",
+              "r": 0.2,
+              "bumps": 16,
+              "depth": 0.08,
+              "fill": "bg",
+              "shadow": {
+                "color": "rgba(74,44,51,0.22)",
+                "blur": 0.02,
+                "y": 0.012
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/vanilla-cupcake.png",
+              "w": 0.25559305689488915,
+              "wUnit": "U",
+              "x": 0,
+              "y": 0
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "x": 0.25,
+          "y": 0.7917,
+          "rot": 8,
+          "in": {
+            "fx": "pop",
+            "at": -0.26,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "boil",
+            "amp": 0.8,
+            "seed": 2
+          },
+          "children": [
+            {
+              "type": "scallop",
+              "r": 0.2,
+              "bumps": 16,
+              "depth": 0.08,
+              "fill": "bg",
+              "shadow": {
+                "color": "rgba(74,44,51,0.22)",
+                "blur": 0.02,
+                "y": 0.012
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/fruit-punch.png",
+              "w": 0.17728328173374613,
+              "wUnit": "U",
+              "x": 0,
+              "y": 0
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "x": 0.75,
+          "y": 0.7995,
+          "rot": -8,
+          "in": {
+            "fx": "pop",
+            "at": -0.19,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "boil",
+            "amp": 0.8,
+            "seed": 3
+          },
+          "children": [
+            {
+              "type": "scallop",
+              "r": 0.2,
+              "bumps": 16,
+              "depth": 0.08,
+              "fill": "bg",
+              "shadow": {
+                "color": "rgba(74,44,51,0.22)",
+                "blur": 0.02,
+                "y": 0.012
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/banana-bread.png",
+              "w": 0.27,
+              "wUnit": "U",
+              "x": 0,
+              "y": 0
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Sweet box\ndrop!",
+          "role": "display",
+          "size": 0.15,
+          "maxWidth": 0.96,
+          "bubble": 0.035,
+          "color": "onPrimary",
+          "outline": {
+            "color": "primaryDeep",
+            "w": 0.05
+          },
+          "x": 0.5,
+          "y": 0.5,
+          "split": "word",
+          "stagger": 0.1,
+          "in": {
+            "fx": "pop",
+            "at": -0.38,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "wave",
+            "period": "2b",
+            "amp": 0.9
+          }
+        }
+      ]
+    },
+    {
+      "id": "box",
+      "dur": "6b",
+      "bg": "bg",
+      "transition": {
+        "type": "wipe",
+        "dir": "up",
+        "bands": [
+          "secondary",
+          "accent"
+        ],
+        "bandW": 0.12,
+        "dur": 0.45
+      },
+      "camera": {
+        "zoom": [
+          1,
+          1.04
+        ],
+        "ease": "inOutQuad"
+      },
+      "elements": [
+        {
+          "type": "rays",
+          "r": 0.95,
+          "count": 18,
+          "fill": "chapter1",
+          "x": 0.5,
+          "y": 0.5417,
+          "in": {
+            "fx": "scale",
+            "at": 1.55,
+            "dur": 0.6
+          },
+          "loop": {
+            "fx": "spin",
+            "period": "24b"
+          }
+        },
+        {
+          "type": "dots",
+          "count": 26,
+          "seed": 21,
+          "fill": [
+            "primary",
+            "lavender",
+            "mint",
+            "accent"
+          ],
+          "r": 0.012,
+          "x": 0.5,
+          "y": 0.501,
+          "area": [
+            0.04,
+            0.1896,
+            0.96,
+            0.6458
+          ],
+          "motion": "burst",
+          "in": {
+            "at": 1.6,
+            "dur": 0.9
+          }
+        },
+        {
+          "type": "group",
+          "id": "box",
+          "x": 0.4285,
+          "y": 0.6771,
+          "scale": 1.3,
+          "children": [
+            {
+              "type": "pill",
+              "w": 0.6,
+              "wUnit": "U",
+              "h": 0.05,
+              "fill": "dark",
+              "opacity": 0.13,
+              "x": 0.06,
+              "y": 0.012
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  0.25,
+                  0
+                ],
+                [
+                  0.36,
+                  -0.07
+                ],
+                [
+                  0.36,
+                  -0.29
+                ],
+                [
+                  0.25,
+                  -0.22
+                ]
+              ],
+              "fill": "blushDeep",
+              "radius": 0.008
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  -0.25,
+                  -0.22
+                ],
+                [
+                  0.25,
+                  -0.22
+                ],
+                [
+                  0.36,
+                  -0.29
+                ],
+                [
+                  -0.14,
+                  -0.29
+                ]
+              ],
+              "fill": "primaryDeep",
+              "radius": 0.008
+            },
+            {
+              "type": "image",
+              "src": "assets/products/fruit-punch.png",
+              "w": 0.13,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": -0.16,
+              "y": -0.13,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "in": {
+                "fx": "pop",
+                "at": 1.7,
+                "dur": 0.45
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/vanilla-cupcake.png",
+              "w": 0.15,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": 0.21,
+              "y": -0.12,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "in": {
+                "fx": "pop",
+                "at": 1.79,
+                "dur": 0.45
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/chicken-puff.png",
+              "w": 0.22,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": -0.03,
+              "y": -0.09,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "in": {
+                "fx": "pop",
+                "at": 1.88,
+                "dur": 0.45
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/banana-bread.png",
+              "w": 0.22,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": 0.13,
+              "y": -0.08,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "in": {
+                "fx": "pop",
+                "at": 1.97,
+                "dur": 0.45
+              }
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  -0.25,
+                  0
+                ],
+                [
+                  0.25,
+                  0
+                ],
+                [
+                  0.25,
+                  -0.22
+                ],
+                [
+                  -0.25,
+                  -0.22
+                ]
+              ],
+              "fill": "blush",
+              "radius": 0.012
+            },
+            {
+              "type": "rect",
+              "w": 0.05,
+              "wUnit": "U",
+              "h": 0.22,
+              "fill": "lavender",
+              "anchor": "bottom",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "type": "image",
+              "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+              "w": 0.17,
+              "x": -0.135,
+              "y": -0.11
+            },
+            {
+              "type": "heart",
+              "r": 0.022,
+              "fill": "primary",
+              "x": 0.15,
+              "y": -0.115,
+              "rot": 8
+            },
+            {
+              "type": "group",
+              "x": 0.055,
+              "y": -0.255,
+              "children": [
+                {
+                  "type": "poly",
+                  "pts": [
+                    [
+                      0.205,
+                      0.075
+                    ],
+                    [
+                      0.32,
+                      0
+                    ],
+                    [
+                      0.32,
+                      -0.045
+                    ],
+                    [
+                      0.205,
+                      0.03
+                    ]
+                  ],
+                  "fill": "primaryDeep",
+                  "radius": 0.006
+                },
+                {
+                  "type": "poly",
+                  "pts": [
+                    [
+                      -0.315,
+                      0.075
+                    ],
+                    [
+                      0.205,
+                      0.075
+                    ],
+                    [
+                      0.205,
+                      0.03
+                    ],
+                    [
+                      -0.315,
+                      0.03
+                    ]
+                  ],
+                  "fill": "blushDeep",
+                  "radius": 0.006
+                },
+                {
+                  "type": "poly",
+                  "pts": [
+                    [
+                      -0.315,
+                      0.03
+                    ],
+                    [
+                      0.205,
+                      0.03
+                    ],
+                    [
+                      0.32,
+                      -0.045
+                    ],
+                    [
+                      -0.2,
+                      -0.045
+                    ]
+                  ],
+                  "fill": "blush",
+                  "radius": 0.01
+                },
+                {
+                  "type": "poly",
+                  "pts": [
+                    [
+                      -0.075,
+                      0.03
+                    ],
+                    [
+                      -0.025,
+                      0.03
+                    ],
+                    [
+                      0.09,
+                      -0.045
+                    ],
+                    [
+                      0.04,
+                      -0.045
+                    ]
+                  ],
+                  "fill": "lavender"
+                },
+                {
+                  "type": "heart",
+                  "r": 0.042,
+                  "fill": "lavender",
+                  "x": -0.045,
+                  "y": -0.015,
+                  "rot": -80
+                },
+                {
+                  "type": "heart",
+                  "r": 0.042,
+                  "fill": "lavender",
+                  "x": 0.045,
+                  "y": -0.015,
+                  "rot": 80
+                },
+                {
+                  "type": "circle",
+                  "r": 0.017,
+                  "fill": "secondary",
+                  "x": 0,
+                  "y": -0.012
+                }
+              ],
+              "moves": [
+                {
+                  "at": 1.1,
+                  "dur": 0.15,
+                  "rot": -6,
+                  "ease": "inOutQuad"
+                },
+                {
+                  "at": 1.25,
+                  "dur": 0.15,
+                  "rot": 6,
+                  "ease": "inOutQuad"
+                },
+                {
+                  "at": 1.4000000000000001,
+                  "dur": 0.15,
+                  "rot": 0,
+                  "ease": "inOutQuad"
+                },
+                {
+                  "at": 1.55,
+                  "dur": 0.55,
+                  "x": 0.215,
+                  "y": -0.675,
+                  "rot": -32,
+                  "ease": "outCubic"
+                }
+              ],
+              "out": {
+                "fx": "fade",
+                "at": 1.85,
+                "dur": 0.3
+              }
+            }
+          ],
+          "in": {
+            "fx": "plop",
+            "at": 0.05,
+            "dur": 0.9
+          }
+        },
+        {
+          "type": "text",
+          "text": "Presenting",
+          "role": "title",
+          "color": "primary",
+          "bubble": 0.02,
+          "x": 0.5,
+          "y": 0.1563,
+          "in": {
+            "fx": "rise",
+            "at": 0.25,
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "logo",
+          "w": 0.66,
+          "x": 0.5,
+          "y": 0.2448,
+          "in": {
+            "fx": "pop-soft",
+            "at": 0.35,
+            "dur": 0.6
+          },
+          "loop": {
+            "fx": "float",
+            "period": "4b",
+            "amp": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "lineup",
+      "dur": "16b",
+      "bg": "chapter1",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.5,
+        "ring": "primary",
+        "dur": 0.5
+      },
+      "bgTo": [
+        {
+          "at": 1.75,
+          "dur": 0.5,
+          "bg": "chapter2"
+        },
+        {
+          "at": 3.75,
+          "dur": 0.5,
+          "bg": "chapter3"
+        },
+        {
+          "at": 5.75,
+          "dur": 0.5,
+          "bg": "chapter4"
+        }
+      ],
+      "elements": [
+        {
+          "type": "rays",
+          "r": 0.8140000000000001,
+          "count": 22,
+          "fill": "white",
+          "opacity": 0.35,
+          "x": 0.5,
+          "y": 0.5,
+          "loop": {
+            "fx": "spin",
+            "period": "40b"
+          }
+        },
+        {
+          "type": "repeat",
+          "mode": "radial",
+          "count": 16,
+          "radius": 0.445,
+          "orient": true,
+          "x": 0.5,
+          "y": 0.5,
+          "stagger": 0.03,
+          "fills": [
+            "primary",
+            "lavender",
+            "mint",
+            "accent"
+          ],
+          "seed": 5,
+          "vary": {
+            "rot": 25
+          },
+          "child": {
+            "type": "pill",
+            "w": 0.034,
+            "wUnit": "U",
+            "h": 0.012,
+            "fill": "primary",
+            "in": {
+              "fx": "pop",
+              "at": 0.15,
+              "dur": 0.35
+            },
+            "loop": {
+              "fx": "float",
+              "period": "3b"
+            }
+          }
+        },
+        {
+          "type": "scallop",
+          "id": "plate",
+          "r": 0.37,
+          "bumps": 22,
+          "depth": 0.05,
+          "fill": "bg",
+          "x": 0.5,
+          "y": 0.5,
+          "shadow": {
+            "color": "rgba(74,44,51,0.16)",
+            "blur": 0.03,
+            "y": 0.015
+          },
+          "in": {
+            "fx": "pop-soft",
+            "at": -0.05,
+            "dur": 0.5
+          }
+        },
+        {
+          "type": "scallop",
+          "r": 0.3256,
+          "bumps": 22,
+          "depth": 0.05,
+          "stroke": "blushDeep",
+          "strokeW": 0.005,
+          "dash": [
+            0.012,
+            0.01
+          ],
+          "x": 0.5,
+          "y": 0.5,
+          "in": {
+            "fx": "draw",
+            "at": 0.1,
+            "dur": 0.6
+          }
+        },
+        {
+          "type": "image",
+          "src": "assets/products/chicken-puff.png",
+          "w": 0.44,
+          "wUnit": "U",
+          "x": 0.48,
+          "y": 0.5052,
+          "shadow": {
+            "color": "rgba(74,44,51,0.22)",
+            "blur": 0.03,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": 0.02,
+            "dur": 0.55
+          },
+          "out": {
+            "fx": "scale",
+            "at": 1.78,
+            "dur": 0.22
+          },
+          "moves": [
+            {
+              "at": 0.3,
+              "dur": 1.6,
+              "x": 0.52,
+              "y": 0.4948,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5,
+            "seed": 0
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.024,
+          "fill": "primary",
+          "x": 0.3944,
+          "y": 0.2448,
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "image",
+          "src": "assets/products/vanilla-cupcake.png",
+          "w": 0.44,
+          "wUnit": "U",
+          "x": 0.52,
+          "y": 0.5052,
+          "shadow": {
+            "color": "rgba(74,44,51,0.22)",
+            "blur": 0.03,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": 2.02,
+            "dur": 0.55
+          },
+          "out": {
+            "fx": "scale",
+            "at": 3.78,
+            "dur": 0.22
+          },
+          "moves": [
+            {
+              "at": 2.3,
+              "dur": 1.6,
+              "x": 0.48,
+              "y": 0.4948,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5,
+            "seed": 1
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.024,
+          "fill": "lavender",
+          "x": 0.4648,
+          "y": 0.2448,
+          "in": {
+            "fx": "pop",
+            "at": 2.3,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "image",
+          "src": "assets/products/fruit-punch.png",
+          "w": 0.31483355825461085,
+          "wUnit": "U",
+          "x": 0.48,
+          "y": 0.5052,
+          "shadow": {
+            "color": "rgba(74,44,51,0.22)",
+            "blur": 0.03,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": 4.02,
+            "dur": 0.55
+          },
+          "out": {
+            "fx": "scale",
+            "at": 5.78,
+            "dur": 0.22
+          },
+          "moves": [
+            {
+              "at": 4.3,
+              "dur": 1.6,
+              "x": 0.52,
+              "y": 0.4948,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5,
+            "seed": 2
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.024,
+          "fill": "mint",
+          "x": 0.5352,
+          "y": 0.2448,
+          "in": {
+            "fx": "pop",
+            "at": 4.3,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "image",
+          "src": "assets/products/banana-bread.png",
+          "w": 0.44,
+          "wUnit": "U",
+          "x": 0.52,
+          "y": 0.5052,
+          "shadow": {
+            "color": "rgba(74,44,51,0.22)",
+            "blur": 0.03,
+            "y": 0.02
+          },
+          "in": {
+            "fx": "spin-in",
+            "at": 6.02,
+            "dur": 0.55
+          },
+          "out": null,
+          "moves": [
+            {
+              "at": 6.3,
+              "dur": 1.6,
+              "x": 0.48,
+              "y": 0.4948,
+              "ease": "linear"
+            }
+          ],
+          "loop": {
+            "fx": "boil",
+            "amp": 0.5,
+            "seed": 3
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.024,
+          "fill": "accent",
+          "x": 0.6056,
+          "y": 0.2448,
+          "in": {
+            "fx": "pop",
+            "at": 6.3,
+            "dur": 0.4
+          }
+        },
+        {
+          "type": "text",
+          "text": "What's inside?",
+          "role": "headline",
+          "size": 0.075,
+          "bubble": 0.02,
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.1979,
+          "in": {
+            "fx": "mask-up",
+            "at": 0,
+            "dur": 0.45
+          }
+        },
+        {
+          "type": "cycler",
+          "items": [
+            "Chicken Puff Pastry",
+            "Vanilla Cupcake",
+            "Fruit Punch Limeade",
+            "Choco-Chip Banana Bread"
+          ],
+          "every": 2,
+          "at": 0.25,
+          "role": "display",
+          "size": 0.072,
+          "bubble": 0.025,
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.7708,
+          "maxWidth": 0.94,
+          "fx": "mask-up",
+          "fxDur": 0.4,
+          "holdLast": true,
+          "loop": {
+            "fx": "wave",
+            "period": "2b",
+            "amp": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "hero",
+      "dur": "6b",
+      "bg": "primary",
+      "transition": {
+        "type": "wipe",
+        "dir": "left",
+        "bands": [
+          "bg",
+          "blush"
+        ],
+        "bandW": 0.12,
+        "dur": 0.45
+      },
+      "elements": [
+        {
+          "type": "rays",
+          "r": 0.95,
+          "count": 20,
+          "fill": "white",
+          "opacity": 0.13,
+          "x": 0.5,
+          "y": 0.5417,
+          "loop": {
+            "fx": "spin",
+            "period": "32b"
+          }
+        },
+        {
+          "type": "repeat",
+          "mode": "radial",
+          "count": 10,
+          "radius": 0.42,
+          "x": 0.5,
+          "y": 0.5484,
+          "stagger": 0.04,
+          "fills": [
+            "bg",
+            "blush",
+            "lavender",
+            "accent",
+            "mint"
+          ],
+          "seed": 3,
+          "vary": {
+            "rot": 30,
+            "scale": 0.6,
+            "pos": 0.05
+          },
+          "child": {
+            "type": "heart",
+            "r": 0.03,
+            "fill": "bg",
+            "in": {
+              "fx": "pop",
+              "at": 0.55,
+              "dur": 0.45
+            },
+            "loop": {
+              "fx": "float",
+              "period": "2b"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "box",
+          "x": 0.4285,
+          "y": 0.6771,
+          "scale": 1.3,
+          "children": [
+            {
+              "type": "pill",
+              "w": 0.6,
+              "wUnit": "U",
+              "h": 0.05,
+              "fill": "dark",
+              "opacity": 0.13,
+              "x": 0.06,
+              "y": 0.012
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  0.25,
+                  0
+                ],
+                [
+                  0.36,
+                  -0.07
+                ],
+                [
+                  0.36,
+                  -0.29
+                ],
+                [
+                  0.25,
+                  -0.22
+                ]
+              ],
+              "fill": "blushDeep",
+              "radius": 0.008
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  -0.25,
+                  -0.22
+                ],
+                [
+                  0.25,
+                  -0.22
+                ],
+                [
+                  0.36,
+                  -0.29
+                ],
+                [
+                  -0.14,
+                  -0.29
+                ]
+              ],
+              "fill": "primaryDeep",
+              "radius": 0.008
+            },
+            {
+              "type": "image",
+              "src": "assets/products/fruit-punch.png",
+              "w": 0.13,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": -0.16,
+              "y": -0.13,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "loop": {
+                "fx": "jelly",
+                "period": "2b",
+                "amp": 1,
+                "phase": 0
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/vanilla-cupcake.png",
+              "w": 0.15,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": 0.21,
+              "y": -0.12,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "loop": {
+                "fx": "jelly",
+                "period": "2b",
+                "amp": 1,
+                "phase": 1.1
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/chicken-puff.png",
+              "w": 0.22,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": -0.03,
+              "y": -0.09,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "loop": {
+                "fx": "jelly",
+                "period": "2b",
+                "amp": 1,
+                "phase": 2.2
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/products/banana-bread.png",
+              "w": 0.22,
+              "wUnit": "U",
+              "anchor": "bottom",
+              "x": 0.13,
+              "y": -0.08,
+              "shadow": {
+                "color": "rgba(74,44,51,0.18)",
+                "blur": 0.015,
+                "y": 0.008
+              },
+              "loop": {
+                "fx": "jelly",
+                "period": "2b",
+                "amp": 1,
+                "phase": 3.3000000000000003
+              }
+            },
+            {
+              "type": "poly",
+              "pts": [
+                [
+                  -0.25,
+                  0
+                ],
+                [
+                  0.25,
+                  0
+                ],
+                [
+                  0.25,
+                  -0.22
+                ],
+                [
+                  -0.25,
+                  -0.22
+                ]
+              ],
+              "fill": "blush",
+              "radius": 0.012
+            },
+            {
+              "type": "rect",
+              "w": 0.05,
+              "wUnit": "U",
+              "h": 0.22,
+              "fill": "lavender",
+              "anchor": "bottom",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "type": "image",
+              "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+              "w": 0.17,
+              "x": -0.135,
+              "y": -0.11
+            },
+            {
+              "type": "heart",
+              "r": 0.022,
+              "fill": "primary",
+              "x": 0.15,
+              "y": -0.115,
+              "rot": 8
+            }
+          ],
+          "in": {
+            "fx": "plop",
+            "at": 0,
+            "dur": 0.85
+          }
+        },
+        {
+          "type": "text",
+          "text": "A little box of\nsweet surprises",
+          "role": "display",
+          "size": 0.1,
+          "bubble": 0.03,
+          "color": "onPrimary",
+          "outline": {
+            "color": "primaryDeep",
+            "w": 0.045
+          },
+          "x": 0.5,
+          "y": 0.1979,
+          "maxWidth": 0.94,
+          "split": "word",
+          "stagger": 0.07,
+          "in": {
+            "fx": "pop",
+            "at": 0.3,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "wave",
+            "period": "2b",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "group",
+          "x": 0.8,
+          "y": 0.4479,
+          "rot": -12,
+          "in": {
+            "fx": "swing",
+            "at": 1.2,
+            "dur": 0.9
+          },
+          "loop": {
+            "fx": "beat",
+            "period": "1b",
+            "amp": 0.7
+          },
+          "children": [
+            {
+              "type": "scallop",
+              "r": 0.105,
+              "bumps": 14,
+              "depth": 0.09,
+              "fill": "accent",
+              "shadow": {
+                "color": "rgba(74,44,51,0.25)",
+                "blur": 0.02,
+                "y": 0.012
+              }
+            },
+            {
+              "type": "scallop",
+              "r": 0.088,
+              "bumps": 14,
+              "depth": 0.09,
+              "stroke": "bg",
+              "strokeW": 0.004,
+              "dash": [
+                0.01,
+                0.008
+              ]
+            },
+            {
+              "type": "text",
+              "text": "$50",
+              "role": "display",
+              "size": 0.075,
+              "bubble": 0.02,
+              "color": "onAccent",
+              "x": 0,
+              "y": 0.004
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "dur": "8b",
+      "bg": "bg",
+      "transition": {
+        "type": "flash",
+        "color": "bg",
+        "dur": 0.4
+      },
+      "elements": [
+        {
+          "type": "dots",
+          "count": 18,
+          "seed": 12,
+          "fill": [
+            "primary",
+            "lavender",
+            "mint",
+            "accent"
+          ],
+          "r": 0.012,
+          "motion": "drift",
+          "area": [
+            0.05,
+            0.04,
+            0.95,
+            0.96
+          ],
+          "in": {
+            "at": 0
+          }
+        },
+        {
+          "type": "blob",
+          "r": 0.42,
+          "fill": "chapter1",
+          "x": 0.5,
+          "y": 0.4896,
+          "wobble": 0.08,
+          "speed": 1.4,
+          "in": {
+            "fx": "scale",
+            "at": 0.05,
+            "dur": 0.8
+          }
+        },
+        {
+          "type": "group",
+          "x": 0.86,
+          "y": -0.0625,
+          "in": {
+            "fx": "swing",
+            "at": 0.15,
+            "dur": 1.4
+          },
+          "loop": {
+            "fx": "sway",
+            "period": "4b",
+            "amp": 0.6
+          },
+          "children": [
+            {
+              "type": "rect",
+              "w": 0.006,
+              "h": 0.4166666666666667,
+              "fill": "ink",
+              "anchor": "top",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "type": "image",
+              "src": "../../brand/assets/jadesserts/logo-cherry.svg",
+              "w": 0.095,
+              "wUnit": "U",
+              "anchor": "top",
+              "x": 0,
+              "y": 0.40925925925925927
+            }
+          ]
+        },
+        {
+          "type": "logo",
+          "w": 0.72,
+          "x": 0.5,
+          "y": 0.4219,
+          "in": {
+            "fx": "pop-soft",
+            "at": 0.25,
+            "dur": 0.7
+          },
+          "loop": {
+            "fx": "jelly",
+            "period": "2b",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "segbar",
+          "w": 0.5,
+          "h": 0.016,
+          "segments": 4,
+          "gap": 0.012,
+          "fill": [
+            "primary",
+            "secondary",
+            "accent",
+            "mint"
+          ],
+          "radius": 0.008,
+          "anchor": "left",
+          "x": 0.25,
+          "y": 0.526,
+          "in": {
+            "at": 0.7,
+            "dur": 0.9
+          }
+        },
+        {
+          "type": "text",
+          "text": "Order your sweet box",
+          "role": "headline",
+          "size": 0.075,
+          "bubble": 0.015,
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.6042,
+          "maxWidth": 0.94,
+          "in": {
+            "fx": "rise",
+            "at": 1,
+            "dur": 0.5
+          },
+          "loop": {
+            "fx": "wave",
+            "period": "4b",
+            "amp": 0.35
+          }
+        },
+        {
+          "type": "text",
+          "text": "(868) 715-4817",
+          "role": "title",
+          "size": 0.06,
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.6823,
+          "highlight": {
+            "fill": "chapter2",
+            "pad": 0.38
+          },
+          "in": {
+            "fx": "pop",
+            "at": 1.4,
+            "dur": 0.45
+          },
+          "loop": {
+            "fx": "beat",
+            "period": "2b",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.026,
+          "fill": "primary",
+          "x": 0.14,
+          "y": 0.6823,
+          "rot": -12,
+          "in": {
+            "fx": "pop",
+            "at": 1.6,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "pulse",
+            "period": "1b",
+            "amp": 1.2
+          }
+        },
+        {
+          "type": "heart",
+          "r": 0.026,
+          "fill": "primary",
+          "x": 0.86,
+          "y": 0.6823,
+          "rot": 12,
+          "in": {
+            "fx": "pop",
+            "at": 1.6,
+            "dur": 0.4
+          },
+          "loop": {
+            "fx": "pulse",
+            "period": "1b",
+            "amp": 1.2,
+            "phase": 1.5
+          }
+        }
+      ]
+    }
+  ]
+}

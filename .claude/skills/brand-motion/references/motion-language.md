@@ -77,3 +77,19 @@ This is what makes the references feel like one film instead of a slideshow. Eve
 - Min on-screen time for a card: **0.3s × words + 0.5s** (a 4-word card needs ≥ 1.7s). The exception is beat-cycler lists, where each word is a single, predictable token.
 - Don't animate text while it must be read; finish its entrance, then hold.
 - Never start two text entrances in the same 0.2s unless they are one staggered phrase.
+
+## 8. Physics & life (what separates "animated slides" from motion design)
+- **Squash & stretch on landings:** use `plop` (anchor `bottom`). Objects stretch while falling and squash on impact, then settle.
+- **Anticipation:** before a big move (lid flying off, product launching), add 2–3 tiny rotation `moves` (±6°, 0.15s each). The eye gets ready, then the payoff lands.
+- **Follow-through:** after the hero lands, secondary elements (confetti burst, rays scaling in, items popping up) trail by 0.05–0.2s.
+- **Secondary motion everywhere:** `boil` (handheld/sticker jitter), `jelly` (soft goods), `wave` on headline letters, slow `spin` on `rays`, a morphing `blob` behind the logo. Keep amplitudes small.
+- **Motion blur:** render finals with `--blur 3` (180° shutter). Fast pops and drops stop strobing.
+
+## 9. Dead air & the first frame
+- `render.mjs --qa` plots motion energy and flags any ≥ 0.8s stretch with ~no motion. Fix it with secondary motion, not by speeding everything up.
+- Frame 0 is the thumbnail. Never let it be an empty background. Start hook elements at `"at": -0.2`.
+
+## 10. Sound (half of motion)
+- Every visible event wants a sound: pop on pops, plop/boing on landings, whoosh on wipes, a bloop on `dot-expand`, a chime on the logo. `audio.mjs` places these automatically from the timeline.
+- Bed by energy: `musicbox` (cute, bakery, gifting) or `pulse` (drinks, sport, hype). Bed at about -14 LUFS for social.
+- If music comes from the user, keep `bpm` in the storyboard equal to the track's tempo so cuts land on beats.

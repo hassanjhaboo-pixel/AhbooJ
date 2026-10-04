@@ -1,0 +1,294 @@
+{
+  "title": "Hero Constant — 15s calm product story",
+  "_style": "Decoded from Starbucks-style spots: the hero product never moves (one fixed position for the whole film) while the WORLD around it changes: colour, shapes, context. Soft drifting circles, calm ease-in-out, a pop per icon, a chime on the logo. Calm confidence: fewer, slower moves.",
+  "format": {
+    "w": 1080,
+    "h": 1920,
+    "fps": 30
+  },
+  "bpm": 100,
+  "overlays": [
+    {
+      "type": "image",
+      "id": "hero",
+      "src": "",
+      "label": "HERO PRODUCT",
+      "placeholder": "bg",
+      "w": 0.4,
+      "wUnit": "U",
+      "h": 0.62,
+      "mask": "rounded",
+      "radius": 0.05,
+      "x": 0.5,
+      "y": 0.5,
+      "shadow": {
+        "blur": 0.05,
+        "y": 0.025
+      },
+      "in": {
+        "fx": "zoom-in",
+        "at": -0.3,
+        "dur": 0.8
+      },
+      "out": {
+        "fx": "scale",
+        "at": "hero_out",
+        "dur": 0.5
+      },
+      "loop": {
+        "fx": "float",
+        "period": "8b",
+        "amp": 0.6
+      }
+    }
+  ],
+  "cues": {
+    "hero_out": 10.2
+  },
+  "scenes": [
+    {
+      "id": "home",
+      "dur": "6b",
+      "bg": "primary",
+      "_beat": "Open on the brand colour: logo badge + soft drifting circles. The hero zooms in and stays.",
+      "elements": [
+        {
+          "type": "repeat",
+          "mode": "grid",
+          "count": 6,
+          "cols": 2,
+          "gap": [
+            0.82,
+            0.55
+          ],
+          "x": 0.5,
+          "y": 0.5,
+          "seed": 3,
+          "vary": {
+            "pos": 0.25,
+            "scale": 0.6
+          },
+          "child": {
+            "type": "blob",
+            "r": 0.12,
+            "fill": "accent",
+            "opacity": 0.35,
+            "wobble": 0.1,
+            "in": {
+              "fx": "scale",
+              "at": -0.6,
+              "dur": 1.0
+            },
+            "loop": {
+              "fx": "float",
+              "period": "6b"
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Meet the new one",
+          "role": "headline",
+          "color": "onPrimary",
+          "x": 0.5,
+          "y": 0.15,
+          "in": {
+            "fx": "rise",
+            "at": 0.5,
+            "dur": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "world-1",
+      "dur": "5b",
+      "bg": "chapter3",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.5,
+        "dur": 0.7
+      },
+      "_beat": "World swap #1: the background opens from the product. Slow rays turn behind it.",
+      "elements": [
+        {
+          "type": "rays",
+          "r": 0.75,
+          "count": 18,
+          "fill": "bg",
+          "opacity": 0.5,
+          "x": 0.5,
+          "y": 0.5,
+          "in": {
+            "fx": "fade",
+            "at": 0.2,
+            "dur": 0.8
+          },
+          "loop": {
+            "fx": "spin",
+            "period": "40b"
+          }
+        },
+        {
+          "type": "text",
+          "text": "Made for mornings",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.15,
+          "in": {
+            "fx": "rise",
+            "at": 0.6,
+            "dur": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "world-2",
+      "dur": "6b",
+      "bg": "chapter2",
+      "transition": {
+        "type": "iris",
+        "x": 0.5,
+        "y": 0.5,
+        "dur": 0.7
+      },
+      "_beat": "World swap #2: icons pop in a vertical list beside the hero, one per beat with a pop each.",
+      "elements": [
+        {
+          "type": "dots",
+          "count": 18,
+          "seed": 5,
+          "fill": [
+            "bg",
+            "accent"
+          ],
+          "r": 0.012,
+          "motion": "drift",
+          "in": {
+            "at": 0.2
+          }
+        },
+        {
+          "type": "repeat",
+          "mode": "line",
+          "count": 3,
+          "step": [
+            0,
+            0.2
+          ],
+          "x": 0.14,
+          "y": 0.5,
+          "stagger": "1b",
+          "fills": [
+            "primary",
+            "secondary",
+            "accent"
+          ],
+          "child": {
+            "type": "star",
+            "points": 5,
+            "inner": 0.5,
+            "round": 0.15,
+            "r": 0.045,
+            "fill": "primary",
+            "in": {
+              "fx": "pop",
+              "at": 0.6,
+              "dur": 0.45
+            },
+            "loop": {
+              "fx": "boil",
+              "amp": 0.6
+            }
+          }
+        },
+        {
+          "type": "text",
+          "text": "Three new flavours",
+          "role": "headline",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.15,
+          "in": {
+            "fx": "rise",
+            "at": 0.5,
+            "dur": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "logo",
+      "dur": "8b",
+      "bg": "bg",
+      "transition": {
+        "type": "fade",
+        "dur": 0.6
+      },
+      "_beat": "Hero bows out, logo with a chime, slow colour morph so the end card keeps breathing.",
+      "elements": [
+        {
+          "type": "dots",
+          "count": 16,
+          "seed": 8,
+          "fill": [
+            "primary",
+            "accent"
+          ],
+          "r": 0.011,
+          "motion": "drift",
+          "in": {
+            "at": 0
+          }
+        },
+        {
+          "type": "blob",
+          "r": 0.34,
+          "fill": "chapter3",
+          "opacity": 0.45,
+          "x": 0.5,
+          "y": 0.49,
+          "wobble": 0.09,
+          "speed": 1.2,
+          "in": {
+            "fx": "scale",
+            "at": 0.1,
+            "dur": 0.9
+          }
+        },
+        {
+          "type": "logo",
+          "w": 0.55,
+          "x": 0.5,
+          "y": 0.47,
+          "in": {
+            "fx": "pop-soft",
+            "at": 0.35,
+            "dur": 0.8
+          },
+          "loop": {
+            "fx": "float",
+            "period": "6b",
+            "amp": 0.5
+          }
+        },
+        {
+          "type": "text",
+          "text": "Available now",
+          "role": "title",
+          "color": "ink",
+          "x": 0.5,
+          "y": 0.58,
+          "in": {
+            "fx": "rise",
+            "at": 0.8,
+            "dur": 0.7
+          }
+        }
+      ]
+    }
+  ]
+}
