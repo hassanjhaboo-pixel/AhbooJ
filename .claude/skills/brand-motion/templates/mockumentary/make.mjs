@@ -368,16 +368,17 @@ function make(fmt) {
       legs: 'ink', arms: 'reach', look: 0.8, moves: F.hops(Y(feet), cdDur, { H, every: 0.32, height: 0.012, start: i * 0.08 }) })));
     return out;
   };
-  const tile = (n, t, last) => ({ type: 'group', screen: true, x: 0.5, y: tall ? 0.85 : 0.86, scale: tall ? 1.3 : 0.62, in: { fx: 'pop', at: t, dur: 0.3 }, out: { fx: 'scale', at: r4(t + 0.55), dur: 0.07 }, sfx: 'beep', sfxPitch: 1, children: [F.numberTile(n, { fill: ['toyYellow', 'accent', 'primary'][3 - n], size: 0.3 })] });
+  // subtle countdown: a small brick-number bug in the corner, ticking — present, not shouting
+  const tile = (n, t) => ({ type: 'group', screen: true, x: 0.86, y: tall ? 0.115 : 0.13, scale: tall ? 0.34 : 0.28, in: { fx: 'pop-soft', at: t, dur: 0.25 }, out: { fx: 'fade', at: r4(t + 0.56), dur: 0.06 }, sfx: 'tick', children: [F.numberTile(n, { fill: ['toyYellow', 'accent', 'primary'][3 - n], size: 0.3 })] });
   scenes.push({ id: 'countdown', dur: cdDur, bg: 'chapter1', transition: 'cut',
     camera: { focus: [[fxB - 0.12, fyC], [fxB, fyC]], zoom: [zC * 0.94, zC], ease: 'outCubic' }, grade: { vignette: 0.2, grain: 0.025 },
     elements: world({ fx0: fxB - 0.12, fx1: fxB, z0: zC, z1: zC, dur: cdDur, ease: 'outCubic', mode: 'ready', minute: [{ at: 0, dur: 0.01, rot: -24 }, ...[0, 1, 2].map(k => ({ at: chantAt[k], dur: 0.1, rot: -12 + k * 6, ease: 'outBack' })), { at: r4(cdDur - 0.08), dur: 0.08, rot: 0 }] }).concat([
       ...crowdReady(),
       baker({ arms: [9, -150], hand: F.megaphone(), talk: talk('host', bakerAt), face: 'grin' }),
       voiceEl('host', bakerAt),
-      ...chantAt.flatMap((t, k) => [0, 1, 2, 3, 4].map(i => voiceEl(`chant_${['three', 'two', 'one'][k]}_${i}`, r4(t + i * 0.015), { voiceGain: 0.55, voicePan: (i - 2) * 0.35 }))),
+      ...chantAt.flatMap((t, k) => [0, 1, 2, 3, 4].map(i => voiceEl(`chant_${['three', 'two', 'one'][k]}_${i}`, r4(t + i * 0.015), { voiceGain: 0.32, voicePan: (i - 2) * 0.35 }))),
       ...chantAt.map((t, k) => tile(3 - k, t)),
-      { type: 'text', screen: true, text: 'OPENING IN…', role: 'title', size: tall ? 0.05 : 0.042, weight: 800, color: 'ink', x: 0.5, y: tall ? 0.085 : 0.075, highlight: { fill: 'bg', pad: 0.35 }, in: { fx: 'pop', at: 0.4, dur: 0.35 }, loop: { fx: 'beat', period: 0.62, amp: 0.6 } },
+      { type: 'text', screen: true, text: 'opens in', role: 'caption', size: tall ? 0.024 : 0.022, weight: 700, color: 'ink', x: 0.86, y: tall ? 0.06 : 0.065, opacity: 0.85, highlight: { fill: 'bg', pad: 0.35 }, in: { fx: 'fade', at: r4(chantAt[0] - 0.1), dur: 0.25 }, sfx: false },
     ]) });
 
   // ================= DOORS OPEN — STAMPEDE =================
