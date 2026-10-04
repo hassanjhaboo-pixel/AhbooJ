@@ -28,7 +28,12 @@
     "primaryDeep": "#dd4652",
     "mint": "#7fd2a2",
     "lavender": "#a687d9",
-    "white": "#ffffff"
+    "white": "#ffffff",
+    "toyYellow": "#ffcd3c",
+    "bone": "#f3ecdc",
+    "wood": "#b07a4a",
+    "cardboard": "#e8c79a",
+    "glass": "#d6eef8"
   },
   "type": {
     "fontUrls": [
@@ -107,6 +112,7 @@
   },
   "_notes": {
     "fonts": "Baloo 2 + Quicksand are the design system's flagged substitutes for the real bubble wordmark font. If they cannot load (offline/proxy), the fallback stack renders instead; supply woff2/ttf via type.fontFiles to render exactly.",
-    "extraRoles": "blush, blushDeep, primaryDeep, mint, lavender, white are Jadesserts-specific extras used for the sweet box, outlines and hearts."
+    "extraRoles": "blush, blushDeep, primaryDeep, mint, lavender, white are Jadesserts-specific extras used for the sweet box, outlines and hearts.",
+    "toyRoles": "toyYellow, bone, wood, cardboard, glass are toy-world roles used by kits/brickworld.mjs (brick-people skin, skeleton, props, signs, windows)."
   }
 }

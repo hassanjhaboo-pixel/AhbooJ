@@ -387,6 +387,7 @@
         case 'heart': case 'sparkle': case 'star': case 'polygon': case 'scallop': case 'blob': case 'rays': { const d = (el.r || 0.05) * 2 * U; return { w: d, h: d }; }
         case 'poly': { const xs = el.pts.map(p => p[0]), ys = el.pts.map(p => p[1]); return { w: (Math.max(...xs) - Math.min(...xs)) * U, h: (Math.max(...ys) - Math.min(...ys)) * U }; }
         case 'group': return { w: 0, h: 0 };
+        case 'bricks': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.2) * U };
         case 'rect': case 'pill': case 'segbar': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.05) * (el.hUnit === 'H' ? H : U) };
         case 'image': case 'logo': {
           const src = el.type === 'logo' ? el.src || logoSrc(el) : el.src;
@@ -461,6 +462,8 @@
         if (L.fx === 'sway' || L.fx === 'flap') st.r += Math.sin(ph) * (L.fx === 'flap' ? 18 : 5) * amp * DEG;
         if (L.fx === 'shake') { const R = rng(Math.floor(lt * 24) + 7); st.dx += (R() - 0.5) * amp * U * 0.01; st.dy += (R() - 0.5) * amp * U * 0.01; }
         if (L.fx === 'beat') { const b = (lt % per) / per; st.s *= 1 + 0.06 * amp * Math.pow(1 - b, 3); }
+        if (L.fx === 'blink') { const per2 = per || 3; if ((lt + (L.phase || 0)) % per2 < 0.11) st.sy *= 0.12; }
+        if (L.fx === 'talk') { const R = rng(Math.floor(lt / 0.085) + 97 + (L.seed || 0)); st.sy *= 0.2 + 0.8 * R(); }
         if (L.fx === 'jelly') { st.sx *= 1 + Math.sin(ph) * 0.035 * amp; st.sy *= 1 - Math.sin(ph) * 0.035 * amp; }
         if (L.fx === 'boil') { const R = rng(Math.floor(lt * 8) + 31 + (L.seed || 0)); st.r += (R() - 0.5) * 3 * amp * DEG; st.dx += (R() - 0.5) * amp * U * 0.003; st.dy += (R() - 0.5) * amp * U * 0.003; }
       }
@@ -556,6 +559,30 @@
         if (p <= 0) continue;
         ctx.fillStyle = C(cols[i % cols.length]);
         ctx.beginPath(); ctx.roundRect(-ax * w + i * (sw + gap), -ay * h, sw * p, h, (el.radius || 0) * U); ctx.fill();
+      }
+    }
+
+    // Toy-brick wall: staggered bricks with mortar shading, top highlights and studs on the top edge.
+    function drawBricks(el, w, h) {
+      const [ax, ay] = anchorOf(el);
+      const x0 = -ax * w, y0 = -ay * h, bw = (el.bw || 0.06) * U, bh = (el.bh || 0.03) * U;
+      ctx.fillStyle = C(el.fill || 'primary'); ctx.beginPath(); ctx.roundRect(x0, y0, w, h, (el.radius || 0.004) * U); ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+      ctx.strokeStyle = 'rgba(0,0,0,0.13)'; ctx.lineWidth = Math.max(1, bh * 0.08);
+      const rows = Math.ceil(h / bh);
+      ctx.beginPath();
+      for (let r = 1; r < rows; r++) { const y = y0 + r * bh; ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); }
+      for (let r = 0; r < rows; r++) { const off = (r % 2) * bw / 2, y = y0 + r * bh; for (let x = x0 + off; x < x0 + w; x += bw) { if (x <= x0) continue; ctx.moveTo(x, y); ctx.lineTo(x, y + bh); } }
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = Math.max(1, bh * 0.07); ctx.beginPath();
+      for (let r = 0; r < rows; r++) { const y = y0 + r * bh + bh * 0.12; ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); }
+      ctx.stroke(); ctx.restore();
+      if (el.studs !== false) {
+        const sw = bw * 0.42, sh = bh * 0.34; ctx.fillStyle = C(el.fill || 'primary');
+        for (let x = x0 + bw / 4 - sw / 2; x + sw <= x0 + w + 0.5; x += bw / 2) {
+          ctx.beginPath(); ctx.roundRect(x, y0 - sh, sw, sh + 1, [sh * 0.35, sh * 0.35, 0, 0]); ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(x + sw * 0.15, y0 - sh * 0.8, sw * 0.18, sh * 0.6); ctx.fillStyle = C(el.fill || 'primary');
+        }
       }
     }
 
@@ -745,6 +772,7 @@
           break;
         case 'image': drawImage(el, st, box.w, box.h, el.src); break;
         case 'segbar': drawSegbar(el, st, box.w, box.h, t); break;
+        case 'bricks': drawBricks(el, box.w, box.h); break;
         case 'group': (el.children || []).forEach(c => drawElement(c, t, GROUP)); break;
         default: drawShape(el, st, box.w, box.h);
       }
@@ -760,12 +788,17 @@
         const z = cam.zoom ? lerp(cam.zoom[0], cam.zoom[1], EASE[cam.ease || 'inOutQuad'](p)) : 1;
         let sx = 0, sy = 0;
         if (cam.shake) { const R = rng(Math.floor(lt * 30) + 3); sx = (R() - 0.5) * cam.shake * U * 0.02; sy = (R() - 0.5) * cam.shake * U * 0.02; }
-        const pan = cam.pan ? [lerp(cam.pan[0][0], cam.pan[1][0], p) * W, lerp(cam.pan[0][1], cam.pan[1][1], p) * H] : [0, 0];
-        ctx.translate(W / 2 + sx + pan[0], H / 2 + sy + pan[1]); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+        if (cam.focus) { // camera looks at a world point (frame fractions, may exceed 0..1) — fly-throughs & tracking shots
+          const e = (EASE[cam.ease || 'inOutQuad'] || EASE.inOutQuad)(p), f0 = cam.focus[0], f1 = cam.focus[1] || f0;
+          ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z, z); ctx.translate(-lerp(f0[0], f1[0], e) * W, -lerp(f0[1], f1[1], e) * H);
+        } else {
+          const pan = cam.pan ? [lerp(cam.pan[0][0], cam.pan[1][0], p) * W, lerp(cam.pan[0][1], cam.pan[1][1], p) * H] : [0, 0];
+          ctx.translate(W / 2 + sx + pan[0], H / 2 + sy + pan[1]); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+        }
       }
       let bg = C(sc.bg || 'bg');
       (sc.bgTo || []).forEach(b => { if (lt < b.at) return; bg = mixRGB(bg, C(b.bg), (EASE[b.ease || 'inOutCubic'] || EASE.inOutCubic)(clamp((lt - b.at) / b.dur))); });
-      ctx.fillStyle = bg; ctx.fillRect(-W, -H, W * 3, H * 3);
+      ctx.fillStyle = bg; ctx.fillRect(-W * 40, -H * 40, W * 80, H * 80);
       sc.elements.forEach(el => drawElement(el, lt));
       ctx.restore();
     }

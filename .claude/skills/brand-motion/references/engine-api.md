@@ -26,6 +26,7 @@
   "bg": "primary",
   "transition": "cut" | { "type": "wipe|iris|cover|push|shrink|flash|fade|zoom|cut", "dur": 0.5, "ease": "inOutCubic", ...typeOptions },
   "camera": { "zoom": [1, 1.05], "shake": 0.3, "pan": [[0,0],[0.02,0]], "ease": "inOutQuad" },
+  "camera": { "focus": [[4.6, 0.2], [0.5, 0.52]], "zoom": [0.3, 1], "ease": "inOutCubic" },  // fly-through: look at world points (frame fractions, may exceed 0..1)
   "cues": { "open": 1.55 },                                     // named moments for this scene
   "bgTo": [ { "at": 2, "dur": 0.5, "bg": "chapter2", "ease": "inOutCubic" } ],  // background colour morphs
   "elements": [ Element, ... ]    // drawn in order (later = on top); times are relative to scene start
@@ -46,7 +47,7 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
 {
   "type": "text|cycler|logo|image|group|repeat|poly|circle|ring|semicircle|heart|sparkle|star|polygon|scallop|blob|rays|rect|pill|segbar|path|dots",
   "id": "box",                    // optional; lets other elements time themselves with "@box" / "@box.end"
-  "sfx": "chime",                 // optional audio.mjs override ("pop","plop","bloop","whoosh","tick","twinkle","chime","shimmer"), or false to mute
+  "sfx": "chime",                 // optional audio.mjs override ("pop","plop","bloop","whoosh","tick","twinkle","chime","shimmer","babble","cheer","rattle"), or false to mute; "sfxDur"/"sfxPitch" for babble
   "x": 0.5, "y": 0.5,             // position of the anchor point
   "anchor": "center",             // center|left|right|top|bottom|top-left|top-right|bottom-left|bottom-right
   "scale": 1, "rot": 0,           // rot in degrees
@@ -64,7 +65,8 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
 - `moves` apply in order; each one interpolates from the current state to its targets.
 - Negative `amp` on `flap`/`sway` mirrors the motion (use it for left/right wing pairs).
 - `moves` can tween colours: `fill` / `color` (role or literal) blend from the current colour.
-- Loops: `jelly` = squishy alternating squash (desserts, soft goods) · `boil` = stepped hand-held jitter at 8fps (sticker / handmade / Crumbl handheld feel) · `wave` (text with `split`) = letters or words bob in sequence.
+- Loops: `blink` = eyes close briefly every `period` (use different `phase`s) · `talk` = mouth flaps with a jittered rhythm (pair with `"sfx": "babble"` on the subtitle) ·
+- `jelly` = squishy alternating squash (desserts, soft goods) · `boil` = stepped hand-held jitter at 8fps (sticker / handmade / Crumbl handheld feel) · `wave` (text with `split`) = letters or words bob in sequence.
 
 ### Effects (`in.fx` / `out.fx`)
 `plop` (gravity fall + squash & stretch landing, use `anchor: "bottom"`) · `swing` (elastic swing-in, great for hanging signs and stickers) · `zoom-in` (settles from 150%) · `cut` · `fade` · `pop` · `pop-soft` · `rise` · `sink` · `mask-up` · `mask-down` · `slide-left` · `slide-right` · `slide-up` · `slide-down` · `drop` (bounce, from above the frame) · `drop-near` (bounce, shorter fall, fades in) · `drop-soft` · `fly` (from below with tilt) · `grow` (scaleX from anchor) · `grow-y` · `scale` · `scale-down` · `spin-in` · `blur-in` · `draw` (paths and rings) · `wipe` (left→right reveal) · `iris` (circular reveal) · `dot-expand` · `type` (typewriter, text only)
@@ -125,6 +127,12 @@ Uses `brand.logo.src` (or `srcOnDark` when `onDark: true`). With no file, it ren
   "children": [ /* any elements; their x/y are OFFSETS in short-side units (U) from the group origin; default 0,0 */ ] }
 ```
 Groups nest. Children keep their own `in/out/moves/loop` (same scene clock). Use a group per physical object (a box, a lid, a sticker with its product).
+
+### `bricks` (toy-brick wall / plate with studs)
+```jsonc
+{ "type": "bricks", "w": 1.0, "wUnit": "U", "h": 0.6, "fill": "primary", "bw": 0.07, "bh": 0.035, "studs": true, "anchor": "bottom" }
+```
+Staggered bricks with mortar shading and highlights, plus studs along the top edge (`studs: false` for backdrops).
 
 ### `poly` (custom shapes: boxes, ribbons, bags, cups)
 ```jsonc

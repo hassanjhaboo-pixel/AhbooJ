@@ -53,6 +53,21 @@ const SFX = {
   tick: (t0, g = 1, pan = 0) => add(t0, 0.05, t => Math.sin(TAU * 1900 * t) * Math.exp(-t / 0.012), 0.22 * g, pan),
   twinkle: (t0, g = 1, pan = 0) => { [2637, 3951].forEach((f, i) => add(t0 + i * 0.035, 0.35, t => Math.sin(TAU * f * t) * Math.exp(-t / 0.11), 0.12 * g, pan)); },
   chime: (t0, g = 1) => { [1046.5, 1318.5, 1568, 2093].forEach((f, i) => add(t0 + i * 0.07, 1.4, t => (Math.sin(TAU * f * t) + 0.25 * Math.sin(TAU * f * 2.76 * t) * Math.exp(-t / 0.15)) * Math.exp(-t / 0.55), 0.16 * g, (i - 1.5) * 0.25)); },
+  // toy-person gibberish: quick pitched syllables (documentary interviews, chatter)
+  babble: (t0, dur = 1.2, g = 1, pitch = 1, pan = 0) => {
+    let t = t0; let k = 0;
+    while (t < t0 + dur) {
+      const f = (260 + rnd() * 260) * pitch, len = 0.055 + rnd() * 0.05, vib = 6 + rnd() * 6;
+      add(t, len + 0.02, tt => { const env = Math.sin(Math.PI * Math.min(1, tt / len)); const ph = TAU * f * tt + 0.6 * Math.sin(TAU * vib * tt); return (Math.sin(ph) + 0.35 * Math.sin(3 * ph) + 0.15 * Math.sin(5 * ph)) * env; }, 0.16 * g, pan);
+      t += len + 0.015 + (k++ % 4 === 3 ? 0.08 : 0) * rnd();
+    }
+  },
+  cheer: (t0, g = 1) => {
+    const ns = noiseSweep(500, 2200, 1.6, 0.9); add(t0, 1.8, t => ns(t) * Math.sin(Math.PI * Math.min(1, t / 1.6)), 0.35 * g);
+    for (let i = 0; i < 9; i++) SFX.babble(t0 + rnd() * 0.6, 0.6 + rnd() * 0.6, 0.45 * g, 1.1 + rnd() * 0.6, rnd() * 1.4 - 0.7);
+    for (let i = 0; i < 10; i++) { const ns2 = noiseSweep(1500, 3000, 0.05, 0.5); add(t0 + 0.2 + i * 0.11 + rnd() * 0.04, 0.06, t => ns2(t) * Math.exp(-t / 0.015), 0.3 * g, rnd() - 0.5); }
+  },
+  rattle: (t0, g = 1) => { for (let i = 0; i < 7; i++) { const ns = noiseSweep(2500, 5000, 0.03, 0.4); add(t0 + i * 0.045 + rnd() * 0.02, 0.04, t => ns(t) * Math.exp(-t / 0.01), 0.35 * g, rnd() - 0.5); } },
   shimmer: (t0, g = 1) => { const ns = noiseSweep(4000, 9000, 0.5, 0.4); add(t0, 0.55, t => ns(t) * Math.sin(Math.PI * Math.min(1, t / 0.5)), 0.25 * g); SFX.twinkle(t0 + 0.05, 0.8 * g); },
 };
 
@@ -110,7 +125,7 @@ TL.scenes.forEach((sc, si) => {
 function visitIn(el, s0, depth) {
   const fx = el.in.fx, t = s0 + el.in.at, d = el.in.dur || 0.5, pan = el.x != null && depth === 0 ? (el.x - 0.5) * 1.2 : 0;
   if (el.sfx === false) return;
-  if (el.sfx) { ev(el.sfx, t + (el.sfxAt || 0), { pan }); return; } // explicit override
+  if (el.sfx) { ev(el.sfx, t + (el.sfxAt || 0), { pan, dur: el.sfxDur, p: el.sfxPitch }); return; } // explicit override
   if (el.type === 'logo') return ev('chime', t + d * 0.25);
   if (['drop', 'drop-near'].includes(fx)) return ev('plop', t + d * 0.36, { pan });
   if (fx === 'plop') return ev('plop', t + d * 0.42, { pan });
@@ -122,7 +137,7 @@ function visitIn(el, s0, depth) {
 // thin out: same kind within 70ms collapses into one (keeps staggered confetti from machine-gunning)
 events.sort((a, b) => a.t - b.t);
 const kept = []; const last = {};
-events.forEach(e => { if (last[e.kind] != null && e.t - last[e.kind] < 0.07) return; last[e.kind] = e.t; kept.push(e); });
+events.forEach(e => { if (!['babble', 'cheer'].includes(e.kind) && last[e.kind] != null && e.t - last[e.kind] < 0.07) return; last[e.kind] = e.t; kept.push(e); });
 
 const bedKind = args.bed || 'musicbox';
 if (bedKind !== 'none') bed(bedKind);
@@ -135,6 +150,7 @@ if (args.sfx !== 'off') kept.forEach(e => {
   if (e.kind === 'pop') SFX.pop(e.t, (e.p || 1) * (1 + 0.06 * ((popCount++ % 5) - 2)), e.pan || 0, g);
   else if (e.kind === 'plop') SFX.plop(e.t, e.pan || 0, g);
   else if (e.kind === 'whoosh') SFX.whoosh(e.t, e.dur || 0.45, g, e.pan || 0);
+  else if (e.kind === 'babble') SFX.babble(e.t, e.dur || 1.2, g, e.p || 1, e.pan || 0);
   else if (SFX[e.kind]) SFX[e.kind](e.t, g);
 });
 // fades + soft limiter
