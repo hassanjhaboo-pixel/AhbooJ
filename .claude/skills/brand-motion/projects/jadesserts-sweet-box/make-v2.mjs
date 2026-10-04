@@ -12,8 +12,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-const WORDMARK = '../../brand/assets/jadesserts/logo-wordmark.svg';
-const CHERRY = '../../brand/assets/jadesserts/logo-cherry.svg';
+const WORDMARK = '../../brand/assets/jadesserts/logo-wordmark.png';
+const CHERRY = '../../brand/assets/jadesserts/logo-cherry.png';
 const P = n => `assets/products/${n}.png`;
 const ASPECT = { 'fruit-punch': 912 / 509, 'vanilla-cupcake': 732 / 589, 'chicken-puff': 545 / 626, 'banana-bread': 622 / 832 };
 const NAMES = ['Chicken Puff Pastry', 'Vanilla Cupcake', 'Fruit Punch Limeade', 'Choco-Chip Banana Bread'];
@@ -111,7 +111,7 @@ function make(fmt) {
       { type: 'dots', count: 26, seed: 21, fill: ['primary', 'lavender', 'mint', 'accent'], r: 0.012, x: 0.5, y: Y(L.boxY - 260 * L.boxS), area: [0.04, Y(L.boxY - 900 * L.boxS * (tall ? 0.8 : 0.62)), 0.96, Y(L.boxY - 60)], motion: 'burst', in: { at: open + 0.05, dur: 0.9 } },
       sweetBox({ lid: true, items: 'pop', itemsAt: open + 0.15, openAt: open, boxIn: { fx: 'plop', at: 0.05, dur: 0.9 } }),
       { type: 'text', text: 'Presenting', role: 'title', color: 'primary', bubble: 0.02, x: 0.5, y: Y(tall ? 300 : 95), in: { fx: 'rise', at: 0.25, dur: 0.45 } },
-      { type: 'logo', w: tall ? 0.66 : 0.5, x: 0.5, y: Y(tall ? 470 : 215), in: { fx: 'pop-soft', at: 0.35, dur: 0.6 }, loop: { fx: 'float', period: '4b', amp: 0.6 } },
+      { type: 'logo', w: tall ? 0.66 : 0.5, x: 0.5, y: Y(tall ? 470 : 248), in: { fx: 'pop-soft', at: 0.35, dur: 0.6 }, loop: { fx: 'float', period: '4b', amp: 0.6 } },
     ],
   });
 

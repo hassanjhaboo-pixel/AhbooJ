@@ -67,8 +67,8 @@
     }
   },
   "logo": {
-    "src": "assets/jadesserts/logo-full.svg",
-    "srcOnDark": "assets/jadesserts/logo-full.svg",
+    "src": "assets/jadesserts/logo.png",
+    "srcOnDark": "assets/jadesserts/logo.png",
     "wordmark": "Jadesserts",
     "color": "primary",
     "clearSpace": 0.5

@@ -201,7 +201,7 @@
         },
         {
           "type": "image",
-          "src": "../../brand/assets/jadesserts/logo-cherry.svg",
+          "src": "../../brand/assets/jadesserts/logo-cherry.png",
           "w": 0.095,
           "wUnit": "U",
           "anchor": "top",
@@ -539,7 +539,7 @@
         },
         {
           "type": "image",
-          "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+          "src": "../../brand/assets/jadesserts/logo-wordmark.png",
           "w": 0.33,
           "anchor": "center",
           "x": 0.5,
@@ -883,7 +883,7 @@
         },
         {
           "type": "image",
-          "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+          "src": "../../brand/assets/jadesserts/logo-wordmark.png",
           "w": 0.33,
           "anchor": "center",
           "x": 0.5,
@@ -984,7 +984,7 @@
         },
         {
           "type": "image",
-          "src": "../../brand/assets/jadesserts/logo-cherry.svg",
+          "src": "../../brand/assets/jadesserts/logo-cherry.png",
           "w": 0.095,
           "wUnit": "U",
           "anchor": "top",

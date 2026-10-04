@@ -444,7 +444,7 @@
             },
             {
               "type": "image",
-              "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+              "src": "../../brand/assets/jadesserts/logo-wordmark.png",
               "w": 0.17,
               "x": -0.135,
               "y": -0.11
@@ -636,7 +636,7 @@
           "type": "logo",
           "w": 0.5,
           "x": 0.5,
-          "y": 0.1991,
+          "y": 0.2296,
           "in": {
             "fx": "pop-soft",
             "at": 0.35,
@@ -1244,7 +1244,7 @@
             },
             {
               "type": "image",
-              "src": "../../brand/assets/jadesserts/logo-wordmark.svg",
+              "src": "../../brand/assets/jadesserts/logo-wordmark.png",
               "w": 0.17,
               "x": -0.135,
               "y": -0.11
@@ -1417,7 +1417,7 @@
             },
             {
               "type": "image",
-              "src": "../../brand/assets/jadesserts/logo-cherry.svg",
+              "src": "../../brand/assets/jadesserts/logo-cherry.png",
               "w": 0.095,
               "wUnit": "U",
               "anchor": "top",

@@ -10,8 +10,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-const LOGO = '../../brand/assets/jadesserts/logo-wordmark.svg';
-const CHERRY = '../../brand/assets/jadesserts/logo-cherry.svg';
+const LOGO = '../../brand/assets/jadesserts/logo-wordmark.png';
+const CHERRY = '../../brand/assets/jadesserts/logo-cherry.png';
 const P = n => `assets/products/${n}.png`;
 // natural aspect (h / w) of each cutout, used to place items by their bottom edge
 const ASPECT = { 'fruit-punch': 912 / 509, 'vanilla-cupcake': 732 / 589, 'chicken-puff': 545 / 626, 'banana-bread': 622 / 832 };
