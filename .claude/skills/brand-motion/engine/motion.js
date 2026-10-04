@@ -881,9 +881,9 @@
         if (cam.shake) { const R = rng(Math.floor(lt * 30) + 3); sx = (R() - 0.5) * cam.shake * U * 0.02; sy = (R() - 0.5) * cam.shake * U * 0.02; }
         if (cam.handheld) { const a = cam.handheld * U * 0.006; sx += a * (Math.sin(lt * 1.3 + 0.4) + 0.5 * Math.sin(lt * 3.1 + 1.7)); sy += a * (Math.sin(lt * 1.7 + 2.1) + 0.5 * Math.sin(lt * 2.6)); }
         if (cam.keys) { // keyframed camera inside one shot: [{at, dur, zoom, x, y, ease}] — punch-ins, crash zooms, re-frames
-          let z2 = cam.zoom ? cam.zoom[0] : 1, fx = cam.at ? cam.at[0] : 0.5, fy = cam.at ? cam.at[1] : 0.5;
-          cam.keys.forEach(k => { if (lt < k.at) return; const e = (EASE[k.ease || 'outExpo'] || EASE.outExpo)(clamp((lt - k.at) / (k.dur || 0.2))); if (k.zoom != null) z2 = lerp(z2, k.zoom, e); if (k.x != null) fx = lerp(fx, k.x, e); if (k.y != null) fy = lerp(fy, k.y, e); });
-          ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z2, z2); ctx.translate(-fx * W, -fy * H);
+          let z2 = cam.zoom ? cam.zoom[0] : 1, fx = cam.at ? cam.at[0] : 0.5, fy = cam.at ? cam.at[1] : 0.5, roll = cam.roll || 0;
+          cam.keys.forEach(k => { if (lt < k.at) return; const e = (EASE[k.ease || 'outExpo'] || EASE.outExpo)(clamp((lt - k.at) / (k.dur || 0.2))); if (k.zoom != null) z2 = lerp(z2, k.zoom, e); if (k.x != null) fx = lerp(fx, k.x, e); if (k.y != null) fy = lerp(fy, k.y, e); if (k.roll != null) roll = lerp(roll, k.roll, e); });
+          ctx.translate(W / 2 + sx, H / 2 + sy); ctx.rotate(roll * DEG); ctx.scale(z2, z2); ctx.translate(-fx * W, -fy * H);
         } else if (cam.focus) { // camera looks at a world point (frame fractions, may exceed 0..1) — fly-throughs & tracking shots
           const e = (EASE[cam.ease || 'inOutQuad'] || EASE.inOutQuad)(p), f0 = cam.focus[0], f1 = cam.focus[1] || f0;
           ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z, z); ctx.translate(-lerp(f0[0], f1[0], e) * W, -lerp(f0[1], f1[1], e) * H);
