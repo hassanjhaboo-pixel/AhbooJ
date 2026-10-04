@@ -69,7 +69,40 @@ const SFX = {
   },
   rattle: (t0, g = 1) => { for (let i = 0; i < 7; i++) { const ns = noiseSweep(2500, 5000, 0.03, 0.4); add(t0 + i * 0.045 + rnd() * 0.02, 0.04, t => ns(t) * Math.exp(-t / 0.01), 0.35 * g, rnd() - 0.5); } },
   shimmer: (t0, g = 1) => { const ns = noiseSweep(4000, 9000, 0.5, 0.4); add(t0, 0.55, t => ns(t) * Math.sin(Math.PI * Math.min(1, t / 0.5)), 0.25 * g); SFX.twinkle(t0 + 0.05, 0.8 * g); },
+  // crowd stampede: low rumble + a flurry of plastic footsteps
+  rumble: (t0, g = 1, dur = 2.2) => {
+    const ns = noiseSweep(60, 180, dur, 0.9); add(t0, dur, t => ns(t) * 2.2 * Math.sin(Math.PI * Math.min(1, t / dur)), 0.6 * g);
+    for (let t = 0; t < dur; t += 0.035 + rnd() * 0.05) { const f = 140 + rnd() * 160; add(t0 + t, 0.06, tt => Math.sin(TAU * f * tt) * Math.exp(-tt / 0.012) + (rnd() * 2 - 1) * Math.exp(-tt / 0.004) * 0.6, 0.22 * g * Math.sin(Math.PI * Math.min(1, t / dur)), rnd() * 1.4 - 0.7); }
+  },
+  // shop-door bell: two inharmonic dings
+  bell: (t0, g = 1) => { [0, 0.16].forEach(o => [2637, 3960, 5270].forEach((f, i) => add(t0 + o, 1.1, t => Math.sin(TAU * f * t) * Math.exp(-t / (0.35 - i * 0.08)), (0.16 - i * 0.04) * g, 0.2))); },
+  // countdown beep; p > 1 for the final "go"
+  beep: (t0, g = 1, p = 1) => add(t0, p > 1 ? 0.5 : 0.16, t => Math.sign(Math.sin(TAU * 880 * p * t)) * 0.35 * Math.min(1, t / 0.004) * (p > 1 ? Math.exp(-t / 0.3) : 1) * (t < (p > 1 ? 0.48 : 0.14) ? 1 : 0), 0.32 * g),
+  // reality-TV "dun dun DUN"
+  sting: (t0, g = 1) => { [[0, 55, 0.22], [0.26, 52, 0.22], [0.55, 47, 1.1]].forEach(([o, m, d]) => { const f = hz(m); add(t0 + o, d + 0.4, t => { let v = 0; for (let k = 1; k < 7; k++) v += Math.sin(TAU * f * k * t * (1 + 0.002 * k)) / k; return v * Math.min(1, t / 0.01) * Math.exp(-t / (d * 0.8)); }, 0.22 * g); }); },
+  scratch: (t0, g = 1) => { const a = noiseSweep(400, 3500, 0.12, 0.3), b = noiseSweep(3500, 300, 0.14, 0.3); add(t0, 0.13, t => a(t) * 1.5, 0.5 * g); add(t0 + 0.13, 0.15, t => b(t) * 1.5, 0.5 * g); },
+  impact: (t0, g = 1) => { add(t0, 0.7, t => Math.sin(TAU * (45 + 80 * Math.exp(-t / 0.05)) * t) * Math.exp(-t / 0.25), 0.7 * g); const ns = noiseSweep(2000, 300, 0.3, 0.5); add(t0, 0.3, t => ns(t) * Math.exp(-t / 0.08), 0.5 * g); },
+  shutter: (t0, g = 1) => { [0, 0.07].forEach(o => { const ns = noiseSweep(3000, 5000, 0.02, 0.4); add(t0 + o, 0.03, t => ns(t) * 2 * Math.exp(-t / 0.006), 0.4 * g); }); },
+  boing: (t0, g = 1) => add(t0, 0.45, t => Math.sin(TAU * (180 + 120 * Math.sin(TAU * 14 * t) * Math.exp(-t / 0.15)) * t) * Math.exp(-t / 0.2), 0.4 * g),
 };
+
+// ---------- recorded voice lines (scripts/voice.mjs output: 16-bit PCM wav) ----------
+function readWav(p) {
+  const b = fs.readFileSync(p); let off = 12, fmt = null;
+  while (off < b.length - 8) {
+    const id = b.toString('ascii', off, off + 4), sz = b.readUInt32LE(off + 4);
+    if (id === 'fmt ') fmt = { ch: b.readUInt16LE(off + 10), sr: b.readUInt32LE(off + 12), bits: b.readUInt16LE(off + 22) };
+    if (id === 'data') { const n = Math.floor(sz / (fmt.ch * 2)), x = new Float32Array(n); for (let i = 0; i < n; i++) x[i] = b.readInt16LE(off + 8 + i * fmt.ch * 2) / 32768; return { x, sr: fmt.sr }; }
+    off += 8 + sz + (sz % 2);
+  }
+  throw new Error('no data chunk in ' + p);
+}
+const voiceSpans = [];
+function voice(t0, file, g = 1, pan = 0) {
+  const { x, sr } = readWav(file), ratio = sr / SR, dur = x.length / sr;
+  add(t0, dur, t => { const p = t * sr, i = Math.floor(p), f = p - i; return i + 1 < x.length ? x[i] * (1 - f) + x[i + 1] * f : 0; }, g, pan);
+  voiceSpans.push([t0, t0 + dur]); void ratio;
+}
 
 // ---------- music beds ----------
 const KEYS = { C: 0, 'C#': 1, D: 2, Eb: 3, E: 4, F: 5, 'F#': 6, G: 7, Ab: 8, A: 9, Bb: 10, B: 11 };
@@ -117,6 +150,7 @@ TL.scenes.forEach((sc, si) => {
     else if (tr.type === 'fade') ev('whoosh', sc.start, { dur: 0.5, g: 0.4 });
   }
   const visit = (el, depth) => {
+    if (el.voice) ev('voice', sc.start + (el.in ? el.in.at : 0) + (el.voiceAt || 0), { file: path.resolve(path.dirname(args.story), el.voice), g: el.voiceGain || 1, pan: el.voicePan || 0 });
     if (el.children) { if (el.in) visitIn(el, sc.start, depth); el.children.forEach(c => visit(c, depth + 1)); return; }
     if (el.in) visitIn(el, sc.start, depth);
   };
@@ -137,13 +171,16 @@ function visitIn(el, s0, depth) {
 // thin out: same kind within 70ms collapses into one (keeps staggered confetti from machine-gunning)
 events.sort((a, b) => a.t - b.t);
 const kept = []; const last = {};
-events.forEach(e => { if (!['babble', 'cheer'].includes(e.kind) && last[e.kind] != null && e.t - last[e.kind] < 0.07) return; last[e.kind] = e.t; kept.push(e); });
+events.forEach(e => { if (!['babble', 'cheer', 'voice'].includes(e.kind) && last[e.kind] != null && e.t - last[e.kind] < 0.07) return; last[e.kind] = e.t; kept.push(e); });
 
 const bedKind = args.bed || 'musicbox';
 if (bedKind !== 'none') bed(bedKind);
-// mix: lower the bed while SFX play, then add SFX on top
-const bedGain = Number(args['bed-gain'] || 0.45), sfxGain = Number(args['sfx-gain'] || 0.6);
-for (let i = 0; i < N; i++) { L[i] *= bedGain; R[i] *= bedGain; }
+// mix: lower the bed, duck it further under dialogue, then add SFX and voices on top
+const bedGain = Number(args['bed-gain'] || 0.45), sfxGain = Number(args['sfx-gain'] || 0.6), voiceGain = Number(args['voice-gain'] || 1.0);
+const duckDepth = Number(args.duck != null ? args.duck : 0.6);
+const spans = kept.filter(e => e.kind === 'voice').map(e => { try { const { x, sr } = readWav(e.file); return [e.t, e.t + x.length / sr]; } catch { return null; } }).filter(Boolean);
+const duckAt = t => { let d = 0; spans.forEach(([a, b]) => { const k = t < a ? 1 - (a - t) / 0.15 : t > b ? 1 - (t - b) / 0.35 : 1; d = Math.max(d, Math.max(0, k)); }); return d; };
+for (let i = 0; i < N; i++) { const g = bedGain * (1 - duckDepth * (spans.length ? duckAt(i / SR) : 0)); L[i] *= g; R[i] *= g; }
 let popCount = 0;
 if (args.sfx !== 'off') kept.forEach(e => {
   const g = (e.g || 1) * sfxGain / 0.6;
@@ -151,8 +188,12 @@ if (args.sfx !== 'off') kept.forEach(e => {
   else if (e.kind === 'plop') SFX.plop(e.t, e.pan || 0, g);
   else if (e.kind === 'whoosh') SFX.whoosh(e.t, e.dur || 0.45, g, e.pan || 0);
   else if (e.kind === 'babble') SFX.babble(e.t, e.dur || 1.2, g, e.p || 1, e.pan || 0);
+  else if (e.kind === 'beep') SFX.beep(e.t, g, e.p || 1);
+  else if (e.kind === 'rumble') SFX.rumble(e.t, g, e.dur || 2.2);
+  else if (e.kind === 'voice') { try { voice(e.t, e.file, (e.g || 1) * voiceGain, e.pan || 0); } catch (err) { console.warn('! voice', err.message); } }
   else if (SFX[e.kind]) SFX[e.kind](e.t, g);
 });
+if (args.sfx === 'off') kept.filter(e => e.kind === 'voice').forEach(e => voice(e.t, e.file, (e.g || 1) * voiceGain, e.pan || 0));
 // fades + soft limiter
 const fin = Math.round(0.02 * SR), fout = Math.round(0.6 * SR);
 for (let i = 0; i < N; i++) {

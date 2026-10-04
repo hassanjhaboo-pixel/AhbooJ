@@ -1,0 +1,30 @@
+{
+  "_readme": "Mockumentary brief. Paths are relative to this file. Voices: see scripts/voice.mjs VOICES (af_/am_ = American female/male, bf_/bm_ = British). fx: clean | bright | deadpan | shout | whisper | ghost | old | megaphone | tv. punch (the cut on the LAST part): cheer | rage | scheme | zoom | none. look = kits/minifig.mjs options (torso, legs, hair, hairColor, print, printColor, glasses, mustache, skeleton...).",
+  "name": "The Line",
+  "brand": "../../brand/examples/demo-brand.json",
+  "assets": { "logo": "", "mark": "", "products": [] },
+  "stamp": "VOLTVILLE · 6:58 AM",
+  "title": "Launch day. The line.",
+  "hudStamp": "LAUNCH DAY",
+  "waitCounter": ["Est. wait: 1 hour", "Est. wait: 1 day", "Est. wait: 1 decade"],
+  "waitFinal": "Est. wait: yes",
+  "cast": [
+    { "id": "maya", "name": "Maya", "tag": "Brought a tent. And a generator.", "voice": "af_bella", "fx": "bright",
+      "parts": ["I've been here since Tuesday.", "No regrets!"], "punch": "cheer",
+      "look": { "torso": "secondary", "print": "hoodie", "printColor": "white", "hair": "ponytail", "hairColor": "wood", "legs": "dark" } },
+    { "id": "dev", "name": "Dev", "tag": "Running on zero sleep", "voice": "am_michael",
+      "parts": [{ "text": "I'm not tired.", "fx": "deadpan" }, { "text": "I'm UNSTOPPABLE!", "fx": "shout", "gap": 0.4 }], "punch": "rage",
+      "look": { "torso": "accent", "print": "tie", "printColor": "white", "hair": "spiky", "hairColor": "ink" } },
+    { "id": "rex", "name": "Rex", "tag": "Has a plan", "voice": "am_puck", "fx": "whisper", "pitch": -1,
+      "parts": ["They think I want one can.", "I want ALL the cans."], "punch": "scheme",
+      "look": { "torso": "ink", "print": "jacket", "printColor": "white", "hair": "mohawk", "hairColor": "primary" } },
+    { "id": "bones", "name": "Mr. Bones", "tag": "First in line, 1997", "voice": "am_onyx", "fx": "ghost",
+      "parts": ["I came for the launch.", "Still worth it."], "punch": "none",
+      "look": { "skeleton": true } }
+  ],
+  "host": { "voice": "bm_george", "fx": "megaphone", "countdownLine": "Good morning, Voltville! Doors open in...", "openLine": "We're OPEN!",
+    "look": { "torso": "primary", "print": "apron", "printColor": "white", "hair": "cap", "hairColor": "accent", "mustache": false } },
+  "payoff": { "cast": "bones", "line": "Finally." },
+  "narrator": { "voice": "af_heart", "text": "Volta. Charge your day." },
+  "endcard": { "headline": "Charge your day.", "cta": "Grab one today", "contact": "volta.example" }
+}

@@ -1,0 +1,37 @@
+/* Jadesserts — Tailwind v4 theme. @import "tailwindcss"; then this file. */
+@theme {
+  --color-bg: #fef9f6;
+  --color-ink: #4a2c33;
+  --color-primary: #f4636f;
+  --color-onPrimary: #ffffff;
+  --color-secondary: #c9b3ea;
+  --color-onSecondary: #4a2c33;
+  --color-accent: #ffab55;
+  --color-onAccent: #4a2c33;
+  --color-dark: #4a2c33;
+  --color-onDark: #fef9f6;
+  --color-chapter1: #ffe4e8;
+  --color-chapter2: #e3d5f7;
+  --color-chapter3: #d9f0e2;
+  --color-chapter4: #ffdcb0;
+  --color-blush: #ffc7cf;
+  --color-blushDeep: #ffa3ae;
+  --color-primaryDeep: #dd4652;
+  --color-mint: #7fd2a2;
+  --color-lavender: #a687d9;
+  --color-white: #ffffff;
+  --color-toyYellow: #ffcd3c;
+  --color-bone: #f3ecdc;
+  --color-wood: #b07a4a;
+  --color-cardboard: #e8c79a;
+  --color-glass: #d6eef8;
+  --font-display: "Baloo 2", 'DejaVu Sans', 'Liberation Sans', sans-serif;
+  --font-headline: "Baloo 2", 'DejaVu Sans', 'Liberation Sans', sans-serif;
+  --font-body: "Quicksand", 'DejaVu Sans', 'Liberation Sans', sans-serif;
+  --radius-brand: 38px;
+  --ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-emphasis: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-loop: cubic-bezier(0, 0, 1, 1);
+}

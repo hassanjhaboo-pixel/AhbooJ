@@ -1,0 +1,26 @@
+Jadesserts brand kit → /home/user/AhbooJ/.claude/skills/brand-motion/brand/kit/jadesserts
+
+Contrast audit (background role → best text role):
+  ✓ bg           ink         11.83  AAA
+  ~ primary      onPrimary    3.06  AA Large
+  ✓ secondary    onSecondary  6.54  AA
+  ✓ accent       onAccent     6.60  AA
+  ✓ dark         onDark      11.83  AAA
+  ✓ chapter1     ink         10.31  AAA
+  ✓ chapter2     ink          8.90  AAA
+  ✓ chapter3     ink         10.31  AAA
+  ✓ chapter4     ink          9.48  AAA
+  ✓ blush        ink          8.43  AAA
+  ✓ blushDeep    ink          6.53  AA
+  ~ primaryDeep  bg           3.96  AA Large
+  ✓ mint         ink          6.85  AA
+  ~ lavender     ink          4.17  AA Large
+  ✓ white        ink         12.36  AAA
+  ✓ toyYellow    ink          8.27  AAA
+  ✓ bone         ink         10.50  AAA
+  ~ wood         bg           3.51  AA Large
+  ✓ cardboard    ink          7.69  AAA
+  ✓ glass        ink         10.27  AAA
+
+All required fields present.
+Optional sections not yet filled (brand book shows placeholders): social.handles

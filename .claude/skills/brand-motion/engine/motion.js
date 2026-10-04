@@ -274,7 +274,7 @@
 
   // ---------- engine ----------
   function create(canvas, brand, story) {
-    const ctx = canvas.getContext('2d');
+    let ctx = canvas.getContext('2d'); // swapped temporarily while a blurred layer renders offscreen
     const fmt = Object.assign({ w: 1080, h: 1920, fps: 30 }, story.format || {});
     canvas.width = fmt.w; canvas.height = fmt.h;
     const W = fmt.w, H = fmt.h, U = Math.min(W, H);
@@ -387,7 +387,7 @@
         case 'heart': case 'sparkle': case 'star': case 'polygon': case 'scallop': case 'blob': case 'rays': { const d = (el.r || 0.05) * 2 * U; return { w: d, h: d }; }
         case 'poly': { const xs = el.pts.map(p => p[0]), ys = el.pts.map(p => p[1]); return { w: (Math.max(...xs) - Math.min(...xs)) * U, h: (Math.max(...ys) - Math.min(...ys)) * U }; }
         case 'group': return { w: 0, h: 0 };
-        case 'bricks': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.2) * U };
+        case 'bricks': case 'baseplate': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.2) * U };
         case 'rect': case 'pill': case 'segbar': return { w: (el.w || 0.5) * (el.wUnit === 'U' ? U : W), h: (el.h || 0.05) * (el.hUnit === 'H' ? H : U) };
         case 'image': case 'logo': {
           const src = el.type === 'logo' ? el.src || logoSrc(el) : el.src;
@@ -407,7 +407,7 @@
 
     // --- per-element state at local time t ---
     function stateAt(el, t, k, sp = TOP) {
-      const st = { x: el.x != null ? el.x : (sp.inGroup ? 0 : 0.5), y: el.y != null ? el.y : (sp.inGroup ? 0 : 0.5), s: el.scale != null ? el.scale : 1, sx: 1, sy: 1, r: (el.rot || 0) * DEG, o: el.opacity != null ? el.opacity : 1, dx: 0, dy: 0, extra: {} };
+      const st = { x: el.x != null ? el.x : (sp.inGroup ? 0 : 0.5), y: el.y != null ? el.y : (sp.inGroup ? 0 : 0.5), s: el.scale != null ? el.scale : 1, sx: el.sx != null ? el.sx : 1, sy: el.sy != null ? el.sy : 1, r: (el.rot || 0) * DEG, o: el.opacity != null ? el.opacity : 1, dx: 0, dy: 0, extra: {} };
       if (el.from != null && t < T(el.from)) return null;
       // moves: keyframed position / scale / rotation (also how elements "travel" between layouts)
       (el.moves || []).forEach(m => {
@@ -417,6 +417,8 @@
         if (m.y != null) st.y = lerp(st.y, m.y, e);
         if (m.scale != null) st.s = lerp(st.s, m.scale, e);
         if (m.rot != null) st.r = lerp(st.r, m.rot * DEG, e);
+        if (m.sx != null) st.sx = lerp(st.sx, m.sx, e);
+        if (m.sy != null) st.sy = lerp(st.sy, m.sy, e);
         if (m.opacity != null) st.o = lerp(st.o, m.opacity, e);
         if (m.fill != null) st.fill = mixRGB(C(st.fill || el.fill), C(m.fill), e);
         if (m.color != null) st.color = mixRGB(C(st.color || el.color), C(m.color), e);
@@ -452,7 +454,7 @@
         apply(d);
       }
       const L = el.loop;
-      if (L) {
+      if (L && L.fx !== 'none') {
         const lt = Math.max(0, t - (el.in ? el.in.at + el.in.dur : 0));
         const per = T(L.period || 1.6), amp = L.amp != null ? L.amp : 1;
         const ph = (2 * Math.PI * lt) / per + (L.phase || 0);
@@ -466,6 +468,11 @@
         if (L.fx === 'talk') { const R = rng(Math.floor(lt / 0.085) + 97 + (L.seed || 0)); st.sy *= 0.2 + 0.8 * R(); }
         if (L.fx === 'jelly') { st.sx *= 1 + Math.sin(ph) * 0.035 * amp; st.sy *= 1 - Math.sin(ph) * 0.035 * amp; }
         if (L.fx === 'boil') { const R = rng(Math.floor(lt * 8) + 31 + (L.seed || 0)); st.r += (R() - 0.5) * 3 * amp * DEG; st.dx += (R() - 0.5) * amp * U * 0.003; st.dy += (R() - 0.5) * amp * U * 0.003; }
+        if (L.fx === 'bob') st.dy -= Math.abs(Math.sin(ph / 2)) * amp * U * 0.01;
+        if (L.fx === 'lipsync' && L.env) { // mouth opening driven by a voice envelope (0..1 per frame at L.fps, starting at scene time L.at)
+          const i = Math.floor((t - (L.at || 0)) * (L.fps || 30)), v = i >= 0 && i < L.env.length ? L.env[i] : 0;
+          st.sy *= (L.min != null ? L.min : 0.12) + (1 - (L.min != null ? L.min : 0.12)) * v;
+        }
       }
       return st;
     }
@@ -476,8 +483,28 @@
       const map = { center: [0.5, 0.5], left: [0, 0.5], right: [1, 0.5], top: [0.5, 0], bottom: [0.5, 1], 'top-left': [0, 0], 'top-right': [1, 0], 'bottom-left': [0, 1], 'bottom-right': [1, 1] };
       return map[a] || [0.5, 0.5];
     }
-    function fillStroke(el, path) {
-      if (el.fill) { ctx.fillStyle = C(el.fill); ctx.fill(path); }
+    const rgba = (c, a) => { const v = rgbOf(c); return `rgba(${v[0]},${v[1]},${v[2]},${(a * v[3]).toFixed(3)})`; };
+    // Moulded-plastic look: soft key light from the top-left, falloff to a tinted shadow, a specular hot-spot.
+    function plasticShade(el, path, bx, by, bw, bh) {
+      const a = el.plastic === true ? 0.6 : el.plastic, ink = C(el.shadeColor || 'ink') || '#000';
+      ctx.save(); ctx.clip(path);
+      const g = ctx.createLinearGradient(bx, by, bx + bw * 0.45, by + bh);
+      g.addColorStop(0, `rgba(255,255,255,${(0.34 * a).toFixed(3)})`); g.addColorStop(0.42, 'rgba(255,255,255,0)');
+      g.addColorStop(0.68, rgba(ink, 0)); g.addColorStop(1, rgba(ink, 0.32 * a));
+      ctx.fillStyle = g; ctx.fillRect(bx, by, bw, bh);
+      const hx = bx + bw * 0.3, hy = by + bh * 0.2, hr = Math.max(2, Math.min(bw, bh) * 0.55);
+      const rg = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      rg.addColorStop(0, `rgba(255,255,255,${(0.42 * a).toFixed(3)})`); rg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = rg; ctx.fillRect(bx, by, bw, bh);
+      ctx.restore();
+    }
+    function fillStroke(el, path, bb) {
+      if (el.grad && bb) { // vertical gradient fill: grad = [topColour, bottomColour] (skies, glows, light pools)
+        const g = ctx.createLinearGradient(0, bb[1], 0, bb[1] + bb[3]); el.grad.forEach((c, i) => g.addColorStop(i / Math.max(1, el.grad.length - 1), C(c)));
+        ctx.fillStyle = g; ctx.fill(path);
+      } else if (el.fill) { ctx.fillStyle = C(el.fill); ctx.fill(path); }
+      if (el.plastic && el.fill && bb) plasticShade(el, path, bb[0], bb[1], bb[2], bb[3]);
+      if (el.edge && el.fill) { ctx.strokeStyle = mixRGB(C(el.fill), C(el.edgeColor || 'ink') || '#000', el.edge === true ? 0.32 : el.edge); ctx.lineWidth = (el.edgeW || 0.0022) * U; ctx.lineJoin = 'round'; ctx.stroke(path); }
       if (el.stroke) {
         ctx.strokeStyle = C(el.stroke); ctx.lineWidth = (el.strokeW || 0.008) * U; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
         if (el.dash) ctx.setLineDash(el.dash.map(v => v * U));
@@ -545,7 +572,46 @@
         const rr = el.type === 'pill' ? h / 2 : (el.radius || 0) * U;
         p.roundRect(x0, y0, w, h, rr);
       }
-      fillStroke(el, p);
+      let bb = [x0, y0, w, h];
+      if (el.type === 'poly') { const xs = el.pts.map(q => q[0] * U), ys = el.pts.map(q => q[1] * U); bb = [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)]; }
+      fillStroke(el, p, bb);
+    }
+
+    // Studded baseplate seen from slightly above: rows of cylinders with lit tops (ground for toy worlds).
+    function drawBaseplate(el, w, h) {
+      const [ax, ay] = anchorOf(el);
+      const x0 = -ax * w, y0 = -ay * h, pitch = (el.pitch || 0.04) * U, fill = C(el.fill || 'mint');
+      ctx.fillStyle = fill; ctx.fillRect(x0, y0, w, h);
+      const lip = ctx.createLinearGradient(0, y0, 0, y0 + h); lip.addColorStop(0, 'rgba(255,255,255,0.18)'); lip.addColorStop(0.25, 'rgba(255,255,255,0)'); lip.addColorStop(1, rgba(C('ink') || '#000', 0.22));
+      ctx.fillStyle = lip; ctx.fillRect(x0, y0, w, h);
+      const rows = el.rows || Math.max(1, Math.floor(h / (pitch * 0.55))), rx = pitch * 0.3, ry = pitch * 0.12, sh = pitch * 0.16;
+      const side = mixRGB(fill, C('ink') || '#000', 0.22), top = mixRGB(fill, '#ffffff', 0.12);
+      for (let j = 0; j < rows; j++) {
+        const y = y0 + pitch * 0.3 + j * pitch * 0.55, off = (el.stagger ? (j % 2) * pitch / 2 : 0);
+        if (y + ry > y0 + h) break;
+        for (let x = x0 + pitch / 2 + off; x < x0 + w; x += pitch) {
+          ctx.fillStyle = rgba(C('ink') || '#000', 0.16); ctx.beginPath(); ctx.ellipse(x + rx * 0.35, y + ry * 0.9, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = side; ctx.beginPath(); ctx.rect(x - rx, y - sh, rx * 2, sh); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI); ctx.fill();
+          ctx.fillStyle = top; ctx.beginPath(); ctx.ellipse(x, y - sh, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = Math.max(1, ry * 0.35); ctx.beginPath(); ctx.ellipse(x, y - sh, rx * 0.7, ry * 0.55, 0, Math.PI * 1.05, Math.PI * 1.6); ctx.stroke();
+        }
+      }
+    }
+
+    // Screen-space colour grade: vignette, tint and stop-motion film grain (re-seeded 12×/s so it "boils").
+    function drawGrade(el, t) {
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (el.tint) { ctx.globalCompositeOperation = el.tintBlend || 'soft-light'; ctx.fillStyle = C(el.tint); ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over'; }
+      if (el.vignette) {
+        const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.hypot(W, H) * 0.56);
+        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, rgba(C(el.vignetteColor || 'ink') || '#000', el.vignette));
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      }
+      if (el.grain) {
+        const R = rng(Math.floor(t * 12) * 7919 + 13), n = Math.round((W * H) / 2600), s = Math.max(1, U / 540);
+        for (let i = 0; i < n; i++) { ctx.fillStyle = R() < 0.5 ? `rgba(255,255,255,${el.grain})` : `rgba(0,0,0,${el.grain})`; ctx.fillRect(R() * W, R() * H, s * (1 + R()), s * (1 + R())); }
+      }
+      ctx.restore();
     }
 
     function drawSegbar(el, st, w, h, t) {
@@ -576,12 +642,20 @@
       ctx.stroke();
       ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = Math.max(1, bh * 0.07); ctx.beginPath();
       for (let r = 0; r < rows; r++) { const y = y0 + r * bh + bh * 0.12; ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); }
-      ctx.stroke(); ctx.restore();
+      ctx.stroke();
+      if (el.plastic) { // each brick course gets a lit top lip and a shadowed underside
+        const ink = C('ink') || '#000';
+        for (let r = 0; r < rows; r++) { const y = y0 + r * bh; ctx.fillStyle = rgba(ink, 0.13); ctx.fillRect(x0, y + bh * 0.8, w, bh * 0.2); }
+        plasticShade(Object.assign({}, el, { plastic: el.plastic === true ? 0.45 : el.plastic }), (() => { const q = new Path2D(); q.rect(x0, y0, w, h); return q; })(), x0, y0, w, h);
+      }
+      ctx.restore();
       if (el.studs !== false) {
-        const sw = bw * 0.42, sh = bh * 0.34; ctx.fillStyle = C(el.fill || 'primary');
+        const sw = bw * 0.42, sh = bh * 0.34, base = C(el.fill || 'primary');
+        const sg = ctx.createLinearGradient(0, 0, sw, 0); sg.addColorStop(0, mixRGB(base, '#ffffff', 0.18)); sg.addColorStop(0.55, base); sg.addColorStop(1, mixRGB(base, C('ink') || '#000', 0.25));
         for (let x = x0 + bw / 4 - sw / 2; x + sw <= x0 + w + 0.5; x += bw / 2) {
-          ctx.beginPath(); ctx.roundRect(x, y0 - sh, sw, sh + 1, [sh * 0.35, sh * 0.35, 0, 0]); ctx.fill();
-          ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(x + sw * 0.15, y0 - sh * 0.8, sw * 0.18, sh * 0.6); ctx.fillStyle = C(el.fill || 'primary');
+          ctx.save(); ctx.translate(x, 0); ctx.fillStyle = el.plastic ? sg : base;
+          ctx.beginPath(); ctx.roundRect(0, y0 - sh, sw, sh + 1, [sh * 0.35, sh * 0.35, 0, 0]); ctx.fill();
+          ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(sw * 0.15, y0 - sh * 0.8, sw * 0.18, sh * 0.6); ctx.restore();
         }
       }
     }
@@ -733,7 +807,15 @@
       });
     }
 
+    const layers = new WeakMap();
+    function layerCanvas(el) {
+      let c = layers.get(el);
+      if (!c) { c = document.createElement('canvas'); c.width = W; c.height = H; layers.set(el, c); }
+      return c;
+    }
     function drawElement(el, t, sp = TOP) {
+      if (el.step) t = Math.floor(t * el.step + 1e-6) / el.step; // stop-motion: this element (and its children) animate "on twos"
+      if (el.type === 'grade') { if (!(el.from != null && t < el.from)) drawGrade(el, t); return; }
       const k = { W, H, U, h: 0 };
       let lay = null, box;
       if (el.type === 'text' || (el.type === 'logo' && !logoSrc(el) && !el.src)) {
@@ -748,7 +830,8 @@
       ctx.save();
       ctx.globalAlpha *= st.o;
       if (el.blend) ctx.globalCompositeOperation = el.blend;
-      if (st.extra.blur) ctx.filter = `blur(${st.extra.blur}px)`;
+      const blurPx = (st.extra.blur || 0) + (el.blur ? el.blur * U : 0); // el.blur = depth-of-field softness in U
+      if (blurPx > 0.3 && el.type !== 'group') ctx.filter = `blur(${blurPx.toFixed(1)}px)`;
       if (el.shadow) { const sh = el.shadow; ctx.shadowColor = C(sh.color || 'rgba(0,0,0,0.25)'); ctx.shadowBlur = (sh.blur || 0.03) * U; ctx.shadowOffsetY = (sh.y != null ? sh.y : 0.015) * U; }
       if (el.type === 'path') {
         ctx.translate(sp.cx + st.dx, sp.cy + st.dy); ctx.rotate(st.r); ctx.scale(st.s * st.sx, st.s * st.sy); ctx.translate(-sp.cx, -sp.cy);
@@ -773,7 +856,15 @@
         case 'image': drawImage(el, st, box.w, box.h, el.src); break;
         case 'segbar': drawSegbar(el, st, box.w, box.h, t); break;
         case 'bricks': drawBricks(el, box.w, box.h); break;
-        case 'group': (el.children || []).forEach(c => drawElement(c, t, GROUP)); break;
+        case 'baseplate': drawBaseplate(el, box.w, box.h); break;
+        case 'group':
+          if (blurPx > 0.3) { // depth of field: render the whole layer offscreen once, blur it once
+            const main = ctx, off = layerCanvas(el);
+            ctx = off.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); ctx.setTransform(main.getTransform()); ctx.globalAlpha = 1;
+            (el.children || []).forEach(c => drawElement(c, t, GROUP));
+            ctx = main; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = `blur(${blurPx.toFixed(1)}px)`; ctx.drawImage(off, 0, 0); ctx.restore();
+          } else (el.children || []).forEach(c => drawElement(c, t, GROUP));
+          break;
         default: drawShape(el, st, box.w, box.h);
       }
       ctx.restore();
@@ -788,7 +879,12 @@
         const z = cam.zoom ? lerp(cam.zoom[0], cam.zoom[1], EASE[cam.ease || 'inOutQuad'](p)) : 1;
         let sx = 0, sy = 0;
         if (cam.shake) { const R = rng(Math.floor(lt * 30) + 3); sx = (R() - 0.5) * cam.shake * U * 0.02; sy = (R() - 0.5) * cam.shake * U * 0.02; }
-        if (cam.focus) { // camera looks at a world point (frame fractions, may exceed 0..1) — fly-throughs & tracking shots
+        if (cam.handheld) { const a = cam.handheld * U * 0.006; sx += a * (Math.sin(lt * 1.3 + 0.4) + 0.5 * Math.sin(lt * 3.1 + 1.7)); sy += a * (Math.sin(lt * 1.7 + 2.1) + 0.5 * Math.sin(lt * 2.6)); }
+        if (cam.keys) { // keyframed camera inside one shot: [{at, dur, zoom, x, y, ease}] — punch-ins, crash zooms, re-frames
+          let z2 = cam.zoom ? cam.zoom[0] : 1, fx = cam.at ? cam.at[0] : 0.5, fy = cam.at ? cam.at[1] : 0.5;
+          cam.keys.forEach(k => { if (lt < k.at) return; const e = (EASE[k.ease || 'outExpo'] || EASE.outExpo)(clamp((lt - k.at) / (k.dur || 0.2))); if (k.zoom != null) z2 = lerp(z2, k.zoom, e); if (k.x != null) fx = lerp(fx, k.x, e); if (k.y != null) fy = lerp(fy, k.y, e); });
+          ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z2, z2); ctx.translate(-fx * W, -fy * H);
+        } else if (cam.focus) { // camera looks at a world point (frame fractions, may exceed 0..1) — fly-throughs & tracking shots
           const e = (EASE[cam.ease || 'inOutQuad'] || EASE.inOutQuad)(p), f0 = cam.focus[0], f1 = cam.focus[1] || f0;
           ctx.translate(W / 2 + sx, H / 2 + sy); ctx.scale(z, z); ctx.translate(-lerp(f0[0], f1[0], e) * W, -lerp(f0[1], f1[1], e) * H);
         } else {
@@ -799,8 +895,10 @@
       let bg = C(sc.bg || 'bg');
       (sc.bgTo || []).forEach(b => { if (lt < b.at) return; bg = mixRGB(bg, C(b.bg), (EASE[b.ease || 'inOutCubic'] || EASE.inOutCubic)(clamp((lt - b.at) / b.dur))); });
       ctx.fillStyle = bg; ctx.fillRect(-W * 40, -H * 40, W * 80, H * 80);
-      sc.elements.forEach(el => drawElement(el, lt));
+      sc.elements.forEach(el => { if (!el.screen) drawElement(el, lt); });
       ctx.restore();
+      if (sc.grade) drawGrade(sc.grade, lt);
+      sc.elements.forEach(el => { if (el.screen) drawElement(el, lt); }); // HUD: unaffected by camera + grade
     }
 
     function drawTransition(prev, cur, lt) {

@@ -46,3 +46,9 @@ Procedural, node-based vector/raster editor. Animation is "time as an input" to 
 6. **Gradients** (linear/radial fills) for Starbucks-style soft circles.
 7. **Licensed music import with beat detection** (auto-set `bpm` from the user's track).
 8. **Safe-area lint** measured in the browser (text bounds vs `layout.safe`), not only by eye.
+
+## v3 sources (toy world, voices, brand kit)
+- **iart-ai/motion-skills** (MIT, 17 packs): *javascript-animation* — design characters alone on a sheet first, anchor props to hands, pure function of time, "a line boils, it doesn't jitter" (→ `step: 12` stop-motion); *animation-principles* — the 12 principles + easing/spring library; *motion-art-direction* — five tone cells + brand-word → motion table (→ brand-kit/references/motion-personalities.md); *brand-motion-guidelines* — semantic duration/easing tokens, exits shorter than entrances (→ kit.mjs tokens + motion-guidelines.md); *lower-thirds* — legible over any footage, still while read; *shot-composition* — safe areas per aspect, parallax depths 0.1–0.3 / 0.5–0.7 / 1.0–1.5 (→ toy-world layers); *video-delivery-specs* — platform specs (→ brand-kit/references/social-specs.md).
+- **nexu-io/motion-anything** (Apache-2.0): MOTION-SPEC timing/easing tokens and the restraint budget (≤ 1 celebratory moment per view, ≤ 3 simultaneous entrances); DESIGN.md seven-section layout used by 59 design-system packs (→ kit.mjs DESIGN.md); intent → motion category mapping.
+- **fliptheweb/motion-ui-design**: curated principles (UX choreography, perceived performance) and tooling references.
+- **Voices**: Kokoro v1.0 (Apache-2.0) via sherpa-onnx static binaries, both from GitHub releases — works offline, no API key, no per-line cost.

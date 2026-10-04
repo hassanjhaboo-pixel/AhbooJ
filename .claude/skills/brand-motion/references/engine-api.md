@@ -179,6 +179,37 @@ All accept `fill`, `stroke`, `strokeW`, `dash` (e.g. `[0.012, 0.01]` for a stitc
 ```
 `scatter` = staggered pop-in over `spread` seconds · `fall` = confetti · `burst` = explode from (x,y) · `drift` = ambient float.
 
+## Realism, depth & character features (v3)
+```jsonc
+// any shape (rect, pill, poly, circle, heart, …)
+{ "plastic": 0.6,            // moulded-plastic shading: key light top-left, tinted shadow, specular hot-spot (true = 0.6)
+  "edge": true,              // auto outline in a darker shade of the fill (number = darkening 0..1); "edgeW": 0.0022 (U)
+  "grad": ["chapter2", "bg"] // vertical gradient fill top → bottom (skies, light pools) instead of "fill"
+}
+{ "type": "bricks", "plastic": 0.5 }        // brick courses get lit lips + shadowed undersides, shaded studs
+{ "type": "baseplate", "w": 9, "wUnit": "U", "h": 0.2, "fill": "mint", "pitch": 0.04, "rows": 2, "anchor": "top" } // studded ground seen from above
+{ "type": "grade", "vignette": 0.3, "grain": 0.04, "tint": "rgba(255,190,120,0.35)" }  // screen-space colour grade (also as scene.grade)
+
+// any element / group
+{ "blur": 0.004,             // depth of field in U. On a GROUP the whole layer renders offscreen and is blurred once (cheap)
+  "step": 12,                // stop-motion: the element and its children animate "on twos" (12 fps) while the camera stays smooth
+  "sx": -1, "sy": 0.8,       // static non-uniform scale (sx: -1 mirrors a figure to face left); moves can tween sx / sy too
+  "screen": true,            // inside a scene: draw in screen space after the camera + grade (REC badges, captions, lower thirds)
+  "voice": "voices/gary.wav", "voiceAt": 0, "voiceGain": 1, "voicePan": 0   // audio.mjs mixes this file at the element's in.at
+}
+// loops
+{ "fx": "lipsync", "env": [0, 0.4, 1, …], "fps": 30, "at": 0.35, "min": 0.14 }  // mouth height follows a voice envelope (scripts/voice.mjs)
+{ "fx": "bob", "period": 0.17, "amp": 1 }                                         // walk/run body bounce (two bumps per stride)
+{ "fx": "none" }                                                                 // explicitly no loop (overrides kit defaults)
+
+// scene
+{ "camera": { "at": [0.5, 0.42], "keys": [{ "at": 0, "dur": 0.16, "zoom": 1.6, "ease": "outExpo" }], "shake": 0.9, "handheld": 0.6 },
+  "grade": { "vignette": 0.3, "grain": 0.04 } }
+```
+- `camera.keys` = keyframed zoom / look-at inside one shot (crash zooms, punch-ins, re-frames). `handheld` = smooth documentary drift (unlike `shake`, which is random jitter).
+- Draw order inside a scene: world elements (camera) → `grade` → `screen` elements.
+- Toy-world builders that emit all of this: `kits/minifig.mjs` (figures), `kits/toytown.mjs` (scenery). See `references/toy-world.md`.
+
 ## Brand fields the engine reads
 `palette.*` · `type.display|headline|body.{family,fallback,weight,case,tracking,lineHeight,italic}` · `type.scale.*` · `type.fontUrls` · `type.fontFiles[{family,weight,style,src}]` · `logo.{src,srcOnDark,wordmark,color}` · `motion.{exit,move,transition,stagger}` · `name`.
 

@@ -114,5 +114,145 @@
     "fonts": "Baloo 2 + Quicksand are the design system's flagged substitutes for the real bubble wordmark font. If they cannot load (offline/proxy), the fallback stack renders instead; supply woff2/ttf via type.fontFiles to render exactly.",
     "extraRoles": "blush, blushDeep, primaryDeep, mint, lavender, white are Jadesserts-specific extras used for the sweet box, outlines and hearts.",
     "toyRoles": "toyYellow, bone, wood, cardboard, glass are toy-world roles used by kits/brickworld.mjs (brick-people skin, skeleton, props, signs, windows)."
+  },
+  "_identityStatus": "DRAFT identity sections (strategy, voiceGuide, logoRules, imagery, sound, contact, paletteNames) written by Claude from the brand’s existing look and copy. Confirm or edit with the owner.",
+  "strategy": {
+    "mission": "Make every sweet moment feel like a gift: small-batch treats, packed with care into a box worth opening.",
+    "vision": "The first name people think of when they want to surprise someone with something sweet.",
+    "promise": "A little box of sweet surprises, worth every wait.",
+    "positioning": "For people who show love with food, Jadesserts is the home bakery whose curated sweet boxes turn an ordinary day into an occasion.",
+    "values": [
+      "Made with love, made in small batches",
+      "Delight in the details",
+      "Generous, never fussy",
+      "Worth the wait"
+    ],
+    "audience": [
+      {
+        "name": "The gifter",
+        "need": "a thoughtful, pretty present that arrives ready to wow"
+      },
+      {
+        "name": "The treat-yourselfer",
+        "need": "a weekly reward that feels special"
+      },
+      {
+        "name": "The party planner",
+        "need": "boxes for birthdays, office treats and events"
+      }
+    ],
+    "personality": {
+      "archetype": "The Caregiver with a playful streak",
+      "traits": [
+        "cutesy",
+        "whimsical",
+        "affectionate",
+        "generous"
+      ],
+      "isNot": [
+        "luxury-snobby",
+        "sarcastic",
+        "clinical"
+      ]
+    }
+  },
+  "voiceGuide": {
+    "pillars": [
+      {
+        "name": "Sweet, not sugary",
+        "means": "Warm and affectionate, with a wink.",
+        "notMeans": "Baby talk or endless exclamation marks."
+      },
+      {
+        "name": "Playful",
+        "means": "Small jokes, food puns, reality-TV drama about dessert.",
+        "notMeans": "Jokes at the customer’s expense."
+      },
+      {
+        "name": "Generous",
+        "means": "Lead with what’s inside the box and why it’s a treat.",
+        "notMeans": "Discount-shouting or scarcity pressure."
+      }
+    ],
+    "vocabulary": {
+      "use": [
+        "sweet box",
+        "treat",
+        "surprise",
+        "worth the wait",
+        "made with love",
+        "little"
+      ],
+      "avoid": [
+        "cheap",
+        "diet",
+        "guilt-free",
+        "basic",
+        "limited stock!!!"
+      ]
+    },
+    "examples": [
+      {
+        "bad": "BUY NOW — 20% OFF DESSERT BOXES!!!",
+        "good": "Your sweet box is ready. Go on, treat someone."
+      },
+      {
+        "bad": "Our products are of high quality.",
+        "good": "Baked this morning. Boxed with love."
+      }
+    ]
+  },
+  "logoRules": {
+    "minSize": {
+      "px": 120,
+      "mm": 25
+    },
+    "misuse": [
+      "Never separate the cherries from the wordmark in the main lock-up",
+      "Never set the logo on coral without a cream panel behind it"
+    ]
+  },
+  "imagery": {
+    "style": "Bright, soft, high-key food photography on cream or pastel backgrounds; treats cut out cleanly and shown whole, never cropped mid-bite. Illustrations are rounded, pastel and toy-like.",
+    "do": [
+      "Shoot from slightly above with soft daylight",
+      "Show the box open with the treats arranged",
+      "Use pastel props: ribbons, hearts, confetti"
+    ],
+    "dont": [
+      "Dark, moody lighting",
+      "Cluttered tables or busy patterns",
+      "Watermarked stock images"
+    ]
+  },
+  "iconography": {
+    "style": "Filled, rounded shapes: hearts, cherries, sparkles, scalloped badges. No thin-line icons."
+  },
+  "sound": {
+    "music": "Music-box plucks, bells and soft bass at ~120 bpm.",
+    "sonicLogo": "A rising four-note chime on the logo reveal.",
+    "voice": "Warm, smiling female narrator; character voices for comedy spots; captions on every line."
+  },
+  "contact": {
+    "phone": "(868) 715-4817"
+  },
+  "paletteNames": {
+    "bg": "Vanilla Cream",
+    "ink": "Cocoa",
+    "primary": "Cherry Coral",
+    "secondary": "Lilac Frosting",
+    "accent": "Peach Glaze",
+    "dark": "Cocoa",
+    "chapter1": "Strawberry Milk",
+    "chapter2": "Lavender Cream",
+    "chapter3": "Pistachio",
+    "chapter4": "Apricot"
+  },
+  "paletteUsage": {
+    "bg": 55,
+    "primary": 20,
+    "chapter1": 12,
+    "secondary": 8,
+    "accent": 5
   }
 }
