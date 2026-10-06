@@ -4,8 +4,9 @@
 // camera and anything moving glide smoothly while every sprite stays crisp.
 (function () {
 'use strict';
-const TALL = FMT === '9x16', W = 1080, H = TALL ? 1920 : 1080, S = TALL ? 7 : 5, AW = W / S, AH = H / S, U = TALL ? 6 : 5, UW = W / U, UH = H / U;
-const Y = TALL ? { horizon: 96, far: 104, road: 118, ground: 152, roadB: 166, near: 178 }
+const WP = typeof WALL !== 'undefined' ? WALL : null; // iPhone wallpaper mode (no script, no HUD)
+const TALL = FMT === '9x16' || !!WP, W = WP ? WP.w : 1080, H = WP ? WP.h : TALL ? 1920 : 1080, S = WP ? WP.s : TALL ? 7 : 5, AW = W / S, AH = H / S, U = TALL ? 6 : 5, UW = W / U, UH = H / U;
+const Y = WP ? { horizon: 136, far: 142, road: 154, ground: 190, roadB: 202, near: 212 } : TALL ? { horizon: 96, far: 104, road: 118, ground: 152, roadB: 166, near: 178 }
                : { horizon: 66, far: 74, road: 88, ground: 120, roadB: 132, near: 142 };
 const HY = TALL ? { hud: 34, box: 214, boxH: 58 } : { hud: 6, box: 152, boxH: 58 }; // HUD layout, in UI px
 const cv = document.getElementById('c'); cv.width = W; cv.height = H;
@@ -70,6 +71,7 @@ const SKY = {
   day: ['#9fd4f3', '#d3ecf8', '#ffe5ea'], night: ['#1d1c44', '#2f2c63', '#5a4a86'], gold: ['#c9a2e0', '#ffbe8a', '#ffe2a6'],
 };
 function tod(t) {
+  if (WP) return { n: WP.n || 0, g: WP.g || 0, u: 0 };
   let n = 0, g = 0;
   const [l0, l1] = EV.lapse; if (t > l0 && t < l1) { const u = (t - l0) / (l1 - l0); n = (1 - Math.cos(u * Math.PI * 4)) / 2; n = ss(n * 1.15 - 0.075); }
   g = ss((t - EV.stop) / 3.5);
@@ -237,6 +239,7 @@ function vignette(kind, k, t) {
 
 // ---------------------------------------------------------------- walking: integrate speed -> camera x + walk phase
 const SP = TL.speed, STEP = 1 / 240, NS = Math.ceil(TL.duration / STEP) + 2, XS = new Float32Array(NS), PH = new Float32Array(NS);
+XS[0] = WP ? WP.x0 || 0 : 0; PH[0] = WP ? WP.ph0 || 0 : 0;
 function speedAt(t) { // smooth interpolation between keys
   if (t <= SP[0][0]) return SP[0][1];
   for (let i = 1; i < SP.length; i++) if (t < SP[i][0]) { const [t0, v0] = SP[i - 1], [t1, v1] = SP[i]; return lerp(v0, v1, ss((t - t0) / (t1 - t0))); }
@@ -423,6 +426,13 @@ function drawBox(t) {
 // ---------------------------------------------------------------- the world scene (sign -> walk -> stop)
 function stationsAt(t) { // [img, layerX, baseY, f, opts]
   const out = [], n = tod(t).n;
+  if (WP) { // one story: Bomb tosses a box to someone who needs it
+    const vx = FV * camXAt(TL.duration) + WP.vx, ta = WP.land - 0.56;
+    out.push([vignette(WP.kind, win(t, WP.land, WP.land + 0.02), t), vx - 27, Y.road - 48 + 2, FV, WP.kind, ta]);
+    const r = rng(WP.seed || 404); for (let x = camXAt(0) - 260; x < camXAt(TL.duration) + 300; x += 46 + Math.floor(r() * 46)) { const v = Math.floor(r() * 7); if (x + 52 > vx - 40 && x < vx + 40) continue;
+      if (v < 3) out.push([house(v + Math.floor(r() * 3), n), x, Y.road - 48 + 3, FV]); else if (v < 5) out.push([lamp(n), x, Y.road - 34 + 3, FV, 'lamp']); }
+    return out;
+  }
   out.push([board().c, -board().w / 2, Y.road - board().h + 2, FV]);
   const cx = FV * camXAt(EV.boom) + 34; out.push([cottage(n), cx - 40, Y.road - 70 + 3, FV]);
   const bk = FV * camXAt(EV.bakery + 1.5) + 34; out.push([bakery(), bk - 48, Y.road - 78 + 3, FV]);
@@ -445,7 +455,7 @@ function drawWorld(t, opts = {}) {
   const sunUp = d.n < 0.5, ang = (t > l0 && t < l1) ? lu * Math.PI * 4 : 0;
   let sx = AW * 0.24 + Math.sin(ang) * 30, sy = (TALL ? 40 : 24) + (1 - Math.cos(ang)) * 0.5 * (Y.horizon - 30) * 0.9 + d.g * (TALL ? 34 : 22);
   const glow = (x, y, R, col) => { const gg = ctx.createRadialGradient(x, y, 0, x, y, R); gg.addColorStop(0, col); gg.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = gg; ctx.fillRect(x - R, y - R, R * 2, R * 2); };
-  if (d.n < 0.98) { const sxs = sx * S, sys = (sy - (cam.y - AH / 2) * 0.1) * S; glow(sxs, sys, 260, `rgba(255,236,170,${0.55 * (1 - d.n)})`); hud(sunSpr(d.g), sx, sy - (cam.y - AH / 2) * 0.1, { anchor: [0.5, 0.5], alpha: 1 - d.n, px: S }); }
+  if (d.n < 0.98 && !(WP && WP.n)) { const sxs = sx * S, sys = (sy - (cam.y - AH / 2) * 0.1) * S; glow(sxs, sys, 260, `rgba(255,236,170,${0.55 * (1 - d.n)})`); hud(sunSpr(d.g), sx, sy - (cam.y - AH / 2) * 0.1, { anchor: [0.5, 0.5], alpha: 1 - d.n, px: S }); }
   if (d.n > 0.02) { const mx = AW * 0.74, my = (TALL ? 34 : 20); glow(mx * S, my * S, 180, `rgba(220,225,255,${0.35 * d.n})`); hud(moonSpr(), mx, my, { anchor: [0.5, 0.5], alpha: d.n, px: S }); }
   // clouds
   WORLD.clouds.forEach((c, i) => { for (let k = -1; k < 3; k++) { const lx = ((i * 140 + k * 420 + t * 2.2) % 1260) - 300; blit(c, lx + 0.08 * cam.x, (TALL ? 14 : 6) + i * (TALL ? 14 : 12), 0.08, { alpha: 1 - d.n * 0.6 }); } });
@@ -458,7 +468,8 @@ function drawWorld(t, opts = {}) {
   const st = stationsAt(t);
   for (const [img, lx, by, f, kind, ta] of st) { if (toSX(lx + img.width, f) < -50 || toSX(lx, f) > W + 50) continue; blit(img, lx, by, f);
     if (ta != null) { const u = t - ta - 0.2, bx = lx + (kind === 'lunch' ? 28 : kind === 'office' ? 8 : 34), byy = by + (kind === 'lunch' ? 22 : kind === 'office' ? 30 : 38);
-      if (u > 0 && u < 0.36) { const k = u / 0.36; blit(boxIcon(), bx, byy - 40 * (1 - k * k), f); }
+      if (!WP && u > 0 && u < 0.36) { const k = u / 0.36; blit(boxIcon(), bx, byy - 40 * (1 - k * k), f); }
+      if (kind === 'sad' && u < 0.36) { ctx.fillStyle = '#7fa8e0'; for (let i = 0; i < 14; i++) { const rx = lx + 18 + (i * 7) % 20, ry = by + 10 + ((t * 40 + i * 13) % 22); ctx.fillRect(Math.round(toSX(rx, f)), Math.round(toSY(ry)), Math.round(S), Math.round(S * 2)); } }
       const h = u - 0.4; if (h > 0 && h < 1.4) { const kk = h < 0.2 ? backOut(h / 0.2) : h > 1.15 ? 1 - (h - 1.15) / 0.25 : 1; blit(emoteImg('♥'), lx + 27, by - 2 + Math.sin(h * 9) * 0.6, f, { anchor: [0.5, 1], scale: kk, alpha: clamp(kk) }); } } }
   // road: each art row slides at its own depth (far edge slower) -> perspective ground
   const rd = WORLD.rd, rows = rd.height;
@@ -517,7 +528,11 @@ function duoState(t) {
     // shake-off when they walk on
     const so = t - EV.resume; if (so > -0.3 && so < 0.25) { s.sx = 1 + Math.sin(so * 60) * 0.06; }
   }
-  // freeze: everything holds its pose
+  if (WP) { const th = WP.land - 0.6; // throw starts
+    if (t < th) s.b = Object.assign({}, s.b, { item: 'box', eyes: s.b.eyes === 'blink' ? 'blink' : 'sly', mouth: 'smirk' });
+    else if (t < th + 0.5) s.b = Object.assign({}, s.b, { arms: 'up', mouth: 'talk2' });
+    else s.b = Object.assign({}, s.b, { mouth: 'grin', eyes: t > WP.land + 0.2 ? 'happy' : s.b.eyes });
+    if (t > WP.land + 0.15) s.c = Object.assign({}, s.c, { arms: 'wave', eyes: 'happy', mouth: 'talk2' }); else if (t > th) s.c = Object.assign({}, s.c, { eyes: 'shock', mouth: 'shock' }); }
   return s;
 }
 function drawDuo(t, s) {
@@ -628,10 +643,10 @@ function worldFrame(target, t) {
   // the stop: ease in on the pair
   const sk = ss(win(t, EV.stop + 0.6, EV.stop + 3.4));
   cam.z *= 1 + 0.32 * fk + 0.28 * sk; cam.y = lerp(cam.y, Y.ground - 30, Math.max(fk, sk)); cam.x += 10 * fk;
-  const [shx, shy] = shakeAt(t); cam.sx = shx; cam.sy = shy;
+  const [shx, shy] = shakeAt(t); cam.sx = shx; cam.sy = shy; if (WP) cam.x += WP.lead || 0;
   const wt = fr ? EV.freeze[0] + 0.02 : t; // world time holds during the freeze
   const st = drawWorld(wt);
-  props(wt);
+  if (!WP) props(wt);
   const s = duoState(wt), pos = drawDuo(wt, s);
   birds(wt);
   drawFront(wt);
@@ -644,11 +659,23 @@ function worldFrame(target, t) {
   emotes(t, pos);
   ctx = prev; return pos;
 }
+// wallpaper: the box arcs from Bomb's hand to the person
+function wallThrow(t) {
+  const th = WP.land - 0.6, k = (t - th) / 0.6; if (k < 0 || k > 1) return;
+  const ctxPrev = ctx; ctx = main;
+  const vx = FV * camXAt(TL.duration) + WP.vx - 27, bo = WP.kind === 'lunch' ? [28, 22] : WP.kind === 'office' ? [8, 30] : [34, 38];
+  const x0 = camXAt(t) + 16, y0 = Y.ground - 28, x1 = vx + bo[0] - FV * camXAt(t) + camXAt(t), y1 = Y.road - 46 + bo[1];
+  const e = k, x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(Math.PI * e) * 34;
+  blit(boxIcon(), x, y, 1, { scale: 1 + 0.25 * Math.sin(Math.PI * e) });
+  ctx.fillStyle = 'rgba(255,236,150,0.85)'; for (let i = 1; i < 5; i++) { const e2 = Math.max(0, e - i * 0.05), xx = x0 + (x1 - x0) * e2, yy = y0 + (y1 - y0) * e2 - Math.sin(Math.PI * e2) * 34; ctx.fillRect(Math.round(toSX(xx + 4)), Math.round(toSY(yy + 4)), S, S); }
+  ctx = ctxPrev;
+}
 let READY = false;
 function frame(t) {
   ctx = main; ctx.imageSmoothingEnabled = false; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   let pos = null;
+  if (WP) { worldFrame(main, t); wallThrow(t); return; }
   if (t < EV.whip) { pos = worldFrame(main, t); }
   else if (t < EV.whip + 0.5) { // whip-pan round behind them
     const k = easeIO((t - EV.whip) / 0.5);
