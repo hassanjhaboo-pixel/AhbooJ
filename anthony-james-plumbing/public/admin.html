@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Owner Dashboard | Anthony James Plumbing</title>
+<link rel="stylesheet" href="/admin.css">
+</head><body>
+<div id="login" class="loginbox" hidden>
+  <form id="loginForm" class="panel">
+    <h1>Owner login</h1>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus>
+    <button class="b">Sign in</button>
+    <p id="loginMsg" class="err"></p>
+    <a href="/">← Back to website</a>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header><b>💧 Owner Dashboard</b>
+    <nav><button data-tab="inbox" class="on">Quote requests <span id="newCount" class="pill"></span></button><button data-tab="site">Website content</button><button data-tab="acct">Account</button></nav>
+    <span class="sp"></span><a href="/" target="_blank">View site</a><button id="logout" class="b ghost">Log out</button>
+  </header>
+
+  <main>
+    <section id="tab-inbox">
+      <div class="bar">
+        <div id="kpis" class="kpis"></div>
+        <select id="filter"><option value="">All statuses</option></select>
+        <input id="search" placeholder="Search name, phone, job…">
+        <a class="b ghost" href="/api/admin/inquiries.csv">Export CSV</a>
+      </div>
+      <div id="list"></div>
+    </section>
+
+    <section id="tab-site" hidden>
+      <div class="panel"><h2>Business details</h2><div id="settingsForm" class="fgrid"></div></div>
+      <div class="panel"><h2>Services <button class="b sm" id="addSvc">+ Add</button></h2><div id="svcList"></div></div>
+      <div class="panel"><h2>Customer reviews <button class="b sm" id="addRev">+ Add</button></h2><div id="revList"></div></div>
+      <div class="savebar"><button class="b" id="saveSite">Save changes to website</button><span id="saveMsg"></span></div>
+    </section>
+
+    <section id="tab-acct" hidden>
+      <form id="pwForm" class="panel narrow">
+        <h2>Change password</h2>
+        <input type="password" id="curPw" placeholder="Current password" autocomplete="current-password">
+        <input type="password" id="newPw" placeholder="New password (8+ characters)" autocomplete="new-password">
+        <button class="b">Update password</button><p id="pwMsg"></p>
+      </form>
+    </section>
+  </main>
+</div>
+<script src="/admin.js"></script>
+</body></html>
