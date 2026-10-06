@@ -7,7 +7,7 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
-const DATA = path.join(__dirname, 'data');
+const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA, 'db.json');
 const AUTH_FILE = path.join(DATA, 'auth.json');
 
