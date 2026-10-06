@@ -221,7 +221,7 @@ function vignette(kind, k, t) {
     if (kind === 'office') { P(g, 2, 4, 50, 44, '#cfd6e4'); for (let y = 8; y < 44; y += 9) for (let x = 6; x < 50; x += 11) P(g, x, y, 7, 6, '#8fa3c4');
       P(g, 6, 26, 28, 20, '#fff2c4'); P(g, 6, 40, 28, 6, '#b07a4a'); person(g, 20, 44, { pose: step ? 'cheer' : 'slump', shirt: '#9aa7b8' }); P(g, 26, 37, 6, 3, '#e8eef9'); }
     if (kind === 'lunch') { P(g, 4, 34, 46, 4, '#b07a4a'); P(g, 8, 38, 2, 10, '#8a5a34'); P(g, 44, 38, 2, 10, '#8a5a34'); P(g, 4, 31, 46, 3, '#fff6f1');
-      [12, 27, 42].forEach((x, i) => person(g, x, 31, { pose: step ? (i === 1 ? 'cheer' : 'stand') : 'sit', shirt: ['#ff9aa8', '#7fd2a2', '#ffd166'][i], skin: ['#8d5a3b', '#c68b5e', '#a8714d'][i], hair: '#2a1d18' }));
+      [9, 20, 45].forEach((x, i) => person(g, x, 31, { pose: step ? (i === 1 ? 'cheer' : 'stand') : 'sit', shirt: ['#ff9aa8', '#7fd2a2', '#ffd166'][i], skin: ['#8d5a3b', '#c68b5e', '#a8714d'][i], hair: '#2a1d18' }));
       [10, 22, 34].forEach(x => { P(g, x, 29, 5, 2, '#ffffff'); }); }
     if (kind === 'exam') { P(g, 2, 8, 6, 40, '#9aa3ad'); P(g, 46, 8, 6, 40, '#9aa3ad'); P(g, 2, 6, 50, 8, '#4a6fa5'); drawText(g, 'SCHOOL', 9, 7, '#ffffff');
       for (let x = 9; x < 46; x += 4) P(g, x, 20, 1, 28, '#7d8792'); P(g, 8, 20, 38, 1, '#7d8792'); person(g, 27, 47, { pose: step ? 'cheer' : 'slump', shirt: '#ffffff', hair: '#1d1410' }); }
@@ -230,7 +230,7 @@ function vignette(kind, k, t) {
       if (!step) { disc(g, 27, 6, 6, '#9aa3b8'); disc(g, 20, 8, 5, '#9aa3b8'); disc(g, 34, 8, 5, '#9aa3b8'); } else { disc(g, 40, 7, 5, '#ffd166'); } }
     if (kind === 'happy') { P(g, 4, 6, 46, 9, C.pink); drawText(g, 'YAY!', 15, 7, '#ffffff'); P(g, 6, 14, 1, 34, C.woodD); P(g, 47, 14, 1, 34, C.woodD);
       person(g, 18, 47 - (step === 2 ? 2 : 0), { pose: 'cheer', shirt: '#ffd166', skin: '#8d5a3b' }); person(g, 34, 47 - (step === 1 ? 2 : 0), { pose: step ? 'cheer' : 'stand', shirt: '#7fd2a2' }); }
-    if (step) g.drawImage(boxIcon(), kind === 'lunch' ? 22 : kind === 'office' ? 8 : 34, kind === 'lunch' ? 22 : kind === 'office' ? 30 : 38);
+    if (step) g.drawImage(boxIcon(), kind === 'lunch' ? 28 : kind === 'office' ? 8 : 34, kind === 'lunch' ? 22 : kind === 'office' ? 30 : 38);
     outlineCanvas(c, C.ink); return c;
   });
 }
@@ -457,7 +457,7 @@ function drawWorld(t, opts = {}) {
   // stations (behind the road)
   const st = stationsAt(t);
   for (const [img, lx, by, f, kind, ta] of st) { if (toSX(lx + img.width, f) < -50 || toSX(lx, f) > W + 50) continue; blit(img, lx, by, f);
-    if (ta != null) { const u = t - ta - 0.2, bx = lx + (kind === 'lunch' ? 22 : kind === 'office' ? 8 : 34), byy = by + (kind === 'lunch' ? 22 : kind === 'office' ? 30 : 38);
+    if (ta != null) { const u = t - ta - 0.2, bx = lx + (kind === 'lunch' ? 28 : kind === 'office' ? 8 : 34), byy = by + (kind === 'lunch' ? 22 : kind === 'office' ? 30 : 38);
       if (u > 0 && u < 0.36) { const k = u / 0.36; blit(boxIcon(), bx, byy - 40 * (1 - k * k), f); }
       const h = u - 0.4; if (h > 0 && h < 1.4) { const kk = h < 0.2 ? backOut(h / 0.2) : h > 1.15 ? 1 - (h - 1.15) / 0.25 : 1; blit(emoteImg('♥'), lx + 27, by - 2 + Math.sin(h * 9) * 0.6, f, { anchor: [0.5, 1], scale: kk, alpha: clamp(kk) }); } } }
   // road: each art row slides at its own depth (far edge slower) -> perspective ground
@@ -558,8 +558,8 @@ function drawRoad(t) {
     for (let x = 0; x < RW; x++) {
       const wx = (x + 0.5 - RW / 2) * z / K * 2.2, ax = Math.abs(wx); let col;
       if (ax < 1.25) { col = (Math.floor(wz * 3) + Math.floor(wx * 9)) % 7 === 0 ? [214, 182, 136] : [228, 198, 150];
-        const az = (wz % 6) - 3; // painted arrows (↑) every 6 units
-        if (az > 0 && az < 1.6 && ax < 0.42 - (az < 0.7 ? 0 : (az - 0.7) * 0.45) && (az < 0.7 ? ax < 0.14 : true)) col = [255, 255, 255];
+        const az = (wz % 4.5) - 1.5; // painted arrows (↑) every 4.5 units
+        if (az > 0 && az < 2.4 && (az < 1.3 ? ax < 0.16 : ax < 0.62 - (az - 1.3) * 0.56)) col = [255, 255, 255];
         if (ax > 1.13) col = [180, 140, 96]; }
       else { const row = Math.floor((ax - 1.25) / 0.55), band = (ax - 1.25) % 0.55; col = band < 0.18 ? [118, 186, 132] : row % 2 ? [150, 214, 165] : [140, 206, 156];
         if (band < 0.18 && ((Math.floor(wz * 2) + row) % 3 === 0)) col = [255, 186, 196]; }
@@ -568,16 +568,16 @@ function drawRoad(t) {
   }
   g.putImageData(img, 0, 0);
   // far hills + sun on the horizon (into the art canvas)
-  const sunY = hz - 6; disc(g, RW / 2, sunY, 16, (a, b) => (a + b < -0.6 ? '#fff1b8' : '#ffd166'));
+  const sunY = hz - 4; disc(g, RW / 2, sunY, 15, '#ffe08a');
   for (let x = 0; x < RW; x++) { const h = 6 + Math.round(4 * Math.sin(x * 0.07) + 3 * Math.sin(x * 0.19 + 1)); P(g, x, hz - h, 1, h + 1, x % 2 ? '#c9a2d8' : '#c4a0d4'); }
   ctx.drawImage(ROAD8.c, 0, 0, RW * S, RH * S);
-  const gl = ctx.createRadialGradient(W / 2, (hz - 6) * S, 0, W / 2, (hz - 6) * S, W * 0.7); gl.addColorStop(0, 'rgba(255,230,160,0.55)'); gl.addColorStop(1, 'rgba(255,230,160,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+  const gl = ctx.createRadialGradient(W / 2, (hz - 6) * S, 0, W / 2, (hz - 6) * S, W * 0.7); gl.addColorStop(0, 'rgba(255,230,160,0.32)'); gl.addColorStop(1, 'rgba(255,230,160,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
   // signpost: three boards, all pointing forward (up)
   const sp = cached('post', () => { const { c, g: s } = mk(64, 70); P(s, 30, 10, 4, 60, C.wood); P(s, 32, 10, 2, 60, C.woodD);
     ['FULL BAKERY', 'MORE TREATS', 'YOU ♥'].forEach((txt, i) => { const w = textWidth(txt) + 10, x = 32 - w / 2, y = 4 + i * 14; P(s, x, y + 3, w, 10, [C.pink, '#a687d9', '#ffab55'][i]); P(s, x + w / 2 - 4, y, 8, 3, [C.pink, '#a687d9', '#ffab55'][i]); P(s, x + w / 2 - 2, y - 2, 4, 2, [C.pink, '#a687d9', '#ffab55'][i]); drawText(s, txt, x + 5, y + 4, '#ffffff'); });
     outlineCanvas(c, C.ink); return c; });
-  const zS = 9 - camZ * 0.8, spy = hz + K / zS, sps = clamp(4.6 / zS, 0.4, 1.1);
-  ctx.drawImage(sp, Math.round((RW / 2 + 1.5 * K / zS / 2.2) * S - 32 * S * sps), Math.round(spy * S - 70 * S * sps), Math.round(64 * S * sps), Math.round(70 * S * sps));
+  const zS = 6.6 - (camZ - 2), spy = hz + K / zS, sps = 4.4 / zS, spx = RW / 2 + 2.1 * K / (zS * 2.2);
+  ctx.drawImage(sp, Math.round(spx * S - 32 * S * sps), Math.round(spy * S - 70 * S * sps), Math.round(64 * S * sps), Math.round(70 * S * sps));
   // the duo from behind, walking away
   const wk = Math.max(0, t - EV.roadWalk), dz = 3.2 + wk * 0.55, py = hz + K / dz * 0.98, ps = clamp(3.2 / dz, 0.25, 1.15);
   const walking = t > EV.roadWalk, a = actors(t), o = { view: 'back', walking, frame: walking ? Math.floor(wk * 9) % 8 : 0, cherry: {}, bomb: {} };
