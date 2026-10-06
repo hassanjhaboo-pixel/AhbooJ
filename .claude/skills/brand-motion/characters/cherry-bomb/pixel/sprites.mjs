@@ -159,6 +159,7 @@ function item(L, kind, x, y) {
   const I = layer(L);
   if (kind === 'scissors') { stroke(I, x, y, x + 6, y - 3, 0.7, 'k1'); stroke(I, x, y - 3, x + 6, y, 0.7, 'k1'); ellipse(I, x - 1, y - 0.5, 1.5, 1.5, 'xr'); ellipse(I, x - 1, y - 3, 1.5, 1.5, 'xr'); }
   if (kind === 'sack') { ellipse(I, x + 2, y - 3, 5, 5.5, (dx, dy) => dy < -0.3 ? 's1' : dx > 0.4 ? 's3' : 's2'); stroke(I, x - 1, y - 9, x + 5, y - 9, 1, 's3'); }
+  if (kind === 'pin') { stroke(I, x - 2, y - 2, x + 9, y - 2, 1.7, '#e8c08a'); stroke(I, x - 6, y - 2, x - 2, y - 2, 0.8, '#b07a4a'); stroke(I, x + 9, y - 2, x + 13, y - 2, 0.8, '#b07a4a'); I.set(x + 1, y - 3, '#f6dcb0'); I.set(x + 4, y - 3, '#f6dcb0'); }
   if (kind === 'box') { for (let yy = -6; yy <= 0; yy++) for (let xx = -1; xx <= 9; xx++) I.set(x + xx, y + yy, yy < -4 ? 'x2' : 'x1'); for (let yy = -6; yy <= 0; yy++) I.set(x + 4, y + yy, 'xr'); I.set(x + 3, y - 7, 'xr'); I.set(x + 5, y - 7, 'xr'); }
   I.outline(); L.over(I);
 }
@@ -233,7 +234,7 @@ export function toCanvas(spr, doc = globalThis.document) {
   const x = cv.getContext('2d'), img = x.createImageData(spr.w, spr.h);
   const rgb = {}; for (const k in PAL) { const h = PAL[k]; rgb[k] = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16), 255]; }
   rgb.sh = [40, 20, 30, 70];
-  spr.grid.c.forEach((v, i) => { if (v) { const c = rgb[v]; img.data.set(c, i * 4); } });
+  spr.grid.c.forEach((v, i) => { if (v) { const c = rgb[v] || (rgb[v] = [parseInt(v.slice(1, 3), 16), parseInt(v.slice(3, 5), 16), parseInt(v.slice(5, 7), 16), 255]); img.data.set(c, i * 4); } });
   x.putImageData(img, 0, 0); return cv;
 }
 
