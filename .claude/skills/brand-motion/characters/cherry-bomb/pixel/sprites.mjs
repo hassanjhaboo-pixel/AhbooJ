@@ -236,3 +236,13 @@ export function toCanvas(spr, doc = globalThis.document) {
   spr.grid.c.forEach((v, i) => { if (v) { const c = rgb[v]; img.data.set(c, i * 4); } });
   x.putImageData(img, 0, 0); return cv;
 }
+
+// one character, front-on, for dialogue-box portraits
+export function solo(which, o = {}) {
+  const G = new Grid(36, 40), cx = 18;
+  const S = layer(G); for (let y = 2; y <= 7; y++) S.set(cx + 2 + (y < 4 ? 1 : 0), y, 'g1');
+  const lf = (x, y) => S.set(x, y, 'l1'); [[4, 1], [5, 1], [6, 1], [4, 2], [5, 2], [6, 2], [7, 2], [5, 3], [6, 3]].forEach(([a, b]) => lf(cx + a, b));
+  S.outline(); G.over(S);
+  character(G, which, cx, 38, Object.assign({ turn: 1, look: 0, arms: 'down' }, o), 'front', 0, false, false);
+  return { grid: G, w: 36, h: 40 };
+}
