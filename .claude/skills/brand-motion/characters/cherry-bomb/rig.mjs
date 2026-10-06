@@ -85,23 +85,23 @@ function character(which, o = {}) {
   const body = { type: 'group', y: r4(-LEG - D * 0.42), rot: o.lean || 0, loop: o.bodyLoop || { fx: 'jelly', period: 1.4 + (which === 'bomb' ? 0.17 : 0), amp: 0.5 }, moves: o.bodyMoves, children: [
     arm(-1, which, o.armL != null ? o.armL : 18, hands[0], armLoop(0)),
     arm(1, which, o.armR != null ? o.armR : -18, hands[1], armLoop(1)),
-    img(which === 'cherry' ? 'cherry_body' : 'bomb_body', 1),
-    ...face(which, o),
+    img(which === 'cherry' ? 'cherry_body' : 'bomb_body', 1, o.back ? { sx: -1 } : {}),
+    ...(o.back ? [] : face(which, o)),
     ...(o.acc || []).map(a => ({ cap: img('cap', 0.62, { x: 0.01, y: r4(-D * 0.47), rot: -12 }), sunglasses: img('sunglasses', 0.5, { x: r4(which === 'bomb' ? D * 0.06 : 0), y: r4(-D * 0.04) }), headphones: img('headphones', 0.95, { y: r4(-D * 0.12) }) }[a])),
   ] };
   return { type: 'group', x: o.dx || 0, y: 0, moves: o.moves, loop: o.loop, children: [leg(-1, which, o.legL, sideLegsLoop(0)), leg(1, which, o.legR, sideLegsLoop(1)), body] };
 }
 export function duo(o = {}) {
   if (o.parts) DIR = o.parts;
-  const sep = D * 0.47;
+  const sep = D * 0.47, bk = !!o.back, cs = bk ? 1 : -1;   // seen from behind, Cherry is on the right
   const kids = [
     { type: 'pill', w: 0.44, wUnit: 'U', h: 0.028, fill: 'ink', opacity: 0.16, y: 0.002 },
     // the shared stem: its two tips sit on the tops of the bodies
     // stem: stretched to span both bodies, squashed to the art's proportions (about one body tall), tips on the body tops
-    img('stem', 1.3, { h: r4(220 * K * 0.85), x: r4(-sep + (0.5 - 0.06) * 263 * K * 1.3), y: r4(-LEG - D * 0.42 - D * 0.44 + (0.5 - 0.9) * 220 * K * 0.85), loop: { fx: 'sway', period: 2.4, amp: 0.25 } }),
-    character('cherry', Object.assign({ dx: -sep }, o.cherry || {})),
-    character('bomb', Object.assign({ dx: sep }, o.bomb || {})),
+    img('stem', 1.3, { h: r4(220 * K * 0.85), sx: bk ? -1 : 1, x: r4(cs * sep - cs * (0.5 - 0.06) * 263 * K * 1.3), y: r4(-LEG - D * 0.42 - D * 0.44 + (0.5 - 0.9) * 220 * K * 0.85), loop: { fx: 'sway', period: 2.4, amp: 0.25 } }),
+    character('cherry', Object.assign({ dx: cs * sep, back: bk }, o.cherry || {})),
+    character('bomb', Object.assign({ dx: -cs * sep, back: bk }, o.bomb || {})),
   ];
-  return Object.assign({ type: 'group', x: o.x, y: o.y, scale: o.s || 1, step: o.step, children: kids }, o.in ? { in: o.in } : {}, o.moves ? { moves: o.moves } : {}, o.loop ? { loop: o.loop } : {}, o.out ? { out: o.out } : {});
+  return Object.assign({ type: 'group', x: o.x, y: o.y, scale: o.s || 1, step: o.step, from: o.from, screen: o.screen, sx: o.sx, children: kids }, o.in ? { in: o.in } : {}, o.moves ? { moves: o.moves } : {}, o.loop ? { loop: o.loop } : {}, o.out ? { out: o.out } : {}, o.sfx ? { sfx: o.sfx } : {});
 }
 export const BODY = D;
