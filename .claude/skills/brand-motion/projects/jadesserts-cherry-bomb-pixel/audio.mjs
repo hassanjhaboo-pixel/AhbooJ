@@ -85,6 +85,9 @@ for (let t = EV.lapse[0], i = 0; t < EV.lapse[1]; t += 0.5, i++) add(fx, t, 0.05
 whoosh(EV.lapse[0], 0.15, 1.2);
 // item pickups
 for (let i = 0; i < 6; i++) { const ta = EV.items + i * 0.42; blip(ta, 0.06, 660 + i * 60); chime(ta + 0.5, 0.06, 79 + (i % 3) * 2); }
+// hotbar shimmer + 'coming soon' mystery chime
+for (let i = 0; i < 6; i++) bell(fx, EV.wave + i * 0.12, 84 + [0, 2, 4, 7, 9, 12][i], 0.04, (i - 2.5) * 0.15);
+[[79, 0], [78, 0.14], [86, 0.3]].forEach(([m, d]) => bell(fx, EV.soon + d, m, 0.07));
 // freeze: record scratch
 add(fx, EV.freeze[0], 0.35, u => { const f = 600 * Math.sin(u * 30) + 200; return Math.sin(TAU * f * u) * (rnd() * 0.6 + 0.4) * Math.exp(-u * 6); }, 0.25);
 // scissors: snip snip + toss

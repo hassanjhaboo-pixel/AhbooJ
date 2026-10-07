@@ -11,8 +11,8 @@ const r3 = x => Math.round(x * 1000) / 1000;
 const BEATS = [
   ['b_psst', 0.7, 'sign'], ['b_over', 0.25], ['c_wrong', 0.45], ['b_oops', 0.3], ['c_hi', 0.75], ['b_hi', 0.25], ['c_walk', 0.3],
   ['c_start', 1.9, 'kitchen'], ['b_ooh', 0.35], ['c_dont', 0.12], ['c_flour', 1.75], ['b_hehe', 0.3], ['c_mmhm', 0.15],
-  ['c_love', 1.1], ['b_nights', 0.35], ['c_taste', 0.55],
-  ['b_diff', 2.6, 'different'], ['c_nothing', 0.35], ['b_what', 0.2], ['c_corners', 1.15], ['b_corner', 0.55], ['c_scissors', 0.25], ['b_fine', 0.3],
+  ['c_love', 1.1], ['b_nights', 0.35], ['c_taste', 0.55], ['b_box', 0.45], ['c_these', 0.35], ['c_soon', 0.3],
+  ['b_diff', 1.6, 'different'], ['c_nothing', 0.35], ['b_what', 0.2], ['c_corners', 1.15], ['b_corner', 0.55], ['c_scissors', 0.25], ['b_fine', 0.3],
   ['c_workers', 1.3, 'who'], ['b_lunch', 1.2], ['c_exam', 1.2], ['b_sad', 1.2], ['c_happy', 0.5], ['b_brighten', 0.9], ['c_someone', 0.3],
   ['c_free', 1.2, 'jade'], ['b_chaos', 0.3], ['c_you', 0.4], ['b_me', 0.15], ['c_uhhuh', 0.45],
   ['b_dream', 1.4, 'dream'], ['c_more', 0.4], ['c_whatsapp', 0.7], ['b_order', 0.3], ['c_maybe', 0.35],
@@ -44,6 +44,7 @@ const ev = {
   resume: r3(E('c_mmhm') + 0.35),         // shake off and walk on
   lapse: [r3(A('c_love') - 0.2), r3(E('b_nights') + 0.7)],
   items: r3(A('c_taste') + 0.25),         // first item pickup (6, 0.42s apart)
+  wave: r3(A('c_these') + 0.2), soon: r3(A('c_soon') + 0.5),  // hotbar shimmer + 'coming soon' toast
   freeze: [r3(A('b_what') + 0.08), r3(E('b_what') + 0.55)],
   scissors: [r3(A('b_corner') - 0.25), r3(A('b_fine') + 0.35)],
   toss: r3(A('b_fine') + 0.35),

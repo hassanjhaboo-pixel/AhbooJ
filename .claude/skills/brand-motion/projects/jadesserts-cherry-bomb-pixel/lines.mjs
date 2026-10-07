@@ -22,6 +22,9 @@ export const LINES = [
   C('c_love', 'She fell in love with it. The breads, the pastries, the trial and error.'),
   B('b_nights', 'Late nights. Early mornings. More late nights.'),
   C('c_taste', 'Every box is her grit and her passion. And you can taste it.'),
+  B('b_box', 'Look at that! The whole Sweet Box!'),
+  C('c_these', 'Everything at Jadesserts started with these six.'),
+  C('c_soon', "And there's so much more in store… soon.", { speed: 0.94 }),
   // 3 · what makes us different
   B('b_diff', 'So what makes us different?'),
   C('c_nothing', 'Honestly? Nothing.'),

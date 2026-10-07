@@ -258,7 +258,8 @@ const POSE = {
   c_start: { c: { turn: 0.5 } }, b_ooh: { b: { eyes: 'shock' } }, c_dont: { c: { eyes: 'shock' }, b: { eyes: 'sly', mouth: 'smirk' } },
   c_flour: { c: { eyes: 'sly', brow: 'flat', mouth: 'flat', turn: 1, look: 0 }, b: { eyes: 'blink' } }, b_hehe: { b: { eyes: 'happy', mouth: 'grin', blush: true, turn: 1, look: 0 }, c: { eyes: 'sly', brow: 'flat', mouth: 'flat' } },
   c_mmhm: { c: { eyes: 'sly', brow: 'flat', mouth: 'flat', turn: 1, look: 0 }, b: { eyes: 'happy', blush: true } },
-  c_love: { c: { eyes: 'happy', turn: 0.5 } }, b_nights: { b: { eyes: 'sly', turn: 0.5 } }, c_taste: { c: { eyes: 'happy', turn: 0.5 } },
+  c_love: { c: { eyes: 'happy', turn: 0.5 } }, b_box: { b: { eyes: 'happy', arms: 'up', turn: 0.5 }, c: { eyes: 'happy' } },
+  c_these: { c: { turn: 1, look: 0, eyes: 'happy' }, b: { turn: 0.5 } }, c_soon: { c: { turn: 1, look: 0 }, b: { eyes: 'sly', mouth: 'smirk', turn: 1, look: 0 } }, b_nights: { b: { eyes: 'sly', turn: 0.5 } }, c_taste: { c: { eyes: 'happy', turn: 0.5 } },
   b_diff: { b: { turn: 1, look: 0 } }, c_nothing: { c: { turn: 1, look: 0 } }, b_what: { b: { eyes: 'shock', mouth: 'shock' }, c: { turn: 1, look: 0 } },
   c_corners: { c: { turn: 0.5 } }, b_corner: { b: { eyes: 'sly', mouth: 'smirk', turn: 0.5 } }, c_scissors: { c: { eyes: 'sly', brow: 'flat', mouth: 'flat' }, b: { eyes: 'sly', mouth: 'smirk' } },
   b_fine: { b: { eyes: 'sly', mouth: 'grit' }, c: { eyes: 'sly', brow: 'flat', mouth: 'flat' } },
@@ -353,7 +354,9 @@ function drawHUD(t, duoScreen) {
     const hb = hotbarImg(), slide = (1 - easeOut(showHB)) * -40;
     hud(hb.c, (UW - hb.w) / 2, HY.hud + slide);
     for (let i = 0; i < 6; i++) { const ta = EV.items + i * 0.42, land = ta + 0.5; const [sx, sy] = slotPos(i);
-      if (t >= land) { const pop = t - land < 0.2 ? backOut((t - land) / 0.2) : 1; hud(icon(ITEMS[i][1]), sx, sy + slide, { anchor: [0.5, 0.5], scale: pop }); }
+      if (t >= land) { const pop = t - land < 0.2 ? backOut((t - land) / 0.2) : 1, wv = t - EV.wave - i * 0.12, wave = wv > 0 && wv < 0.35 ? Math.sin(wv / 0.35 * Math.PI) : 0;
+        hud(icon(ITEMS[i][1]), sx, sy + slide - wave * 4, { anchor: [0.5, 0.5], scale: pop * (1 + wave * 0.25) });
+        if (wave > 0) { ctx.fillStyle = `rgba(255,236,150,${wave})`; for (let a = 0; a < 4; a++) { const ang = a * Math.PI / 2 + 0.6, r = 11; ctx.fillRect(Math.round((sx + Math.cos(ang) * r) * U), Math.round((sy + slide + Math.sin(ang) * r) * U), U, U); } } }
       else if (t >= ta) { const k = (t - ta) / 0.5, [dx, dy] = duoScreen, x = lerp(dx, sx, easeIO(k)), y = lerp(dy, sy, easeIO(k)) - Math.sin(k * Math.PI) * 26; hud(icon(ITEMS[i][1]), x, y, { anchor: [0.5, 0.5], scale: 0.7 + 0.5 * k }); }
       // toast
       const tu = t - land; if (tu > 0 && tu < 1.1) { const s = '+1 ' + ITEMS[i][0], tw = textWidth(s) + 10, al = clamp(tu / 0.12) * clamp((1.1 - tu) / 0.25);
@@ -362,6 +365,10 @@ function drawHUD(t, duoScreen) {
       if (tu > 0 && tu < 0.35) { const k2 = tu / 0.35; ctx.fillStyle = `rgba(255,236,150,${1 - k2})`; for (let a = 0; a < 4; a++) { const ang = a * Math.PI / 2 + 0.6, r = 4 + 9 * k2; ctx.fillRect(Math.round((sx + Math.cos(ang) * r) * U), Math.round((sy + slide + Math.sin(ang) * r) * U), U, U); } }
     }
   }
+  // 'much more in store… soon': a mystery toast under the hotbar
+  const su = t - EV.soon; if (showHB > 0 && su > 0) { const s = '??? Coming soon', tw = textWidth(s) + 10, al = clamp(su / 0.15) * (1 - win(t, EV.bakery - 1.6, EV.bakery - 1.1)), pop = su < 0.25 ? backOut(su / 0.25) : 1, ty = HY.hud + 30;
+    ctx.globalAlpha = al; hud(panel(tw, 15, '#7a5cc0'), UW / 2, ty + 7.5, { anchor: [0.5, 0.5], scale: pop }); if (pop > 0.95) hudText(s, (UW - tw) / 2 + 4, ty + 4, '#fff4dc', { alpha: al }); ctx.globalAlpha = 1;
+    if (su < 0.6) { ctx.fillStyle = `rgba(255,236,150,${1 - su / 0.6})`; for (let a = 0; a < 6; a++) { const ang = a * Math.PI / 3, r = 8 + 30 * su; ctx.fillRect(Math.round((UW / 2 + Math.cos(ang) * r * 1.6) * U), Math.round((ty + 7 + Math.sin(ang) * r * 0.6) * U), U, U); } } }
   // clock (time-lapse)
   const [l0, l1] = EV.lapse, cs = win(t, l0 - 0.3, l0) * (1 - win(t, l1, l1 + 0.4));
   if (cs > 0) { const u = clamp((t - l0) / (l1 - l0)), hrs = 18 + u * 36, h24 = Math.floor(hrs) % 24, m = Math.floor((hrs % 1) * 60 / 10) * 10, h12 = ((h24 + 11) % 12) + 1;
