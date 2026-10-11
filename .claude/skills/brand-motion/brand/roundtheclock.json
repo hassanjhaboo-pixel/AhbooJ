@@ -1,0 +1,148 @@
+{
+  "name": "Round The Clock Transport",
+  "tagline": "We make sure it gets there",
+  "url": "roundtheclocktransport@gmail.com",
+  "voice": {
+    "tone": "warm, confident, dependable",
+    "maxWordsPerCard": 6,
+    "case": "sentence",
+    "cta": "Book with us now"
+  },
+  "palette": {
+    "bg": "#14181c",
+    "ink": "#ffffff",
+    "primary": "#f2c94c",
+    "onPrimary": "#14181c",
+    "secondary": "#3d8fd6",
+    "onSecondary": "#ffffff",
+    "accent": "#f2c94c",
+    "onAccent": "#14181c",
+    "dark": "#0c0f12",
+    "onDark": "#ffffff",
+    "chapter1": "#3d8fd6",
+    "chapter2": "#f2c94c",
+    "chapter3": "#1f262d",
+    "chapter4": "#eef3f7",
+    "white": "#ffffff",
+    "paper": "#eef3f7",
+    "sky": "#7cc0ee",
+    "skyDeep": "#2f6fa8",
+    "goldDeep": "#c99a1f",
+    "goldSoft": "#f7e2a0",
+    "steel": "#c9cfd4",
+    "asphalt": "#2a3138",
+    "slate": "#8a96a3",
+    "shade": "rgba(12,15,18,0.92)",
+    "shadeMid": "rgba(12,15,18,0.55)",
+    "clear": "rgba(12,15,18,0)",
+    "skyClear": "rgba(61,143,214,0)",
+    "glass": "rgba(255,255,255,0.10)",
+    "cardboard": "#d9a96a",
+    "cardboardLight": "#e8c28c",
+    "cardboardDeep": "#b98545",
+    "alert": "#e5484d",
+    "wine": "#a3243b"
+  },
+  "type": {
+    "fontUrls": [],
+    "fontFiles": [
+      {
+        "family": "Big Shoulders",
+        "weight": 800,
+        "src": "assets/roundtheclock/fonts/BigShoulders-Bold.ttf"
+      },
+      {
+        "family": "Outfit",
+        "weight": 700,
+        "src": "assets/roundtheclock/fonts/Outfit-Bold.ttf"
+      },
+      {
+        "family": "Outfit",
+        "weight": 400,
+        "src": "assets/roundtheclock/fonts/Outfit-Regular.ttf"
+      },
+      {
+        "family": "Instrument Serif",
+        "weight": 400,
+        "style": "normal",
+        "src": "assets/roundtheclock/fonts/InstrumentSerif-Italic.ttf"
+      }
+    ],
+    "display": {
+      "family": "Big Shoulders",
+      "fallback": "'Liberation Sans', sans-serif",
+      "weight": 800,
+      "case": "upper",
+      "tracking": 0.0,
+      "lineHeight": 0.9
+    },
+    "headline": {
+      "family": "Outfit",
+      "fallback": "'Liberation Sans', sans-serif",
+      "weight": 700,
+      "case": "none",
+      "tracking": -0.01,
+      "lineHeight": 1.02
+    },
+    "body": {
+      "family": "Outfit",
+      "fallback": "'Liberation Sans', sans-serif",
+      "weight": 400,
+      "case": "none",
+      "tracking": 0,
+      "lineHeight": 1.25
+    },
+    "scale": {
+      "display": 0.16,
+      "headline": 0.09,
+      "title": 0.065,
+      "body": 0.042,
+      "caption": 0.03
+    },
+    "script": {
+      "family": "Instrument Serif",
+      "fallback": "serif",
+      "weight": 400,
+      "case": "none",
+      "tracking": 0,
+      "lineHeight": 1.0
+    }
+  },
+  "logo": {
+    "src": "",
+    "srcOnDark": "",
+    "wordmark": "ROUND THE CLOCK",
+    "color": "primary",
+    "clearSpace": 0.5
+  },
+  "shape": {
+    "language": "circles",
+    "radius": 0.03,
+    "strokeW": 0.008,
+    "motif": "a clock ring whose hand sweeps round, and a dashed road line that a van drives along"
+  },
+  "motion": {
+    "energy": "balanced",
+    "bpm": 120,
+    "exit": "inCubic",
+    "move": "inOutCubic",
+    "transition": "inOutCubic",
+    "stagger": 0.06,
+    "signatureTransition": "wipe"
+  },
+  "layout": {
+    "safe": 0.08,
+    "alignment": "center"
+  },
+  "rules": {
+    "do": [
+      "gold on charcoal for the brand voice",
+      "the clock motif returns on the end card",
+      "phone number held on screen at least 3s"
+    ],
+    "dont": [
+      "never show the vehicle's licence plate",
+      "never gold text on sky blue"
+    ]
+  }
+}

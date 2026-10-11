@@ -305,8 +305,9 @@
     }
     function loadFonts() {
       if (!document.fonts) return Promise.resolve();
-      const fams = ['display', 'headline', 'body'].map(k => type[k] && type[k].family).filter(Boolean);
-      const weights = ['display', 'headline', 'body'].map(k => (type[k] && type[k].weight) || 400);
+      const keys = Object.keys(type).filter(k => type[k] && typeof type[k] === 'object' && type[k].family); // display/headline/body + any extra faces (el.face)
+      const fams = keys.map(k => type[k].family);
+      const weights = keys.map(k => type[k].weight || 400);
       const loads = fams.map((f, i) => document.fonts.load(`${weights[i]} 64px "${f}"`).catch(() => {}));
       const timeout = new Promise(r => setTimeout(r, 5000));
       return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]);
@@ -317,7 +318,7 @@
     const ROLE_SIZE = { display: 0.14, headline: 0.09, title: 0.065, body: 0.042, caption: 0.03 };
     function fontFor(el) {
       const role = el.role || 'headline';
-      const face = (role === 'display' ? type.display : role === 'headline' || role === 'title' ? type.headline || type.display : type.body) || {};
+      const face = (el.face && type[el.face]) || (role === 'display' ? type.display : role === 'headline' || role === 'title' ? type.headline || type.display : type.body) || {};
       const scale = (type.scale && type.scale[role]) || ROLE_SIZE[role] || 0.06;
       const size = (el.size != null ? el.size : scale) * U;
       const weight = el.weight || face.weight || (role === 'body' || role === 'caption' ? 400 : 700);
