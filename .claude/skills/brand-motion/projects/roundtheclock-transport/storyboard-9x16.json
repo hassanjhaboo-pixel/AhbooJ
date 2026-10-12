@@ -3029,18 +3029,56 @@
      }
     },
     {
-     "type": "text",
-     "text": "roundtheclocktransport@gmail.com",
-     "role": "body",
-     "size": 0.036,
-     "color": "steel",
+     "type": "group",
      "x": 0.5,
-     "y": 0.6198,
+     "y": 0.6224,
      "in": {
       "fx": "rise",
       "at": 0.9,
       "dur": 0.5
-     }
+     },
+     "children": [
+      {
+       "type": "group",
+       "x": -0.235,
+       "children": [
+        {
+         "type": "rect",
+         "wUnit": "U",
+         "w": 0.058,
+         "h": 0.058,
+         "radius": 0.01624,
+         "stroke": "primary",
+         "strokeW": 0.00638
+        },
+        {
+         "type": "ring",
+         "r": 0.01276,
+         "fill": "primary",
+         "strokeW": 0.00638
+        },
+        {
+         "type": "circle",
+         "r": 0.0037700000000000003,
+         "fill": "primary",
+         "x": 0.0145,
+         "y": -0.0145
+        }
+       ]
+      },
+      {
+       "type": "text",
+       "text": "@a47.detailing",
+       "role": "body",
+       "face": "headline",
+       "weight": 700,
+       "size": 0.05,
+       "color": "white",
+       "align": "left",
+       "anchor": "left",
+       "x": -0.18569999999999998
+      }
+     ]
     },
     {
      "type": "group",

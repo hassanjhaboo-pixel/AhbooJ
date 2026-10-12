@@ -15,7 +15,7 @@ A 34-second motion graphic (120 bpm, 17 bars) built from the owner's flyer and v
 | 6 | 15–23s | Why choose us? | A card stack (shopping illustration, rear-cargo photo, side-door photo, fragile-parcel illustration) builds a 4-item checklist, one item every 2s. A small van drives along the bottom. |
 | 7 | 23–26s | Offer | Music drop. A "Seasonal Deals" starburst over gold. BOOK WITH US NOW, then "to receive seasonal specials and discounts" |
 | 8 | 26–30s | Promise | *"Your best choice this season."* The van drives in and stops just as WE MAKE SURE IT GETS THERE. lands |
-| 9 | 30–34s | End card | Flash, then the clock emblem, ROUND THE CLOCK *Transport*, +1 (868) 329-5373, the email address and a "Book with us now" button. Held for 4s. |
+| 9 | 30–34s | End card | Flash, then the clock emblem, ROUND THE CLOCK *Transport*, +1 (868) 329-5373, the Instagram handle @a47.detailing (with a drawn Instagram glyph) and a "Book with us now" button. Held for 4s. |
 
 ## Copy edits from the flyer (grammar only)
 - "Trusted Reliable Drivers" → "Trusted & reliable drivers"
@@ -23,7 +23,7 @@ A 34-second motion graphic (120 bpm, 17 bars) built from the owner's flyer and v
 - "Book With Us Now To Receive Seasonal Specials And Discounts" → "Book with us now / to receive seasonal specials and discounts"
 - "Best For holiday shopping" → "Best for holiday shopping" (and sentence case across the list)
 - "Your Best Choice This Season We Make Sure It Gets There" → *"Your best choice this season."* / "We make sure it gets there."
-- Email set in lowercase: roundtheclocktransport@gmail.com
+- The flyer's email is replaced on the end card by the Instagram handle @a47.detailing (owner's request)
 
 ## Notes
 - The licence plate is blurred in `assets/van-front.jpg`, the same as on the flyer.

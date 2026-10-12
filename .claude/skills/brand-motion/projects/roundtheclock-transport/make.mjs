@@ -295,10 +295,10 @@ function make(fmt) {
     ],
   });
 
-  // ===== 9 · END CARD: clock emblem, wordmark, phone, email, CTA · 8b (4s) =====
+  // ===== 9 · END CARD: clock emblem, wordmark, phone, Instagram, CTA · 8b (4s) =====
   const EC = tall
-    ? { clockY: 430, clockR: 0.13, word: 710, wSize: 0.12, script: 840, sSize: 0.11, phone: 1090, pSize: 0.095, mail: 1190, mSize: 0.036, pill: 1370, pillW: 0.6, pillH: 0.11 }
-    : { clockY: 150, clockR: 0.085, word: 330, wSize: 0.105, script: 430, sSize: 0.085, phone: 590, pSize: 0.075, mail: 670, mSize: 0.03, pill: 820, pillW: 0.5, pillH: 0.095 };
+    ? { clockY: 430, clockR: 0.13, word: 710, wSize: 0.12, script: 840, sSize: 0.11, phone: 1090, pSize: 0.095, mail: 1195, mSize: 0.05, ig: 0.058, igW: 0.47, pill: 1370, pillW: 0.6, pillH: 0.11 }
+    : { clockY: 150, clockR: 0.085, word: 330, wSize: 0.105, script: 430, sSize: 0.085, phone: 590, pSize: 0.075, mail: 672, mSize: 0.04, ig: 0.046, igW: 0.38, pill: 820, pillW: 0.5, pillH: 0.095 };
   scenes.push({
     id: 'end', dur: '8b', bg: 'bg', transition: { type: 'flash', color: 'white', dur: 0.4 },
     elements: [
@@ -309,7 +309,15 @@ function make(fmt) {
       { type: 'text', text: 'Transport', role: 'headline', face: 'script', size: EC.sSize, color: 'white', x: 0.5, y: Y(EC.script), in: { fx: 'mask-up', at: 0.45, dur: 0.5 }, sfx: 'chime' },
       { type: 'rect', w: 0.5, h: 0.003, fill: 'slate', x: 0.5, y: Y((EC.script + EC.phone) / 2), in: { fx: 'grow', at: 0.6, dur: 0.5 } },
       { type: 'text', text: '+1 (868) 329-5373', role: 'headline', size: EC.pSize, color: 'white', x: 0.5, y: Y(EC.phone), in: { fx: 'rise', at: 0.75, dur: 0.5 } },
-      { type: 'text', text: 'roundtheclocktransport@gmail.com', role: 'body', size: EC.mSize, color: 'steel', x: 0.5, y: Y(EC.mail), in: { fx: 'rise', at: 0.9, dur: 0.5 } },
+      // Instagram handle with a drawn glyph (rounded-square outline, lens ring, flash dot): no icon font needed
+      { type: 'group', x: 0.5, y: Y(EC.mail), in: { fx: 'rise', at: 0.9, dur: 0.5 }, children: [
+        { type: 'group', x: -EC.igW / 2, children: [
+          { type: 'rect', wUnit: 'U', w: EC.ig, h: EC.ig, radius: EC.ig * 0.28, stroke: 'primary', strokeW: EC.ig * 0.11 },
+          { type: 'ring', r: EC.ig * 0.22, fill: 'primary', strokeW: EC.ig * 0.11 },
+          { type: 'circle', r: EC.ig * 0.065, fill: 'primary', x: EC.ig * 0.25, y: -EC.ig * 0.25 },
+        ] },
+        { type: 'text', text: '@a47.detailing', role: 'body', face: 'headline', weight: 700, size: EC.mSize, color: 'white', align: 'left', anchor: 'left', x: -EC.igW / 2 + EC.ig * 0.85 },
+      ] },
       { type: 'group', x: 0.5, y: Y(EC.pill), in: { fx: 'pop', at: 1.15, dur: 0.5 }, loop: { fx: 'pulse', period: '2b', amp: 0.35 },
         children: [
           { type: 'pill', wUnit: 'U', w: EC.pillW, h: EC.pillH, fill: 'primary', shadow: { color: 'rgba(242,201,76,0.35)', blur: 0.05, y: 0 } },
