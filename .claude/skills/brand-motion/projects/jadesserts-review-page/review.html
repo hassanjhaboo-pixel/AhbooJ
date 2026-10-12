@@ -112,6 +112,8 @@ input[type=text]:focus, textarea:focus { box-shadow: 0 0 0 3px var(--gold); }
 .card .icons canvas { width: 32px; height: 32px; image-rendering: pixelated; }
 .stamp { position: absolute; right: 12px; bottom: 44px; color: #e5484d; border: 3px solid #e5484d; padding: 3px 8px; font-size: 15px; transform: rotate(-9deg) scale(1.8); opacity: 0; transition: transform .18s steps(3), opacity .18s steps(3); pointer-events: none; background: rgba(255,250,240,.7); }
 .stamp.on { transform: rotate(-9deg) scale(1); opacity: .95; }
+.cardimg { display: block; width: 100%; height: auto; border: 3px solid var(--ink); box-shadow: 6px 6px 0 rgba(74,34,54,.2); image-rendering: pixelated; -webkit-touch-callout: default; }
+.small.center { text-align: center; margin: -4px 0 0; }
 .copybox { font: inherit; font-size: 14px; width: 100%; min-height: 0; height: 0; padding: 0; border: 0; opacity: 0; position: absolute; }
 .small { font-size: 14px; color: var(--muted); }
 .num { user-select: all; font-weight: 600; color: var(--ink); }
@@ -757,23 +759,33 @@ const VIEWS = {
   },
   card() {
     const msg = message(), url = 'https://wa.me/' + JADE_WA + '?text=' + encodeURIComponent(msg);
-    const card = h('div', { class: 'card' }), stamp = h('div', { class: 'stamp', text: 'READY FOR JADE ♥' });
-    const icons = h('div', { class: 'icons' }); R.items.forEach(id => { const cv = document.createElement('canvas'); cv.width = 16; cv.height = 16; cv.getContext('2d').drawImage(icon(id), 0, 0); cv.setAttribute('aria-label', itemName(id)); icons.appendChild(cv); });
-    const quote = R.words.trim() ? `"${R.words.trim()}"` : (R.fav ? `Favourite: ${itemName(R.fav)}` : 'Loved my box!');
-    card.append(h('div', { class: 'head', text: 'JADESSERTS REVIEW' }), h('div', { class: 'cstars', text: '★'.repeat(R.stars) + '☆'.repeat(5 - R.stars), 'aria-label': R.stars + ' out of 5 stars' }), icons, h('blockquote', { text: quote }),
-      h('div', { class: 'sig', text: '— ' + firstName() }), R.when.length ? h('div', { class: 'meta', text: R.when.join(' · ') }) : null, stamp);
-    const send = h('a', { class: 'btn wa wide', href: url, target: '_blank', rel: 'noopener', text: 'Send to Jade on WhatsApp' });
-    send.addEventListener('click', () => { stamp.classList.add('on'); sfx.stamp(); confetti(); say([['cherry', 'WhatsApp should open with your review all typed out. Just hit send!', { c: { eyes: 'happy', arms: 'wave' } }], ['bomb', 'Then smash that send button.', { b: { arms: 'up' } }]]);
-      setTimeout(() => go('thanks'), 4200); });
+    const cv = cardCanvas(), img = h('img', { class: 'cardimg', alt: `Review card: ${R.stars} out of 5 stars from ${firstName()}` }); img.src = cv.toDataURL('image/png');
+    const fileName = 'jadesserts-review-' + firstName().toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png';
+    let blob = null; cv.toBlob(bl => { blob = bl; setupShare(); }, 'image/png');
+    const shareBtn = h('button', { type: 'button', class: 'btn wa wide', text: 'Share card + review to WhatsApp', hidden: '' });
+    const saveBtn = h('button', { type: 'button', class: 'btn wide', text: '1. Save my card', hidden: '' });
+    const send = h('a', { class: 'btn wa wide', href: url, target: '_blank', rel: 'noopener', text: '2. Send to Jade on WhatsApp' });
+    const steps = h('p', { class: 'small', text: 'WhatsApp opens with your review typed out. Tap the paperclip, pick your card from your photos, then send.' });
+    function setupShare() { // one-tap image + text share where the browser allows it
+      try { const f = new File([blob], fileName, { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { shareBtn.hidden = false; shareBtn.onclick = () => { navigator.share({ files: [f], text: msg }).then(sent, () => {}); }; } } catch (e) {} }
+    (async () => { const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
+      if (!dl) return; saveBtn.hidden = false;
+      saveBtn.onclick = async () => { if (!blob) return; try { await dl.save({ filename: fileName, data: blob }); saveBtn.textContent = '1. Card saved ✓'; sfx.stamp();
+          say([['cherry', 'Saved! Now tap the green button and attach your card in WhatsApp.', { c: { eyes: 'happy' } }], ['bomb', 'Frame it. Put it on the fridge.', { b: { eyes: 'sly', mouth: 'smirk' } }]]); aim(send);
+        } catch (e) { if (e && e.code === 'declined') return; saveBtn.hidden = true; } };
+      aim(saveBtn); })();
+    function sent() { sfx.stamp(); confetti(); say([['cherry', 'Yay! Jade gets your card and your words.', { c: { eyes: 'happy', arms: 'wave' } }], ['bomb', 'Now smash that send button.', { b: { arms: 'up' } }]]); setTimeout(() => go('thanks'), 4500); }
+    send.addEventListener('click', () => { say([['cherry', 'WhatsApp should open with your review typed out. Attach your card, then send!', { c: { eyes: 'happy', arms: 'wave' } }], ['bomb', 'Paperclip. Photos. Card. Send. Go go go.', { b: { arms: 'up' } }]]); setTimeout(() => go('thanks'), 6500); });
     const copyTxt = h('textarea', { class: 'copybox', 'aria-hidden': 'true', tabindex: '-1' }); copyTxt.value = msg;
     const copy = h('button', { type: 'button', class: 'btn ghost', text: 'Copy my review' });
     copy.addEventListener('click', () => { const done = () => { copy.textContent = 'Copied!'; sfx.pick(); setTimeout(() => copy.textContent = 'Copy my review', 1600); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).then(done, () => { copyTxt.select(); copy.textContent = 'Press Ctrl/Cmd+C'; }); else { copyTxt.select(); copy.textContent = 'Press Ctrl/Cmd+C'; } });
-    panel.append(h('h2', { text: 'Your review card' }), card, send,
-      h('p', { class: 'small', text: "If WhatsApp doesn't open, copy your review and send it to Jade at (868) 715-4817." }), h('div', { class: 'row' }, [copy, h('button', { type: 'button', class: 'btn ghost', text: 'Edit', onclick: () => go('stars') })]), copyTxt);
+    panel.append(h('h2', { text: 'Your review card' }), img, h('p', { class: 'small center', text: 'Press and hold the card to save it to your phone.' }), shareBtn, saveBtn, send, steps,
+      h('div', { class: 'row' }, [copy, h('button', { type: 'button', class: 'btn ghost', text: 'Edit', onclick: () => go('stars') })]), copyTxt);
     const st = R.stars;
-    say([['cherry', "Here's your review card! Tap the green button and WhatsApp opens with it ready.", { c: { eyes: 'happy' }, b: {} }],
-      st === 5 ? ['bomb', 'Five stars. Beautiful. I might cry.', { b: { eyes: 'happy' }, emo: ['bomb', '♥'] }] : ['bomb', `${st} star${st > 1 ? 's' : ''}. Noted. …There's still time to edit, you know.`, { b: { eyes: 'sly', mouth: 'smirk' } }]]);
+    say([['cherry', "Here's your review card! Keep it, and send it to Jade with your message.", { c: { eyes: 'happy' }, b: {} }],
+      st === 5 ? ['bomb', 'Five stars. Beautiful. I might cry.', { b: { eyes: 'happy' }, emo: ['bomb', '♥'] }] : ['bomb', `${st} star${st > 1 ? 's' : ''}. Noted. …There's still time to edit, you know.`, { b: { eyes: 'sly', mouth: 'smirk' } }],
+      ['cherry', 'Step one: save your card. Step two: send it to Jade on WhatsApp!', { c: { eyes: 'open' } }]]);
     setTimeout(() => aim(send), 300);
   },
   thanks() {
@@ -786,6 +798,36 @@ const VIEWS = {
     aim(null);
   },
 };
+// ------------------------------------------------------------------ the keepsake card image
+let logoSrc = null;
+const STAR = ['.....#.....', '....###....', '....###....', '###########', '.#########.', '..#######..', '..#######..', '.####.####.', '.###...###.', '##.......##'];
+function starPix(on) { return cached('st' + on, () => { const { c, g } = mk(11, 10); STAR.forEach((r, y) => [...r].forEach((ch, x) => { if (ch === '#') P(g, x, y, 1, 1, on ? '#ffd166' : '#eadbcb'); })); if (on) { P(g, 4, 3, 2, 1, '#fff1b8'); } return outline(c, on ? '#c98a1a' : '#c9b4a2'); }); }
+function cardCanvas() {
+  const AW2 = 216, AH2 = 270, S = 5, { c, g } = mk(AW2, AH2);
+  for (let y = 0; y < AH2; y += 8) for (let x = 0; x < AW2; x += 8) { const a = (x / 8) % 2, b = (y / 8) % 2; P(g, x, y, 8, 8, a && b ? '#ffbfca' : a || b ? '#ffd9df' : '#fff3f4'); }
+  if (logoSrc) { const w = 140, hh = Math.round(w * logoSrc.height / logoSrc.width), t = mk(w, hh); t.g.imageSmoothingEnabled = true; t.g.drawImage(logoSrc, 0, 0, w, hh); const d = t.g.getImageData(0, 0, w, hh); for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 110 ? 255 : 0; t.g.putImageData(d, 0, 0); g.drawImage(t.c, (AW2 - w) / 2, 9); }
+  // wooden frame + parchment
+  P(g, 9, 41, 198, 223, '#5e3b22'); P(g, 10, 42, 196, 221, '#c48a55'); P(g, 10, 42, 196, 1, '#dba56f'); P(g, 14, 46, 188, 213, '#9c6a3c'); P(g, 15, 47, 186, 211, '#fffaf0');
+  const center = (s, y, col) => drawText(g, s, Math.round((AW2 - textWidth(s)) / 2), y, col);
+  center('MY JADESSERTS REVIEW', 53, '#9c6a3c');
+  for (let i = 0; i < 5; i++) g.drawImage(starPix(i < R.stars), AW2 / 2 - 35 + i * 14, 65);
+  const ic = R.items.map(id => icon(id)), iw = ic.length * 19 - 3; ic.forEach((im, i) => g.drawImage(im, Math.round((AW2 - iw) / 2) + i * 19, 81));
+  const quote = R.words.trim() ? '"' + R.words.trim() + '"' : (R.fav ? 'Favourite: ' + itemName(R.fav) : 'Loved my box!');
+  if (R.fav && R.words.trim()) center('Fave: ' + itemName(R.fav), 101, '#8a6a72');
+  let rows = wrap(quote, 170); if (rows.length > 6) { rows = rows.slice(0, 6); rows[5] = rows[5].replace(/\s*\S*$/, '') + '…'; }
+  const qy = 116 + Math.max(0, (6 - rows.length) * 4); rows.forEach((r, i) => center(r, qy + i * 10, '#4a2236'));
+  const sig = '- ' + firstName(); drawText(g, sig, 196 - textWidth(sig), 178, '#dd4652');
+  // Cherry & Bomb waving, bottom right
+  const d = duo({ view: 'front', frame: 2, cherry: { turn: 1, look: 0, arms: 'wave', eyes: 'happy' }, bomb: { turn: 1, look: 0, arms: 'up', eyes: 'happy', mouth: 'grin' } });
+  g.drawImage(toCanvas(d), 122, 189);
+  drawText(g, 'Order your next box', 22, 214, '#4a2236'); drawText(g, 'WhatsApp Jade', 22, 226, '#1f7a4d'); drawText(g, '(868) 715-4817', 22, 238, '#4a2236');
+  const date = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); drawText(g, date, 22, 250, '#8a6a72');
+  // upscale, then the stamp at full resolution
+  const out = mk(AW2 * S, AH2 * S); out.g.drawImage(c, 0, 0, AW2 * S, AH2 * S);
+  const o = out.g, st = 'THANK YOU ♥', tw = textWidth(st) + 8; o.save(); o.translate(176 * S, 42 * S); o.rotate(0.14); o.globalAlpha = 0.9; o.fillStyle = 'rgba(255,250,240,0.6)'; o.fillRect(-tw / 2 * S, -7 * S, tw * S, 14 * S);
+  o.strokeStyle = '#e5484d'; o.lineWidth = S; o.strokeRect(-tw / 2 * S, -7 * S, tw * S, 14 * S); drawText(o, st, Math.round(-tw / 2 * S + 4 * S), Math.round(-3.5 * S), '#e5484d', { scale: S }); o.restore();
+  return out.c;
+}
 function message() {
   const lines = [`Jadesserts review ${'⭐'.repeat(R.stars)} (${R.stars}/5)`, `From: ${firstName()}`];
   if (R.items.length) lines.push('Had: ' + R.items.map(itemName).join(', '));
@@ -798,7 +840,7 @@ function message() {
 
 fitStage(); fitFx(); renderQuest();
 // pixelate the logo so it matches the sprites
-(() => { const img = document.getElementById('logo'), src = new Image(); src.onload = () => { const w = 132, h = Math.round(w * src.height / src.width), { c, g } = mk(w, h); g.imageSmoothingEnabled = true; g.drawImage(src, 0, 0, w, h);
+(() => { const img = document.getElementById('logo'), src = new Image(); src.onload = () => { logoSrc = src; const w = 132, h = Math.round(w * src.height / src.width), { c, g } = mk(w, h); g.imageSmoothingEnabled = true; g.drawImage(src, 0, 0, w, h);
   const d = g.getImageData(0, 0, w, h); for (let i = 3; i < d.data.length; i += 4) d.data[i] = d.data[i] > 110 ? 255 : 0; g.putImageData(d, 0, 0); img.src = c.toDataURL(); }; src.src = img.getAttribute('src'); })();
 go('hello');
 requestAnimationFrame(frame);
