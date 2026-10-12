@@ -85,7 +85,8 @@ The transition belongs to the INCOMING scene and plays over its first `dur` seco
   "highlight": { "fill": "accent", "pad": 0.25, "radius": null },   // chip behind the text
   "outline": { "color": "bg", "w": 0.06 },                          // sticker border around glyphs (fraction of font size)
   "bubble": 0.03,                                                   // fattens + rounds glyphs with a same-colour stroke (bubbly look)
-  "dotColor": "onPrimary" }                                        // for dot-expand
+  "dotColor": "onPrimary",                                         // for dot-expand
+  "face": "script" }                                               // optional: use brand.type.<face> (an extra face, e.g. a script accent) instead of the role's face; size still comes from role
 ```
 With `split` set, the `in` effect plays per unit, staggered. Text wraps automatically at `maxWidth`.
 
