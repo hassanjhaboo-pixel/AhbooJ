@@ -409,7 +409,11 @@ const VIEWS = {
     const steps = h('p', { class: 'small', text: 'WhatsApp opens with your review typed out. Tap the paperclip, pick your card from your photos, then send.' });
     function setupShare() { // one-tap image + text share where the browser allows it
       try { const f = new File([blob], fileName, { type: 'image/png' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { shareBtn.hidden = false; shareBtn.onclick = () => { navigator.share({ files: [f], text: msg }).then(sent, () => {}); }; } } catch (e) {} }
-    (async () => { const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
+    (async () => { const inClaude = !!(window.claude && window.claude.use), dl = inClaude ? await window.claude.use('downloads').catch(() => null) : null;
+      if (!dl && !inClaude) { // on its own website: a normal download
+        saveBtn.hidden = false; saveBtn.onclick = () => { if (!blob) return; const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; document.body.appendChild(a); a.click(); a.remove();
+          saveBtn.textContent = '1. Card saved ✓'; sfx.stamp(); say([['cherry', 'Saved! Now tap the green button and attach your card in WhatsApp.', { c: { eyes: 'happy' } }]]); aim(send); };
+        aim(saveBtn); return; }
       if (!dl) return; saveBtn.hidden = false;
       saveBtn.onclick = async () => { if (!blob) return; try { await dl.save({ filename: fileName, data: blob }); saveBtn.textContent = '1. Card saved ✓'; sfx.stamp();
           say([['cherry', 'Saved! Now tap the green button and attach your card in WhatsApp.', { c: { eyes: 'happy' } }], ['bomb', 'Frame it. Put it on the fridge.', { b: { eyes: 'sly', mouth: 'smirk' } }]]); aim(send);
