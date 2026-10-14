@@ -24,11 +24,11 @@ p{text-align:left;overflow-wrap:break-word}
 @media (max-width:520px){main{padding:40px 16px 64px}h1{font-size:34px}}
 @media print{@page{size:Letter;margin:0.55in 0.7in}.contact{font-size:13px}body{font-size:15px;line-height:1.5}main{padding:0;max-width:none;animation:none}a{text-decoration:none}header{padding-bottom:16px;margin-bottom:22px}h1{font-size:40px}}
 
-.with-photo{position:relative}
-.with-photo h1,.with-photo .title{padding-right:96px}
-.photo{position:absolute;top:0;right:0;width:76px;height:76px;border-radius:50%;object-fit:cover;border:1px solid var(--hair)}
-@media (max-width:600px){.photo{width:60px;height:60px}.with-photo h1,.with-photo .title{padding-right:72px}}
-@media print{.photo{width:72px;height:72px}}
+.with-photo{display:flex;flex-direction:row-reverse;align-items:flex-start;justify-content:space-between;gap:24px}
+.with-photo .id{min-width:0;flex:1}
+.photo{flex:none;width:112px;height:112px;border-radius:50%;object-fit:cover;border:1px solid var(--hair)}
+@media (max-width:600px){.photo{width:80px;height:80px}.with-photo{gap:16px}}
+@media print{.photo{width:96px;height:96px}@page{margin:0.45in 0.7in}}
 section{margin-top:36px}
 section:first-of-type{margin-top:0}
 h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink);padding-bottom:8px;border-bottom:1px solid var(--hair);margin-bottom:16px}
@@ -39,7 +39,7 @@ h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
 ul{list-style:none;margin-top:6px}
 li{position:relative;padding-left:18px;margin-top:6px}
 li::before{content:"•";position:absolute;left:2px;color:var(--muted)}
-@media print{section{margin-top:20px}h2{margin-bottom:10px}.role{margin-top:14px}li{margin-top:3px}.role{break-inside:avoid}}
+@media print{section{margin-top:16px}h2{margin-bottom:8px;padding-bottom:6px}.role{margin-top:12px}li{margin-top:3px}.role{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -55,12 +55,12 @@ li::before{content:"•";position:absolute;left:2px;color:var(--muted)}
 
 <section>
   <h2>PROFESSIONAL SUMMARY</h2>
-  <p>Customer service professional who came up through the bar and now supervises floor operations at Kafneo Office Center and Lounge, covering guest experience standards, payments and reconciliation, daily reporting, and staff coaching in a schedule-driven environment. Promoted from barista to supervisor for taking ownership of day-to-day operations. Holds Grade I CSEC passes in Mathematics and English, is available for all shifts, and brings the discipline with money, records, and procedure that passenger service demands.</p>
+  <p>Customer service professional who came up through the bar and now supervises floor operations at Kafneo Office Center and Lounge, covering guest experience standards, payments and reconciliation, daily reporting, and staff coaching in a schedule-driven environment. Promoted from barista to supervisor for taking ownership of day-to-day operations. Holds Grade I CSEC passes in Mathematics and English, is available for all shifts, and brings the discipline with money, records, and procedure that passenger service demands. Applies AI tools to improve everyday workflows, is pursuing a Project Management with AI specialty certification, and is ready to start, learn new skills, and grow into greater responsibility within the company.</p>
 </section>
 
 <section>
   <h2>CORE EXPERTISE</h2>
-  <p>Customer Service, Cash and Card Payment Handling, Reconciliation, Point of Sale (POS) Operations, Daily and End-of-Day Reporting, Documentation and Record Keeping, Stock and Wastage Control, Staff Coaching and Training</p>
+  <p>Customer Service, Cash and Card Payment Handling, Reconciliation, Point of Sale (POS) Operations, Daily and End-of-Day Reporting, Documentation and Record Keeping, Stock and Wastage Control, Staff Coaching and Training, AI Implementation in Workflows</p>
 </section>
 
 <section>
@@ -85,6 +85,13 @@ li::before{content:"•";position:absolute;left:2px;color:var(--muted)}
     <ul>
       <li>Served guests in a bistro and cakery.</li>
     </ul>
+  </div>
+</section>
+
+<section>
+  <h2>PROFESSIONAL DEVELOPMENT</h2>
+  <div class="role">
+    <h3>Project Management with AI Specialty Certification <span class="when">— In progress</span></h3>
   </div>
 </section>
 </main>
