@@ -108,7 +108,7 @@ Uses `brand.logo.src` (or `srcOnDark` when `onDark: true`). With no file, it ren
   "mask": "none|circle|rounded", "radius": 0.04, "fit": "cover", "stroke": "bg", "strokeW": 0.01,
   "label": "PRODUCT", "placeholder": "primary" }
 ```
-`w` = fraction of frame width (or of the short side with `wUnit: "U"`, recommended for heroes so they keep their size across formats); `h` = fraction of the short side (or width with `hUnit: "W"`). Omit `h` to keep the image's aspect ratio. Use transparent PNGs for cut-out products. If `src` is empty or missing, a labelled placeholder box in the `placeholder` colour is drawn.
+**Video clips:** add `seq: ["frames/0001.jpg", …]` (a frame sequence, e.g. from `ffmpeg -vf fps=30 frames/%04d.jpg`), `seqFps` (30), `seqAt` (scene time it starts) and `seqRate` (speed); set `src` to the first frame so sizing works. It holds the first frame before `seqAt` and the last frame after the end. `w` = fraction of frame width (or of the short side with `wUnit: "U"`, recommended for heroes so they keep their size across formats); `h` = fraction of the short side (or width with `hUnit: "W"`). Omit `h` to keep the image's aspect ratio. Use transparent PNGs for cut-out products. If `src` is empty or missing, a labelled placeholder box in the `placeholder` colour is drawn.
 
 ### Shapes
 ```jsonc

@@ -1,0 +1,635 @@
+{
+ "title": "AREA 47 · Case File 047 · slide 4",
+ "format": {
+  "w": 1080,
+  "h": 1350,
+  "fps": 30
+ },
+ "bpm": 100,
+ "scenes": [
+  {
+   "id": "slide4",
+   "dur": 5.2,
+   "bg": "bg",
+   "grade": {
+    "vignette": 0.28,
+    "grain": 0.035
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "assets/badge/0001.jpg",
+     "seq": [
+      "assets/badge/0001.jpg",
+      "assets/badge/0002.jpg",
+      "assets/badge/0003.jpg",
+      "assets/badge/0004.jpg",
+      "assets/badge/0005.jpg",
+      "assets/badge/0006.jpg",
+      "assets/badge/0007.jpg",
+      "assets/badge/0008.jpg",
+      "assets/badge/0009.jpg",
+      "assets/badge/0010.jpg",
+      "assets/badge/0011.jpg",
+      "assets/badge/0012.jpg",
+      "assets/badge/0013.jpg",
+      "assets/badge/0014.jpg",
+      "assets/badge/0015.jpg",
+      "assets/badge/0016.jpg",
+      "assets/badge/0017.jpg",
+      "assets/badge/0018.jpg",
+      "assets/badge/0019.jpg",
+      "assets/badge/0020.jpg",
+      "assets/badge/0021.jpg",
+      "assets/badge/0022.jpg",
+      "assets/badge/0023.jpg",
+      "assets/badge/0024.jpg",
+      "assets/badge/0025.jpg",
+      "assets/badge/0026.jpg",
+      "assets/badge/0027.jpg",
+      "assets/badge/0028.jpg",
+      "assets/badge/0029.jpg",
+      "assets/badge/0030.jpg",
+      "assets/badge/0031.jpg",
+      "assets/badge/0032.jpg",
+      "assets/badge/0033.jpg",
+      "assets/badge/0034.jpg",
+      "assets/badge/0035.jpg",
+      "assets/badge/0036.jpg",
+      "assets/badge/0037.jpg",
+      "assets/badge/0038.jpg",
+      "assets/badge/0039.jpg",
+      "assets/badge/0040.jpg",
+      "assets/badge/0041.jpg",
+      "assets/badge/0042.jpg",
+      "assets/badge/0043.jpg",
+      "assets/badge/0044.jpg",
+      "assets/badge/0045.jpg",
+      "assets/badge/0046.jpg",
+      "assets/badge/0047.jpg",
+      "assets/badge/0048.jpg",
+      "assets/badge/0049.jpg",
+      "assets/badge/0050.jpg",
+      "assets/badge/0051.jpg",
+      "assets/badge/0052.jpg",
+      "assets/badge/0053.jpg",
+      "assets/badge/0054.jpg",
+      "assets/badge/0055.jpg",
+      "assets/badge/0056.jpg",
+      "assets/badge/0057.jpg",
+      "assets/badge/0058.jpg",
+      "assets/badge/0059.jpg",
+      "assets/badge/0060.jpg",
+      "assets/badge/0061.jpg",
+      "assets/badge/0062.jpg",
+      "assets/badge/0063.jpg",
+      "assets/badge/0064.jpg",
+      "assets/badge/0065.jpg",
+      "assets/badge/0066.jpg",
+      "assets/badge/0067.jpg",
+      "assets/badge/0068.jpg",
+      "assets/badge/0069.jpg",
+      "assets/badge/0070.jpg",
+      "assets/badge/0071.jpg",
+      "assets/badge/0072.jpg",
+      "assets/badge/0073.jpg",
+      "assets/badge/0074.jpg",
+      "assets/badge/0075.jpg",
+      "assets/badge/0076.jpg",
+      "assets/badge/0077.jpg",
+      "assets/badge/0078.jpg",
+      "assets/badge/0079.jpg",
+      "assets/badge/0080.jpg",
+      "assets/badge/0081.jpg",
+      "assets/badge/0082.jpg",
+      "assets/badge/0083.jpg",
+      "assets/badge/0084.jpg",
+      "assets/badge/0085.jpg",
+      "assets/badge/0086.jpg",
+      "assets/badge/0087.jpg",
+      "assets/badge/0088.jpg",
+      "assets/badge/0089.jpg",
+      "assets/badge/0090.jpg",
+      "assets/badge/0091.jpg",
+      "assets/badge/0092.jpg",
+      "assets/badge/0093.jpg",
+      "assets/badge/0094.jpg",
+      "assets/badge/0095.jpg",
+      "assets/badge/0096.jpg",
+      "assets/badge/0097.jpg",
+      "assets/badge/0098.jpg",
+      "assets/badge/0099.jpg",
+      "assets/badge/0100.jpg",
+      "assets/badge/0101.jpg",
+      "assets/badge/0102.jpg",
+      "assets/badge/0103.jpg",
+      "assets/badge/0104.jpg",
+      "assets/badge/0105.jpg",
+      "assets/badge/0106.jpg",
+      "assets/badge/0107.jpg"
+     ],
+     "w": 1,
+     "h": 1.25,
+     "fit": "cover",
+     "x": 0.5,
+     "y": 0.5,
+     "moves": [
+      {
+       "at": 3.4,
+       "dur": 1.8,
+       "scale": 1.06,
+       "ease": "outQuad"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "children": [
+      {
+       "type": "ring",
+       "r": 0.14,
+       "fill": "primary",
+       "strokeW": 0.004,
+       "dash": [
+        0.02,
+        0.012
+       ],
+       "loop": {
+        "fx": "spin",
+        "period": 6
+       }
+      },
+      {
+       "type": "ring",
+       "r": 0.1008,
+       "fill": "cyanSoft",
+       "strokeW": 0.0025,
+       "opacity": 0.8
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.004,
+       "h": 0.049,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0,
+       "y": -0.175,
+       "rot": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.004,
+       "h": 0.049,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0.175,
+       "y": 0,
+       "rot": 90
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.004,
+       "h": 0.049,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0.175,
+       "rot": 180
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.004,
+       "h": 0.049,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": -0.175,
+       "y": 0,
+       "rot": 270
+      },
+      {
+       "type": "circle",
+       "r": 0.007,
+       "fill": "primary"
+      }
+     ],
+     "x": 0.36,
+     "y": 0.45,
+     "in": {
+      "fx": "pop",
+      "at": 0.3,
+      "dur": 0.45
+     },
+     "sfx": "pop",
+     "moves": [
+      {
+       "at": 0.6,
+       "dur": 2.8,
+       "x": 0.7,
+       "y": 0.4,
+       "ease": "inOutQuad"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "BADGE // LOCKED",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.58,
+     "y": 0.2481,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "type",
+      "at": 3.3,
+      "dur": 0.5
+     },
+     "sfx": false
+    },
+    {
+     "type": "rect",
+     "w": 1,
+     "h": 0.45,
+     "hUnit": "H",
+     "x": 0.5,
+     "y": 1,
+     "anchor": "bottom",
+     "grad": [
+      "clear",
+      "shade"
+     ]
+    },
+    {
+     "type": "rect",
+     "w": 1,
+     "h": 0.16,
+     "hUnit": "H",
+     "x": 0.5,
+     "y": 0,
+     "anchor": "top",
+     "grad": [
+      "shadeMid",
+      "clear"
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.07,
+     "y": 0.6519,
+     "in": {
+      "fx": "wipe",
+      "at": 0.3,
+      "dur": 0.45
+     },
+     "sfx": "tick",
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.006,
+       "h": 0.032,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0
+      },
+      {
+       "type": "text",
+       "text": "EVIDENCE 03 // DETAILS",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.025,
+       "color": "primary",
+       "align": "left",
+       "anchor": "left",
+       "x": 0.02,
+       "y": 0,
+       "shadow": {
+        "color": "rgba(0,0,0,0.6)",
+        "blur": 0.02,
+        "y": 0.004
+       }
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Every\nedge.",
+     "role": "display",
+     "size": 0.16,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.7867,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "split": "line",
+     "stagger": 0.1,
+     "in": {
+      "fx": "mask-up",
+      "at": 0.45,
+      "dur": 0.55
+     }
+    },
+    {
+     "type": "text",
+     "text": "Badges, trims and the gaps you never see.",
+     "role": "body",
+     "size": 0.036,
+     "color": "steel",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.9259,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "rise",
+      "at": 1.1,
+      "dur": 0.5
+     }
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.3,
+       0.95
+      ],
+      [
+       0.7,
+       0.964
+      ],
+      [
+       1.04,
+       0.958
+      ]
+     ],
+     "stroke": "primary",
+     "strokeW": 0.003,
+     "dash": [
+      0.012,
+      0.01
+     ],
+     "opacity": 0.85,
+     "in": {
+      "fx": "draw",
+      "at": 0.15,
+      "dur": 1.3,
+      "ease": "inOutQuad"
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.3,
+       0.95
+      ],
+      [
+       0.7,
+       0.964
+      ],
+      [
+       1.04,
+       0.958
+      ]
+     ],
+     "stroke": "clear",
+     "strokeW": 0.001,
+     "head": {
+      "r": 0.03,
+      "src": "assets/ufo.svg"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 0.15,
+      "dur": 1.3,
+      "ease": "inOutQuad"
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "logo",
+     "w": 0.085,
+     "x": 0.115,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "AREA 47 DETAILING",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.024,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.0785,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "CASE FILE 047",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.02,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.1007,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "04 / 06",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "white",
+     "align": "right",
+     "anchor": "right",
+     "x": 0.885,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    }
+   ]
+  }
+ ]
+}

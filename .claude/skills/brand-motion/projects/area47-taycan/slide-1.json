@@ -1,0 +1,842 @@
+{
+ "title": "AREA 47 · Case File 047 · slide 1",
+ "format": {
+  "w": 1080,
+  "h": 1350,
+  "fps": 30
+ },
+ "bpm": 100,
+ "scenes": [
+  {
+   "id": "slide1",
+   "dur": 7.1,
+   "bg": "bg",
+   "grade": {
+    "vignette": 0.28,
+    "grain": 0.035
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "assets/reveal/0001.jpg",
+     "seq": [
+      "assets/reveal/0001.jpg",
+      "assets/reveal/0002.jpg",
+      "assets/reveal/0003.jpg",
+      "assets/reveal/0004.jpg",
+      "assets/reveal/0005.jpg",
+      "assets/reveal/0006.jpg",
+      "assets/reveal/0007.jpg",
+      "assets/reveal/0008.jpg",
+      "assets/reveal/0009.jpg",
+      "assets/reveal/0010.jpg",
+      "assets/reveal/0011.jpg",
+      "assets/reveal/0012.jpg",
+      "assets/reveal/0013.jpg",
+      "assets/reveal/0014.jpg",
+      "assets/reveal/0015.jpg",
+      "assets/reveal/0016.jpg",
+      "assets/reveal/0017.jpg",
+      "assets/reveal/0018.jpg",
+      "assets/reveal/0019.jpg",
+      "assets/reveal/0020.jpg",
+      "assets/reveal/0021.jpg",
+      "assets/reveal/0022.jpg",
+      "assets/reveal/0023.jpg",
+      "assets/reveal/0024.jpg",
+      "assets/reveal/0025.jpg",
+      "assets/reveal/0026.jpg",
+      "assets/reveal/0027.jpg",
+      "assets/reveal/0028.jpg",
+      "assets/reveal/0029.jpg",
+      "assets/reveal/0030.jpg",
+      "assets/reveal/0031.jpg",
+      "assets/reveal/0032.jpg",
+      "assets/reveal/0033.jpg",
+      "assets/reveal/0034.jpg",
+      "assets/reveal/0035.jpg",
+      "assets/reveal/0036.jpg",
+      "assets/reveal/0037.jpg",
+      "assets/reveal/0038.jpg",
+      "assets/reveal/0039.jpg",
+      "assets/reveal/0040.jpg",
+      "assets/reveal/0041.jpg",
+      "assets/reveal/0042.jpg",
+      "assets/reveal/0043.jpg",
+      "assets/reveal/0044.jpg",
+      "assets/reveal/0045.jpg",
+      "assets/reveal/0046.jpg",
+      "assets/reveal/0047.jpg",
+      "assets/reveal/0048.jpg",
+      "assets/reveal/0049.jpg",
+      "assets/reveal/0050.jpg",
+      "assets/reveal/0051.jpg",
+      "assets/reveal/0052.jpg",
+      "assets/reveal/0053.jpg",
+      "assets/reveal/0054.jpg",
+      "assets/reveal/0055.jpg",
+      "assets/reveal/0056.jpg",
+      "assets/reveal/0057.jpg",
+      "assets/reveal/0058.jpg",
+      "assets/reveal/0059.jpg",
+      "assets/reveal/0060.jpg",
+      "assets/reveal/0061.jpg",
+      "assets/reveal/0062.jpg",
+      "assets/reveal/0063.jpg",
+      "assets/reveal/0064.jpg",
+      "assets/reveal/0065.jpg",
+      "assets/reveal/0066.jpg",
+      "assets/reveal/0067.jpg",
+      "assets/reveal/0068.jpg",
+      "assets/reveal/0069.jpg",
+      "assets/reveal/0070.jpg",
+      "assets/reveal/0071.jpg",
+      "assets/reveal/0072.jpg",
+      "assets/reveal/0073.jpg",
+      "assets/reveal/0074.jpg",
+      "assets/reveal/0075.jpg",
+      "assets/reveal/0076.jpg",
+      "assets/reveal/0077.jpg",
+      "assets/reveal/0078.jpg",
+      "assets/reveal/0079.jpg",
+      "assets/reveal/0080.jpg",
+      "assets/reveal/0081.jpg",
+      "assets/reveal/0082.jpg",
+      "assets/reveal/0083.jpg",
+      "assets/reveal/0084.jpg",
+      "assets/reveal/0085.jpg",
+      "assets/reveal/0086.jpg",
+      "assets/reveal/0087.jpg",
+      "assets/reveal/0088.jpg",
+      "assets/reveal/0089.jpg",
+      "assets/reveal/0090.jpg",
+      "assets/reveal/0091.jpg",
+      "assets/reveal/0092.jpg",
+      "assets/reveal/0093.jpg",
+      "assets/reveal/0094.jpg",
+      "assets/reveal/0095.jpg",
+      "assets/reveal/0096.jpg",
+      "assets/reveal/0097.jpg",
+      "assets/reveal/0098.jpg",
+      "assets/reveal/0099.jpg",
+      "assets/reveal/0100.jpg",
+      "assets/reveal/0101.jpg",
+      "assets/reveal/0102.jpg",
+      "assets/reveal/0103.jpg",
+      "assets/reveal/0104.jpg",
+      "assets/reveal/0105.jpg",
+      "assets/reveal/0106.jpg",
+      "assets/reveal/0107.jpg",
+      "assets/reveal/0108.jpg",
+      "assets/reveal/0109.jpg",
+      "assets/reveal/0110.jpg",
+      "assets/reveal/0111.jpg",
+      "assets/reveal/0112.jpg",
+      "assets/reveal/0113.jpg",
+      "assets/reveal/0114.jpg",
+      "assets/reveal/0115.jpg",
+      "assets/reveal/0116.jpg",
+      "assets/reveal/0117.jpg",
+      "assets/reveal/0118.jpg",
+      "assets/reveal/0119.jpg",
+      "assets/reveal/0120.jpg",
+      "assets/reveal/0121.jpg",
+      "assets/reveal/0122.jpg",
+      "assets/reveal/0123.jpg",
+      "assets/reveal/0124.jpg",
+      "assets/reveal/0125.jpg",
+      "assets/reveal/0126.jpg",
+      "assets/reveal/0127.jpg",
+      "assets/reveal/0128.jpg",
+      "assets/reveal/0129.jpg",
+      "assets/reveal/0130.jpg",
+      "assets/reveal/0131.jpg",
+      "assets/reveal/0132.jpg",
+      "assets/reveal/0133.jpg",
+      "assets/reveal/0134.jpg",
+      "assets/reveal/0135.jpg",
+      "assets/reveal/0136.jpg",
+      "assets/reveal/0137.jpg",
+      "assets/reveal/0138.jpg",
+      "assets/reveal/0139.jpg",
+      "assets/reveal/0140.jpg",
+      "assets/reveal/0141.jpg",
+      "assets/reveal/0142.jpg",
+      "assets/reveal/0143.jpg",
+      "assets/reveal/0144.jpg",
+      "assets/reveal/0145.jpg",
+      "assets/reveal/0146.jpg",
+      "assets/reveal/0147.jpg",
+      "assets/reveal/0148.jpg",
+      "assets/reveal/0149.jpg",
+      "assets/reveal/0150.jpg",
+      "assets/reveal/0151.jpg",
+      "assets/reveal/0152.jpg",
+      "assets/reveal/0153.jpg",
+      "assets/reveal/0154.jpg",
+      "assets/reveal/0155.jpg",
+      "assets/reveal/0156.jpg",
+      "assets/reveal/0157.jpg",
+      "assets/reveal/0158.jpg",
+      "assets/reveal/0159.jpg",
+      "assets/reveal/0160.jpg",
+      "assets/reveal/0161.jpg",
+      "assets/reveal/0162.jpg",
+      "assets/reveal/0163.jpg",
+      "assets/reveal/0164.jpg",
+      "assets/reveal/0165.jpg",
+      "assets/reveal/0166.jpg",
+      "assets/reveal/0167.jpg",
+      "assets/reveal/0168.jpg",
+      "assets/reveal/0169.jpg",
+      "assets/reveal/0170.jpg",
+      "assets/reveal/0171.jpg",
+      "assets/reveal/0172.jpg",
+      "assets/reveal/0173.jpg",
+      "assets/reveal/0174.jpg",
+      "assets/reveal/0175.jpg",
+      "assets/reveal/0176.jpg",
+      "assets/reveal/0177.jpg",
+      "assets/reveal/0178.jpg",
+      "assets/reveal/0179.jpg",
+      "assets/reveal/0180.jpg",
+      "assets/reveal/0181.jpg",
+      "assets/reveal/0182.jpg",
+      "assets/reveal/0183.jpg",
+      "assets/reveal/0184.jpg",
+      "assets/reveal/0185.jpg",
+      "assets/reveal/0186.jpg",
+      "assets/reveal/0187.jpg",
+      "assets/reveal/0188.jpg",
+      "assets/reveal/0189.jpg",
+      "assets/reveal/0190.jpg",
+      "assets/reveal/0191.jpg",
+      "assets/reveal/0192.jpg",
+      "assets/reveal/0193.jpg",
+      "assets/reveal/0194.jpg",
+      "assets/reveal/0195.jpg",
+      "assets/reveal/0196.jpg",
+      "assets/reveal/0197.jpg",
+      "assets/reveal/0198.jpg",
+      "assets/reveal/0199.jpg",
+      "assets/reveal/0200.jpg",
+      "assets/reveal/0201.jpg",
+      "assets/reveal/0202.jpg",
+      "assets/reveal/0203.jpg",
+      "assets/reveal/0204.jpg",
+      "assets/reveal/0205.jpg",
+      "assets/reveal/0206.jpg",
+      "assets/reveal/0207.jpg",
+      "assets/reveal/0208.jpg",
+      "assets/reveal/0209.jpg",
+      "assets/reveal/0210.jpg",
+      "assets/reveal/0211.jpg",
+      "assets/reveal/0212.jpg",
+      "assets/reveal/0213.jpg"
+     ],
+     "w": 1,
+     "h": 1.25,
+     "fit": "cover",
+     "x": 0.5,
+     "y": 0.5,
+     "scale": 1.06,
+     "moves": [
+      {
+       "at": 0,
+       "dur": 7.1,
+       "scale": 1,
+       "ease": "linear"
+      }
+     ]
+    },
+    {
+     "type": "rect",
+     "w": 1,
+     "h": 0.32,
+     "hUnit": "H",
+     "x": 0.5,
+     "y": 0,
+     "anchor": "top",
+     "grad": [
+      "shadeMid",
+      "clear"
+     ]
+    },
+    {
+     "type": "rect",
+     "w": 1,
+     "h": 0.4,
+     "hUnit": "H",
+     "x": 0.5,
+     "y": 1,
+     "anchor": "bottom",
+     "grad": [
+      "clear",
+      "shade"
+     ]
+    },
+    {
+     "type": "text",
+     "text": "// INCOMING TRANSMISSION",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.2444,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "type",
+      "at": -0.2,
+      "dur": 0.8
+     },
+     "sfx": false,
+     "moves": [
+      {
+       "at": 3,
+       "dur": 0.5,
+       "y": 0.1844,
+       "ease": "inCubic"
+      }
+     ],
+     "out": {
+      "fx": "fade",
+      "at": 3.05,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "text",
+     "text": "Close\nencounter",
+     "role": "display",
+     "size": 0.2,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.3926,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "split": "line",
+     "stagger": 0.1,
+     "in": {
+      "fx": "mask-up",
+      "at": -0.3,
+      "dur": 0.6
+     },
+     "moves": [
+      {
+       "at": 3,
+       "dur": 0.5,
+       "y": 0.3326,
+       "ease": "inCubic"
+      }
+     ],
+     "out": {
+      "fx": "fade",
+      "at": 3.05,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "text",
+     "text": "OF THE CLEAN KIND",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.042,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.5444,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "wipe",
+      "at": 0.4,
+      "dur": 0.6
+     },
+     "moves": [
+      {
+       "at": 3,
+       "dur": 0.5,
+       "y": 0.4844,
+       "ease": "inCubic"
+      }
+     ],
+     "out": {
+      "fx": "fade",
+      "at": 3.05,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "poly",
+     "pts": [
+      [
+       -0.06,
+       0
+      ],
+      [
+       0.06,
+       0
+      ],
+      [
+       0.46,
+       1
+      ],
+      [
+       -0.46,
+       1
+      ]
+     ],
+     "grad": [
+      "beam",
+      "beamClear"
+     ],
+     "x": 0.5,
+     "y": 0.1852,
+     "blend": "screen",
+     "opacity": 0,
+     "sfx": false,
+     "moves": [
+      {
+       "at": 3.75,
+       "dur": 0.35,
+       "opacity": 1,
+       "ease": "outQuad"
+      }
+     ],
+     "loop": {
+      "fx": "pulse",
+      "period": 1.2,
+      "amp": 0.25
+     }
+    },
+    {
+     "type": "image",
+     "src": "assets/ufo.svg",
+     "w": 0.3,
+     "x": 0.5,
+     "y": 0.1481,
+     "in": {
+      "fx": "drop-soft",
+      "at": 3.25,
+      "dur": 0.6
+     },
+     "loop": {
+      "fx": "float",
+      "period": 2.4,
+      "amp": 0.6
+     },
+     "sfx": "whoosh"
+    },
+    {
+     "type": "group",
+     "x": 0.5,
+     "y": 0.25,
+     "opacity": 0,
+     "sfx": false,
+     "moves": [
+      {
+       "at": 4.6,
+       "dur": 0.1,
+       "opacity": 1
+      },
+      {
+       "at": 4.6,
+       "dur": 1.2,
+       "y": 0.86,
+       "ease": "inOutQuad"
+      },
+      {
+       "at": 5.6499999999999995,
+       "dur": 0.15,
+       "opacity": 0
+      }
+     ],
+     "children": [
+      {
+       "type": "rect",
+       "w": 1,
+       "h": 0.08,
+       "anchor": "bottom",
+       "grad": [
+        "beamClear",
+        "beam"
+       ]
+      },
+      {
+       "type": "rect",
+       "w": 1,
+       "h": 0.004,
+       "fill": "cyanSoft"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.07,
+     "y": 0.7704,
+     "in": {
+      "fx": "wipe",
+      "at": 5.3,
+      "dur": 0.45
+     },
+     "sfx": "tick",
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.006,
+       "h": 0.032,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0
+      },
+      {
+       "type": "text",
+       "text": "SPECIMEN ACQUIRED",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.025,
+       "color": "primary",
+       "align": "left",
+       "anchor": "left",
+       "x": 0.02,
+       "y": 0,
+       "shadow": {
+        "color": "rgba(0,0,0,0.6)",
+        "blur": 0.02,
+        "y": 0.004
+       }
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "Taycan Turbo GT",
+     "role": "display",
+     "size": 0.125,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.07,
+     "y": 0.837,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "mask-up",
+      "at": 5.45,
+      "dur": 0.5
+     }
+    },
+    {
+     "type": "text",
+     "text": "SWIPE  ›››",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "white",
+     "align": "right",
+     "anchor": "right",
+     "x": 0.93,
+     "y": 0.9,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     },
+     "in": {
+      "fx": "fade",
+      "at": 5.9,
+      "dur": 0.4
+     },
+     "loop": {
+      "fx": "pulse",
+      "period": 1,
+      "amp": 0.4
+     }
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.3,
+       0.95
+      ],
+      [
+       0.7,
+       0.964
+      ],
+      [
+       1.04,
+       0.958
+      ]
+     ],
+     "stroke": "primary",
+     "strokeW": 0.003,
+     "dash": [
+      0.012,
+      0.01
+     ],
+     "opacity": 0.85,
+     "in": {
+      "fx": "draw",
+      "at": 5.6,
+      "dur": 1.3,
+      "ease": "inOutQuad"
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.3,
+       0.95
+      ],
+      [
+       0.7,
+       0.964
+      ],
+      [
+       1.04,
+       0.958
+      ]
+     ],
+     "stroke": "clear",
+     "strokeW": 0.001,
+     "head": {
+      "r": 0.03,
+      "src": "assets/ufo.svg"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 5.6,
+      "dur": 1.3,
+      "ease": "inOutQuad"
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "logo",
+     "w": 0.085,
+     "x": 0.115,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "AREA 47 DETAILING",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.024,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.0785,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "CASE FILE 047",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.02,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.1007,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "01 / 06",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "white",
+     "align": "right",
+     "anchor": "right",
+     "x": 0.885,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    }
+   ]
+  }
+ ]
+}

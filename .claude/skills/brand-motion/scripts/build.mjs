@@ -29,7 +29,7 @@ function inline(src, baseDir) {
 }
 const bdir = path.dirname(brandPath), sdir = path.dirname(storyPath);
 if (brand.logo) { brand.logo.src = inline(brand.logo.src, bdir); brand.logo.srcOnDark = inline(brand.logo.srcOnDark, bdir); }
-const walk = els => (els || []).forEach(el => { if (el.src) el.src = inline(el.src, sdir); if (el.head && el.head.src) el.head.src = inline(el.head.src, sdir); walk(el.children); if (el.child) walk([el.child]); });
+const walk = els => (els || []).forEach(el => { if (el.src) el.src = inline(el.src, sdir); if (el.seq) el.seq = el.seq.map(s => inline(s, sdir)); if (el.head && el.head.src) el.head.src = inline(el.head.src, sdir); walk(el.children); if (el.child) walk([el.child]); });
 (story.scenes || []).forEach(s => walk(s.elements)); walk(story.overlays);
 
 // Validate token references early — the #1 cause of off-brand output is a typo'd colour token.

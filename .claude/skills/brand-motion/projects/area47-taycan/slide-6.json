@@ -1,0 +1,581 @@
+{
+ "title": "AREA 47 · Case File 047 · slide 6",
+ "format": {
+  "w": 1080,
+  "h": 1350,
+  "fps": 30
+ },
+ "bpm": 100,
+ "scenes": [
+  {
+   "id": "slide6",
+   "dur": 7,
+   "bg": "bg",
+   "grade": {
+    "vignette": 0.28,
+    "grain": 0.035
+   },
+   "elements": [
+    {
+     "type": "dots",
+     "count": 50,
+     "seed": 4,
+     "fill": [
+      "slate",
+      "cyanDeep"
+     ],
+     "r": 0.003,
+     "area": [
+      0.03,
+      0.03,
+      0.97,
+      0.97
+     ],
+     "motion": "drift",
+     "speed": 0.1,
+     "opacity": 0.7
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.25,
+       0.9
+      ],
+      [
+       0.18,
+       0.45
+      ],
+      [
+       0.5,
+       0.155
+      ]
+     ],
+     "stroke": "primary",
+     "strokeW": 0.003,
+     "dash": [
+      0.012,
+      0.01
+     ],
+     "opacity": 0.5,
+     "in": {
+      "fx": "draw",
+      "at": 0.1,
+      "dur": 1.4,
+      "ease": "inOutQuad"
+     },
+     "out": {
+      "fx": "draw",
+      "at": 1.6,
+      "dur": 0.6
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.04,
+       0.958
+      ],
+      [
+       0.25,
+       0.9
+      ],
+      [
+       0.18,
+       0.45
+      ],
+      [
+       0.5,
+       0.155
+      ]
+     ],
+     "stroke": "clear",
+     "strokeW": 0.001,
+     "head": {
+      "r": 0.03,
+      "src": "assets/ufo.svg"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 0.1,
+      "dur": 1.4,
+      "ease": "inOutQuad"
+     },
+     "out": {
+      "fx": "fade",
+      "at": 1.45,
+      "dur": 0.1
+     },
+     "sfx": false
+    },
+    {
+     "type": "poly",
+     "pts": [
+      [
+       -0.07,
+       0
+      ],
+      [
+       0.07,
+       0
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       -0.3,
+       0.42
+      ]
+     ],
+     "grad": [
+      "beam",
+      "beamClear"
+     ],
+     "x": 0.5,
+     "y": 0.1852,
+     "blend": "screen",
+     "opacity": 0,
+     "sfx": false,
+     "moves": [
+      {
+       "at": 1.7,
+       "dur": 0.3,
+       "opacity": 1
+      }
+     ],
+     "loop": {
+      "fx": "pulse",
+      "period": 1.2,
+      "amp": 0.25
+     }
+    },
+    {
+     "type": "image",
+     "src": "assets/ufo.svg",
+     "w": 0.065,
+     "x": 0.5,
+     "y": 0.1556,
+     "from": 1.5,
+     "moves": [
+      {
+       "at": 1.5,
+       "dur": 0.4,
+       "scale": 3.6,
+       "ease": "outBack"
+      }
+     ],
+     "loop": {
+      "fx": "float",
+      "period": 2.4,
+      "amp": 0.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "logo",
+     "w": 0.27,
+     "x": 0.5,
+     "y": 0.3852,
+     "in": {
+      "fx": "iris",
+      "at": 1.95,
+      "dur": 0.6
+     },
+     "loop": {
+      "fx": "float",
+      "period": 3,
+      "amp": 0.4
+     }
+    },
+    {
+     "type": "text",
+     "text": "Your car\nis next.",
+     "role": "display",
+     "size": 0.14,
+     "color": "white",
+     "x": 0.5,
+     "y": 0.6,
+     "split": "line",
+     "stagger": 0.1,
+     "in": {
+      "fx": "mask-up",
+      "at": 2.5,
+      "dur": 0.5
+     }
+    },
+    {
+     "type": "group",
+     "x": 0.2,
+     "y": 0.7259,
+     "in": {
+      "fx": "pop",
+      "at": 3.1,
+      "dur": 0.4
+     },
+     "sfx": "pop",
+     "children": [
+      {
+       "type": "pill",
+       "wUnit": "U",
+       "w": 0.27,
+       "h": 0.06,
+       "fill": "panel",
+       "stroke": "primary",
+       "strokeW": 0.003
+      },
+      {
+       "type": "text",
+       "text": "BASIC WASH",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.022,
+       "color": "white"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.5,
+     "y": 0.7259,
+     "in": {
+      "fx": "pop",
+      "at": 3.22,
+      "dur": 0.4
+     },
+     "sfx": "pop",
+     "children": [
+      {
+       "type": "pill",
+       "wUnit": "U",
+       "w": 0.27,
+       "h": 0.06,
+       "fill": "panel",
+       "stroke": "primary",
+       "strokeW": 0.003
+      },
+      {
+       "type": "text",
+       "text": "DELUXE WASH",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.022,
+       "color": "white"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.8,
+     "y": 0.7259,
+     "in": {
+      "fx": "pop",
+      "at": 3.34,
+      "dur": 0.4
+     },
+     "sfx": "pop",
+     "children": [
+      {
+       "type": "pill",
+       "wUnit": "U",
+       "w": 0.27,
+       "h": 0.06,
+       "fill": "panel",
+       "stroke": "primary",
+       "strokeW": 0.003
+      },
+      {
+       "type": "text",
+       "text": "FULL DETAIL",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.022,
+       "color": "white"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "+ CERAMIC SHINE · ENGINE BAY · STEAM · UPHOLSTERY",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.02,
+     "color": "steel",
+     "x": 0.5,
+     "y": 0.7778,
+     "in": {
+      "fx": "fade",
+      "at": 3.6,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "text",
+     "text": "MOBILE: WE COME TO YOU · FURNITURE TOO",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.02,
+     "color": "primary",
+     "x": 0.5,
+     "y": 0.8111,
+     "in": {
+      "fx": "fade",
+      "at": 3.8,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "group",
+     "x": 0.5,
+     "y": 0.8741,
+     "in": {
+      "fx": "pop",
+      "at": 4.1,
+      "dur": 0.45
+     },
+     "loop": {
+      "fx": "pulse",
+      "period": 1.6,
+      "amp": 0.3
+     },
+     "children": [
+      {
+       "type": "pill",
+       "wUnit": "U",
+       "w": 0.62,
+       "h": 0.085,
+       "fill": "primary",
+       "shadow": {
+        "color": "rgba(0,185,252,0.45)",
+        "blur": 0.05,
+        "y": 0
+       }
+      },
+      {
+       "type": "text",
+       "text": "DM TO BOOK  ·  @a47.detailing",
+       "role": "title",
+       "size": 0.032,
+       "color": "onPrimary",
+       "case": "none"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "or call +1 (868) 329-5373",
+     "role": "body",
+     "size": 0.028,
+     "color": "steel",
+     "x": 0.5,
+     "y": 0.9259,
+     "in": {
+      "fx": "fade",
+      "at": 4.4,
+      "dur": 0.4
+     }
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.036,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "top",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.045,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": 0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.955,
+     "y": 0.964,
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.07,
+       "h": 0.005,
+       "fill": "primary",
+       "anchor": "right",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.005,
+       "h": 0.07,
+       "fill": "primary",
+       "anchor": "bottom",
+       "x": -0.0025,
+       "y": 0
+      }
+     ],
+     "in": {
+      "fx": "fade",
+      "at": 0,
+      "dur": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "logo",
+     "w": 0.085,
+     "x": 0.115,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "AREA 47 DETAILING",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.024,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.0785,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "CASE FILE 047",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.02,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.17,
+     "y": 0.1007,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    },
+    {
+     "type": "text",
+     "text": "06 / 06",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "white",
+     "align": "right",
+     "anchor": "right",
+     "x": 0.885,
+     "y": 0.0874,
+     "shadow": {
+      "color": "rgba(0,0,0,0.6)",
+      "blur": 0.02,
+      "y": 0.004
+     }
+    }
+   ]
+  }
+ ]
+}

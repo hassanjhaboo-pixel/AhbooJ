@@ -1,0 +1,34 @@
+{
+  "name": "AREA 47 Detailing",
+  "tagline": "Close encounters of the clean kind",
+  "url": "@a47.detailing",
+  "voice": { "tone": "confident, playful, sci-fi", "maxWordsPerCard": 6, "case": "upper", "cta": "DM to book" },
+  "palette": {
+    "bg": "#07090c", "ink": "#ffffff", "primary": "#00b9fc", "onPrimary": "#07090c",
+    "secondary": "#ffffff", "onSecondary": "#07090c", "accent": "#00b9fc", "onAccent": "#07090c",
+    "dark": "#000000", "onDark": "#ffffff",
+    "chapter1": "#0d1218", "chapter2": "#00b9fc", "chapter3": "#141a22", "chapter4": "#e9f6fd",
+    "white": "#ffffff", "cyanDeep": "#0078a8", "cyanSoft": "#9fe3ff", "steel": "#aab4be", "slate": "#5d6873", "panel": "#10151c",
+    "beam": "rgba(0,185,252,0.38)", "beamClear": "rgba(0,185,252,0)", "glass": "rgba(7,9,12,0.55)", "glassLight": "rgba(255,255,255,0.12)",
+    "shade": "rgba(7,9,12,0.92)", "shadeMid": "rgba(7,9,12,0.6)", "clear": "rgba(7,9,12,0)", "stamp": "#00b9fc", "red": "#ff3b4e"
+  },
+  "type": {
+    "fontUrls": [],
+    "fontFiles": [
+      { "family": "Big Shoulders", "weight": 800, "src": "assets/area47/fonts/BigShoulders-Bold.ttf" },
+      { "family": "Outfit", "weight": 700, "src": "assets/area47/fonts/Outfit-Bold.ttf" },
+      { "family": "Outfit", "weight": 400, "src": "assets/area47/fonts/Outfit-Regular.ttf" },
+      { "family": "Tektur", "weight": 500, "src": "assets/area47/fonts/Tektur-Medium.ttf" }
+    ],
+    "display":  { "family": "Big Shoulders", "fallback": "'Liberation Sans', sans-serif", "weight": 800, "case": "upper", "tracking": 0.01, "lineHeight": 0.88 },
+    "headline": { "family": "Outfit", "fallback": "'Liberation Sans', sans-serif", "weight": 700, "case": "none", "tracking": -0.01, "lineHeight": 1.05 },
+    "body":     { "family": "Outfit", "fallback": "'Liberation Sans', sans-serif", "weight": 400, "case": "none", "tracking": 0, "lineHeight": 1.25 },
+    "hud":      { "family": "Tektur", "fallback": "monospace", "weight": 500, "case": "upper", "tracking": 0.14, "lineHeight": 1.1 },
+    "scale": { "display": 0.16, "headline": 0.08, "title": 0.06, "body": 0.042, "caption": 0.03 }
+  },
+  "logo": { "src": "assets/area47/logo-circle.png", "srcOnDark": "assets/area47/logo-circle.png", "wordmark": "AREA 47", "color": "primary", "clearSpace": 0.3 },
+  "shape": { "language": "sharp", "radius": 0.012, "strokeW": 0.004, "motif": "sci-fi HUD: scan lines, targeting brackets, a UFO on a dashed flight path, tractor beam" },
+  "motion": { "energy": "balanced", "bpm": 100, "exit": "inCubic", "move": "inOutCubic", "transition": "inOutCubic", "stagger": 0.05, "signatureTransition": "cut" },
+  "layout": { "safe": 0.07, "alignment": "left" },
+  "rules": { "do": ["cyan on black", "real photos of his work as heroes", "keep text inside the 3:4 grid crop"], "dont": ["never show licence plates", "never use car-maker logos as our branding"] }
+}

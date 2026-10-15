@@ -289,7 +289,7 @@
     // --- assets ---
     function collectSrcs() {
       const srcs = new Set();
-      const visit = el => { if (el.src) srcs.add(el.src); if (el.head && el.head.src) srcs.add(el.head.src); if (el.children) el.children.forEach(visit); };
+      const visit = el => { if (el.src) srcs.add(el.src); if (el.seq) el.seq.forEach(s => srcs.add(s)); if (el.head && el.head.src) srcs.add(el.head.src); if (el.children) el.children.forEach(visit); };
       scenes.forEach(s => s.elements.forEach(visit)); overlays.forEach(visit);
       if (brand.logo && brand.logo.src) srcs.add(brand.logo.src);
       if (brand.logo && brand.logo.srcOnDark) srcs.add(brand.logo.srcOnDark);
@@ -661,6 +661,12 @@
       }
     }
 
+    // video clip as a frame sequence: el.seq = [srcs], el.seqFps (default 30), el.seqAt (scene time it starts), el.seqRate (playback speed);
+    // holds the first frame before seqAt and the last frame after the end (seek-safe, deterministic)
+    function seqFrame(el, t) {
+      const i = Math.floor(Math.max(0, t - (el.seqAt || 0)) * (el.seqFps || 30) * (el.seqRate || 1));
+      return el.seq[Math.min(el.seq.length - 1, i)];
+    }
     function drawImage(el, st, w, h, src) {
       const im = images[src];
       const [ax, ay] = anchorOf(el);
@@ -854,7 +860,7 @@
           if (lay) drawText(el, st, lay, t);
           else drawImage(el, st, box.w, box.h, el.src || logoSrc(el));
           break;
-        case 'image': drawImage(el, st, box.w, box.h, el.src); break;
+        case 'image': drawImage(el, st, box.w, box.h, el.seq ? seqFrame(el, t) : el.src); break;
         case 'segbar': drawSegbar(el, st, box.w, box.h, t); break;
         case 'bricks': drawBricks(el, box.w, box.h); break;
         case 'baseplate': drawBaseplate(el, box.w, box.h); break;
