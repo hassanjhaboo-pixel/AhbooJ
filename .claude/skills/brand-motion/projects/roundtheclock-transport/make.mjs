@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Round The Clock Transport: "We Make Sure It Gets There". 34s @120bpm (68 beats), 9:16 and 1:1 from one definition.
+// Round The Clock Transport: "We Make Sure It Gets There". Cut to "Ikation" by Kraff Gad (owner-supplied clip): 103 bpm, 35.4s,
+// 9:16 and 1:1 from one definition. Every scene starts on a downbeat measured from the song (see SONG below).
 // Copy is the owner's flyer, tidied for grammar only.
 //
 // Playbook blend:
@@ -20,7 +21,11 @@ const VAN = A('van-icon.svg');
 const r4 = v => Math.round(v * 10000) / 10000;
 const SHADOW = { color: 'rgba(0,0,0,0.55)', blur: 0.025, y: 0.006 };
 const CARD_SHADOW = { color: 'rgba(12,15,18,0.28)', blur: 0.04, y: 0.018 };
-const WIPE = (bands = ['primary', 'white']) => ({ type: 'wipe', dir: 'right', bands, bandW: 0.1, dur: 0.5 });
+const WIPE = (bands = ['primary', 'white']) => ({ type: 'wipe', dir: 'right', bands, bandW: 0.1, dur: 0.42 });
+// Beat grid measured from the clip (out/song analysis): 103 bpm, first downbeat 1.345s, beat drop on bar 3 (8.336s).
+// The soundtrack repeats bars 10-11 once at 29.307s so the end card gets a full hold, then fades out (see mix-song.sh).
+const SONG = { bpm: 103, D0: 1.345, total: 35.406 };
+const BEAT = 60 / SONG.bpm, BAR = 4 * BEAT, bars = n => r4(n * BAR);
 
 function make(fmt) {
   const W = 1080, H = fmt === '1x1' ? 1080 : 1920, U = 1080, tall = fmt !== '1x1';
@@ -70,61 +75,63 @@ function make(fmt) {
   // ===== 1 · HOOK: the clock ticks, "Need it moved?" · 4b (2s) =====
   const hookC = tall ? [540, 720, 0.3] : [540, 430, 0.25];
   scenes.push({
-    id: 'hook', dur: '4b', bg: 'bg',
+    id: 'hook', dur: r4(SONG.D0 + BAR), bg: 'bg',  // intro: two hits at 0.48s and 2.52s
     camera: { zoom: [1.0, 1.06], ease: 'inOutQuad' },
     elements: [
       { type: 'dots', count: 26, seed: 3, fill: ['goldDeep', 'slate'], r: 0.006, area: [0.04, 0.04, 0.96, 0.96], motion: 'drift', speed: 0.18, opacity: 0.55 },
       { type: 'circle', r: hookC[2] * 1.32, fill: 'chapter3', x: 0.5, y: Y(hookC[1]), in: { fx: 'scale', at: -0.3, dur: 0.6 } },
-      clock({ x: 0.5, y: Y(hookC[1]), r: hookC[2], drawAt: -0.35, minuteSpin: '2b', hourSpin: '24b', secHand: 'white' }),
-      { type: 'text', text: 'Need it\nmoved?', role: 'display', size: tall ? 0.2 : 0.15, color: 'white', x: 0.5, y: tall ? Y(1360) : Y(860), split: 'word', stagger: 0.1, in: { fx: 'pop', at: -0.55, dur: 0.45 }, loop: { fx: 'wave', period: '2b', amp: 0.5 } },
+      clock({ x: 0.5, y: Y(hookC[1]), r: hookC[2], drawAt: -0.35, minuteSpin: '2b', hourSpin: '24b', secHand: 'white',
+        moves: [{ at: 2.46, dur: 0.07, scale: 1.12, ease: 'outQuad' }, { at: 2.53, dur: 0.4, scale: 1, ease: 'outBack' }] }),  // hit at 2.52s
+      { type: 'text', text: 'Need it\nmoved?', role: 'display', size: tall ? 0.2 : 0.15, color: 'white', x: 0.5, y: tall ? Y(1360) : Y(860), split: 'word', stagger: 0.1, in: { fx: 'pop', at: 0.34, dur: 0.45 }, loop: { fx: 'wave', period: '2b', amp: 0.5 } },  // lands on the 0.48s hit
     ],
   });
 
   // ===== 2 · BRAND: the real van, "Round the Clock / TRANSPORT" · 6b (3s) =====
   const bT = tall ? { script: 215, disp: 400, rule: 525, cap: 580, sSize: 0.13, dSize: 0.19 } : { script: 82, disp: 205, rule: 282, cap: 318, sSize: 0.085, dSize: 0.13 };
   scenes.push({
-    id: 'brand', dur: '6b', bg: 'dark', transition: WIPE(),
+    id: 'brand', dur: bars(2), bg: 'dark', transition: WIPE(),
+    camera: { zoom: [1.0, 1.07], ease: 'inQuad' },  // builds tension into the drop
     elements: [
-      photo(A('van-front.jpg'), 1.2, 1.04, 3.2),
+      photo(A('van-front.jpg'), 1.2, 1.04, 4.8),
       scrim('top', tall ? 0.42 : 0.4, 'shadeMid'),
-      { type: 'text', text: 'Round the Clock', role: 'headline', face: 'script', size: bT.sSize, color: 'primary', x: 0.5, y: Y(bT.script), shadow: SHADOW, in: { fx: 'mask-up', at: 0.3, dur: 0.6 } },
-      { type: 'text', text: 'Transport', role: 'display', size: bT.dSize, tracking: 0.03, maxWidth: 0.92, color: 'white', x: 0.5, y: Y(bT.disp), shadow: SHADOW, split: 'char', stagger: 0.035, in: { fx: 'mask-up', at: 0.55, dur: 0.5 } },
-      { type: 'rect', w: 0.26, h: 0.006, fill: 'primary', x: 0.5, y: Y(bT.rule), in: { fx: 'grow', at: 1.0, dur: 0.5 } },
-      { type: 'text', text: 'Trusted  ·  On time  ·  Nationwide', role: 'caption', face: 'headline', weight: 700, size: tall ? 0.034 : 0.028, tracking: 0.04, color: 'white', x: 0.5, y: Y(bT.cap), shadow: SHADOW, in: { fx: 'rise', at: 1.15, dur: 0.5 } },
+      { type: 'text', text: 'Round the Clock', role: 'headline', face: 'script', size: bT.sSize, color: 'primary', x: 0.5, y: Y(bT.script), shadow: SHADOW, in: { fx: 'mask-up', at: 0.25, dur: 0.6 } },
+      { type: 'text', text: 'Transport', role: 'display', size: bT.dSize, tracking: 0.03, maxWidth: 0.92, color: 'white', x: 0.5, y: Y(bT.disp), shadow: SHADOW, split: 'char', stagger: 0.025, in: { fx: 'mask-up', at: 1.36, dur: 0.45 } },  // slams on the 5.13s hit
+      { type: 'rect', w: 0.26, h: 0.006, fill: 'primary', x: 0.5, y: Y(bT.rule), in: { fx: 'grow', at: bars(1), dur: 0.5 } },
+      { type: 'text', text: 'Trusted  ·  On time  ·  Nationwide', role: 'caption', face: 'headline', weight: 700, size: tall ? 0.034 : 0.028, tracking: 0.04, color: 'white', x: 0.5, y: Y(bT.cap), shadow: SHADOW, in: { fx: 'rise', at: bars(1) + 0.15, dur: 0.5 } },
     ],
   });
 
   // ===== 3 · PILLAR 01: Trusted, reliable drivers (sunset photo) · 6b (3s) =====
   const p1 = tall ? { script: 1160, disp: 1420, rule: 1655, sSize: 0.11, dSize: 0.2 } : { script: 565, disp: 790, rule: 965, sSize: 0.085, dSize: 0.15 };
   scenes.push({
-    id: 'trusted', dur: '6b', bg: 'dark', transition: 'cut',
+    id: 'trusted', dur: bars(1), bg: 'dark', transition: { type: 'flash', color: 'white', dur: 0.3 },  // THE DROP (8.34s)
     camera: { at: [0.5, 0.5], keys: [{ at: 0, dur: 0.35, zoom: 1.0, ease: 'outExpo' }], zoom: [1.08, 1.0] },
     elements: [
-      photo(A('van-sunset.jpg'), 1.06, 1.16, 3.2, { x: 0.5 }),
+      photo(A('van-sunset.jpg'), 1.06, 1.16, 2.5, { x: 0.5 }),
       scrim('bottom', 0.6),
       scrim('top', 0.18, 'shadeMid'),
       counter(1),
-      { type: 'text', text: 'Trusted &', role: 'headline', face: 'script', size: p1.sSize, color: 'primary', align: 'left', anchor: 'left', x: 0.08, y: Y(p1.script), shadow: SHADOW, in: { fx: 'mask-up', at: 0.15, dur: 0.55 } },
-      { type: 'text', text: 'Reliable\ndrivers', role: 'display', size: p1.dSize, color: 'white', align: 'left', anchor: 'left', x: 0.08, y: Y(p1.disp), shadow: SHADOW, split: 'line', stagger: 0.12, in: { fx: 'mask-up', at: 0.35, dur: 0.55 } },
-      { type: 'rect', w: 0.22, h: 0.006, fill: 'primary', anchor: 'left', x: 0.08, y: Y(p1.rule), in: { fx: 'grow', at: 0.8, dur: 0.5 } },
+      { type: 'text', text: 'Trusted &', role: 'headline', face: 'script', size: p1.sSize, color: 'primary', align: 'left', anchor: 'left', x: 0.08, y: Y(p1.script), shadow: SHADOW, in: { fx: 'mask-up', at: 0.08, dur: 0.5 } },
+      { type: 'text', text: 'Reliable\ndrivers', role: 'display', size: p1.dSize, color: 'white', align: 'left', anchor: 'left', x: 0.08, y: Y(p1.disp), shadow: SHADOW, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.2, dur: 0.5 } },
+      { type: 'rect', w: 0.22, h: 0.006, fill: 'primary', anchor: 'left', x: 0.08, y: Y(p1.rule), in: { fx: 'grow', at: BEAT, dur: 0.45 } },
     ],
   });
 
   // ===== 4 · PILLAR 02: Always on time (the clock returns, hands race and land on 12) · 6b (3s) =====
   const p2 = tall ? { cx: 540, cy: 720, r: 0.3, script: 1140, disp: 1390, dSize: 0.24, sSize: 0.12, al: 'center', tx: 0.5 } : { cx: 300, cy: 560, r: 0.22, script: 380, disp: 600, dSize: 0.15, sSize: 0.1, al: 'center', tx: 0.76 };
   scenes.push({
-    id: 'ontime', dur: '6b', bg: 'secondary', transition: WIPE(),
+    id: 'ontime', dur: bars(1), bg: 'secondary', transition: WIPE(),
     elements: [
-      { type: 'ring', r: p2.r * 1.15, fill: 'white', strokeW: 0.004, opacity: 0.5, x: X(p2.cx), y: Y(p2.cy), moves: [{ at: 0.9, dur: 1.4, scale: 1.9, opacity: 0, ease: 'outCubic' }] },
-      { type: 'ring', r: p2.r * 1.15, fill: 'white', strokeW: 0.004, opacity: 0.5, x: X(p2.cx), y: Y(p2.cy), moves: [{ at: 1.5, dur: 1.4, scale: 1.9, opacity: 0, ease: 'outCubic' }] },
+      { type: 'ring', r: p2.r * 1.15, fill: 'white', strokeW: 0.004, opacity: 0.5, x: X(p2.cx), y: Y(p2.cy), moves: [{ at: BEAT, dur: 1.2, scale: 1.9, opacity: 0, ease: 'outCubic' }] },
+      { type: 'ring', r: p2.r * 1.15, fill: 'white', strokeW: 0.004, opacity: 0.5, x: X(p2.cx), y: Y(p2.cy), moves: [{ at: 2 * BEAT, dur: 1.2, scale: 1.9, opacity: 0, ease: 'outCubic' }] },
       { type: 'circle', r: p2.r * 1.15, fill: 'skyDeep', x: X(p2.cx), y: Y(p2.cy), in: { fx: 'scale', at: -0.1, dur: 0.5 } },
       clock({ x: X(p2.cx), y: Y(p2.cy), r: p2.r, ring: 'white', ticks: 'white', quarter: 'white', hourHand: 'bg', minHand: 'white', hub: 'bg', drawAt: 0.0, hourSpin: null,
-        minuteMoves: [{ at: 0.3, dur: 1.2, rot: 1080, ease: 'outCubic' }], secHand: null }),
-      { type: 'group', x: X(p2.cx + p2.r * U * 0.78), y: Y(p2.cy + p2.r * U * 0.72), in: { fx: 'pop', at: 1.5, dur: 0.45 }, loop: { fx: 'float', period: '4b', amp: 0.5 }, sfx: 'chime',
+        minuteMoves: [{ at: 0.12, dur: 2 * BEAT - 0.12, rot: 1080, ease: 'outCubic' }], secHand: null }),
+      { type: 'group', x: X(p2.cx + p2.r * U * 0.78), y: Y(p2.cy + p2.r * U * 0.72), in: { fx: 'pop', at: 2 * BEAT - 0.1, dur: 0.45 }, loop: { fx: 'float', period: '4b', amp: 0.5 }, sfx: 'chime',
         children: [{ type: 'circle', r: 0.085, fill: 'white', shadow: CARD_SHADOW }, ...check(0.068, 'bg', 'white')] },
       counter(2, 'skyDeep'),
-      { type: 'text', text: 'Always', role: 'headline', face: 'script', size: p2.sSize, color: 'white', x: p2.tx, y: Y(p2.script), in: { fx: 'mask-up', at: 0.25, dur: 0.55 } },
-      { type: 'text', text: tall ? 'On time' : 'On\ntime', role: 'display', size: p2.dSize, color: 'white', x: p2.tx, y: Y(p2.disp), split: 'word', stagger: 0.12, in: { fx: 'pop', at: 0.5, dur: 0.45 } },
+      { type: 'text', text: 'Always', role: 'headline', face: 'script', size: p2.sSize, color: 'white', x: p2.tx, y: Y(p2.script), in: { fx: 'mask-up', at: 0.1, dur: 0.5 } },
+      { type: 'text', text: tall ? 'On time' : 'On\ntime', role: 'display', size: p2.dSize, color: 'white', x: p2.tx, y: Y(p2.disp), split: 'word', stagger: 0.1, in: { fx: 'pop', at: 0.28, dur: 0.45 } },
     ],
   });
 
@@ -141,14 +148,14 @@ function make(fmt) {
   const islandPts = ISLAND.map(([lo, la]) => { const [px, py] = proj(lo, la); return [u(px - M.cx), u(py - M.cy)]; });
   const cityPx = CITIES.map(([n, lo, la, side]) => ({ n, side, p: proj(lo, la) }));
   // timing: the van reaches each city in proportion to the distance travelled
-  const routeStart = 0.7, routeDur = 2.4;
+  const routeStart = BEAT, routeDur = 3.0;
   const seg = cityPx.map((c, i) => (i ? Math.hypot(c.p[0] - cityPx[i - 1].p[0], c.p[1] - cityPx[i - 1].p[1]) : 0));
   const total = seg.reduce((a, b) => a + b, 0); let acc = 0;
   const arrive = seg.map(s => { acc += s; return r4(routeStart + (acc / total) * routeDur); });
   const p3T = tall ? { disp: 360, script: 500, dSize: 0.2, sSize: 0.11, tx: 0.5, al: 'center', anc: 'center' } : { disp: 200, script: 300, dSize: 0.13, sSize: 0.08, tx: 0.06, al: 'left', anc: 'left' };
   const labelOff = { below: [0, 50], above: [0, -50], right: [26, 0], left: [-26, 0] };
   scenes.push({
-    id: 'nationwide', dur: '8b', bg: 'chapter3', transition: WIPE(),
+    id: 'nationwide', dur: bars(2), bg: 'chapter3', transition: WIPE(),
     camera: { zoom: [1.0, 1.04], ease: 'inOutQuad' },
     elements: [
       { type: 'dots', count: 40, seed: 12, fill: ['slate'], r: 0.004, area: [0.03, 0.03, 0.97, 0.97], motion: 'drift', speed: 0.12, opacity: 0.4 },
@@ -178,7 +185,7 @@ function make(fmt) {
     { text: 'Enclosed transport', card: A('van-sidedoor.jpg') },
     { text: 'Best for fragile goods', card: 'fragile' },
   ];
-  const slot = 2.0, first = 0.5;
+  const slot = 2.5 * BEAT, first = BEAT;  // a new item every 2.5 beats
   const LS = tall
     ? { head: 200, cardX: 540, cardY: 690, cardW: 0.66, cardH: 0.56, rows: [1125, 1240, 1355, 1470], rowX: 0.13, txtX: 0.19, txtSize: 0.06, chk: 0.034, road: 1690 }
     : { head: 110, cardX: 300, cardY: 600, cardW: 0.42, cardH: 0.46, rows: [380, 520, 660, 800], rowX: 0.585, txtX: 0.63, txtSize: 0.042, chk: 0.028, road: null };
@@ -233,7 +240,7 @@ function make(fmt) {
   ];
   if (LS.road) { // a little road along the bottom: the van keeps driving while the list builds (Line Journey continuity)
     listEls.push({ type: 'rect', w: 1, h: 0.004, fill: 'steel', x: 0.5, y: Y(LS.road + 70) });
-    listEls.push({ type: 'path', points: [[-0.1, Y(LS.road)], [1.1, Y(LS.road)]], smooth: false, stroke: 'clear', strokeW: 0.001, head: { r: 0.085, src: VAN }, in: { fx: 'draw', at: 0, dur: 8, ease: 'linear' }, sfx: false });
+    listEls.push({ type: 'path', points: [[-0.1, Y(LS.road)], [1.1, Y(LS.road)]], smooth: false, stroke: 'clear', strokeW: 0.001, head: { r: 0.085, src: VAN }, in: { fx: 'draw', at: 0, dur: bars(3), ease: 'linear' }, sfx: false });
   }
   const rowEls = []; // drawn above the cards so a card sliding in never covers the list
   ITEMS.forEach((it, i) => {
@@ -252,16 +259,16 @@ function make(fmt) {
       in: { fx: 'mask-up', at: t + 0.35, dur: 0.5 }, sfx: false,
       moves: i < 3 ? [{ at: t + slot, dur: 0.4, color: 'slate' }] : undefined });
   });
-  scenes.push({ id: 'why', dur: '16b', bg: 'paper', transition: WIPE(['primary', 'secondary']), elements: listEls.concat(rowEls) });
+  scenes.push({ id: 'why', dur: bars(3), bg: 'paper', transition: WIPE(['primary', 'secondary']), elements: listEls.concat(rowEls) });
 
   // ===== 7 · OFFER: Book with us now, seasonal specials & discounts · 6b (3s) =====
   const OF = tall ? { badgeY: 470, badgeR: 0.22, disp: 1020, dSize: 0.2, sub: 1290, subSize: 0.062 } : { badgeY: 250, badgeR: 0.14, disp: 560, dSize: 0.14, sub: 780, subSize: 0.048 };
   scenes.push({
-    id: 'offer', dur: '6b', bg: 'primary', transition: 'cut',
+    id: 'offer', dur: bars(1), bg: 'primary', transition: 'cut',
     camera: { at: [0.5, 0.5], keys: [{ at: 0, dur: 0.3, zoom: 1.0, ease: 'outExpo' }], zoom: [1.1, 1.0] },
     elements: [
       { type: 'rays', r: tall ? 1.55 : 0.95, count: 22, fill: 'goldSoft', opacity: 0.45, x: 0.5, y: Y(OF.badgeY), loop: { fx: 'spin', period: '32b' } },
-      { type: 'dots', count: 34, seed: 9, fill: ['bg', 'white', 'secondary'], r: 0.009, area: [0.02, -0.05, 0.98, 1.0], motion: 'fall', speed: 0.35, in: { at: 0.2, dur: 2.6 } },
+      { type: 'dots', count: 34, seed: 9, fill: ['bg', 'white', 'secondary'], r: 0.009, area: [0.02, -0.05, 0.98, 1.0], motion: 'fall', speed: 0.35, in: { at: 0.15, dur: 2.1 } },
       { type: 'group', x: 0.5, y: Y(OF.badgeY), in: { fx: 'spin-in', at: -0.15, dur: 0.6 }, loop: { fx: 'sway', period: '4b', amp: 0.8 },
         children: [
           { type: 'star', r: OF.badgeR, points: 18, inner: 0.84, round: 0.1, fill: 'bg', shadow: CARD_SHADOW },
@@ -269,8 +276,8 @@ function make(fmt) {
           { type: 'text', text: 'Seasonal', role: 'headline', face: 'script', size: OF.badgeR * 0.3, color: 'primary', y: -OF.badgeR * 0.26 },
           { type: 'text', text: 'Deals', role: 'display', size: OF.badgeR * 0.5, color: 'white', y: OF.badgeR * 0.14 },
         ] },
-      { type: 'text', text: 'Book with\nus now', role: 'display', size: OF.dSize, color: 'onPrimary', x: 0.5, y: Y(OF.disp), split: 'line', stagger: 0.12, in: { fx: 'mask-up', at: 0.3, dur: 0.5 } },
-      { type: 'text', text: 'to receive seasonal\nspecials and discounts', role: 'headline', size: OF.subSize, color: 'onPrimary', x: 0.5, y: Y(OF.sub), in: { fx: 'rise', at: 0.75, dur: 0.5 } },
+      { type: 'text', text: 'Book with\nus now', role: 'display', size: OF.dSize, color: 'onPrimary', x: 0.5, y: Y(OF.disp), split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.15, dur: 0.45 } },
+      { type: 'text', text: 'to receive seasonal\nspecials and discounts', role: 'headline', size: OF.subSize, color: 'onPrimary', x: 0.5, y: Y(OF.sub), in: { fx: 'rise', at: BEAT, dur: 0.45 } },
     ],
   });
 
@@ -278,20 +285,20 @@ function make(fmt) {
   const TG = tall ? { q: 520, qSize: 0.1, disp: 900, dSize: 0.15, road: 1470, van: 0.5 } : { q: 165, qSize: 0.08, disp: 435, dSize: 0.12, road: 860, van: 0.36 };
   const vanW = tall ? 0.56 : 0.34;
   scenes.push({
-    id: 'promise', dur: '8b', bg: 'bg', transition: WIPE(),
+    id: 'promise', dur: bars(2), bg: 'bg', transition: WIPE(),
     elements: [
       { type: 'dots', count: 24, seed: 5, fill: ['goldDeep', 'slate'], r: 0.005, area: [0.04, 0.04, 0.96, 0.7], motion: 'drift', speed: 0.15, opacity: 0.5 },
       { type: 'text', text: '“Your best choice\nthis season.”', role: 'headline', face: 'script', size: TG.qSize, color: 'primary', x: 0.5, y: Y(TG.q), split: 'line', stagger: 0.15, in: { fx: 'mask-up', at: 0.1, dur: 0.6 } },
-      { type: 'text', text: 'We make sure\nit gets there.', role: 'display', size: TG.dSize, maxWidth: 0.94, color: 'white', x: 0.5, y: Y(TG.disp), split: 'word', stagger: 0.09, in: { fx: 'pop', at: 1.5, dur: 0.45 } },
+      { type: 'text', text: 'We make sure\nit gets there.', role: 'display', size: TG.dSize, maxWidth: 0.94, color: 'white', x: 0.5, y: Y(TG.disp), split: 'word', stagger: 0.09, in: { fx: 'pop', at: 3 * BEAT - 0.12, dur: 0.45 } },  // lands with the van on beat 4
       // road: asphalt band, kerb lines, centre dashes streaming left (the van is moving)
       { type: 'rect', w: 1, h: tall ? 0.15 : 0.13, fill: 'asphalt', x: 0.5, y: Y(TG.road), in: { fx: 'grow', at: 0.0, dur: 0.6 } },
       { type: 'repeat', mode: 'line', count: 6, step: [0.2, 0], x: 0.5, y: Y(TG.road), stagger: 0.05, in: { at: 0.2 }, child: { type: 'rect', wUnit: 'U', w: 0.09, h: 0.012, radius: 0.006, fill: 'primary', in: { fx: 'grow', at: 0, dur: 0.3 } } },
       { type: 'group', x: X(-W * 0.4), y: Y(TG.road - (tall ? 20 : 15)), anchor: 'bottom',
-        moves: [{ at: 0.2, dur: 1.4, x: TG.van, ease: 'outCubic' }, { at: 1.6, dur: 0.12, rot: 3, ease: 'outQuad' }, { at: 1.72, dur: 0.3, rot: 0, ease: 'outBack' }],
+        moves: [{ at: 0.2, dur: 3 * BEAT - 0.2, x: TG.van, ease: 'outCubic' }, { at: 3 * BEAT, dur: 0.12, rot: 3, ease: 'outQuad' }, { at: 3 * BEAT + 0.12, dur: 0.3, rot: 0, ease: 'outBack' }],
         loop: { fx: 'bob', period: 0.2, amp: 0.4 },
         children: [{ type: 'image', src: VAN, w: vanW, x: 0, y: -vanW * 0.27 }] },
-      { type: 'sparkle', r: 0.03, fill: 'primary', x: TG.van + 0.24 * (tall ? 1 : 0.62), y: Y(TG.road - (tall ? 290 : 190)), in: { fx: 'pop', at: 1.75, dur: 0.4 }, loop: { fx: 'pulse', period: '2b', amp: 1.4 } },
-      { type: 'sparkle', r: 0.02, fill: 'white', x: TG.van + 0.3 * (tall ? 1 : 0.62), y: Y(TG.road - (tall ? 220 : 140)), in: { fx: 'pop', at: 1.85, dur: 0.4 }, loop: { fx: 'pulse', period: '2b', amp: 1.4, phase: 0.5 } },
+      { type: 'sparkle', r: 0.03, fill: 'primary', x: TG.van + 0.24 * (tall ? 1 : 0.62), y: Y(TG.road - (tall ? 290 : 190)), in: { fx: 'pop', at: 3 * BEAT + 0.05, dur: 0.4 }, loop: { fx: 'pulse', period: '2b', amp: 1.4 } },
+      { type: 'sparkle', r: 0.02, fill: 'white', x: TG.van + 0.3 * (tall ? 1 : 0.62), y: Y(TG.road - (tall ? 220 : 140)), in: { fx: 'pop', at: 3 * BEAT + 0.15, dur: 0.4 }, loop: { fx: 'pulse', period: '2b', amp: 1.4, phase: 0.5 } },
     ],
   });
 
@@ -300,7 +307,7 @@ function make(fmt) {
     ? { clockY: 430, clockR: 0.13, word: 710, wSize: 0.12, script: 840, sSize: 0.11, phone: 1090, pSize: 0.095, mail: 1195, mSize: 0.05, ig: 0.058, igW: 0.47, pill: 1370, pillW: 0.6, pillH: 0.11 }
     : { clockY: 150, clockR: 0.085, word: 330, wSize: 0.105, script: 430, sSize: 0.085, phone: 590, pSize: 0.075, mail: 672, mSize: 0.04, ig: 0.046, igW: 0.38, pill: 820, pillW: 0.5, pillH: 0.095 };
   scenes.push({
-    id: 'end', dur: '8b', bg: 'bg', transition: { type: 'flash', color: 'white', dur: 0.4 },
+    id: 'end', dur: r4(SONG.total - (SONG.D0 + bars(13))), bg: 'bg', transition: { type: 'flash', color: 'white', dur: 0.35 },
     elements: [
       { type: 'dots', count: 30, seed: 8, fill: ['goldDeep', 'slate', 'skyDeep'], r: 0.006, area: [0.03, 0.03, 0.97, 0.97], motion: 'drift', speed: 0.15, opacity: 0.6 },
       { type: 'blob', r: EC.clockR * 1.55, wobble: 0.08, speed: 0.6, seed: 4, fill: 'chapter3', x: 0.5, y: Y(EC.clockY), in: { fx: 'scale', at: 0.0, dur: 0.6 } },
@@ -326,7 +333,7 @@ function make(fmt) {
     ],
   });
 
-  return { title: 'Round The Clock Transport · We make sure it gets there', format: { w: W, h: H, fps: 30 }, bpm: 120, scenes };
+  return { title: 'Round The Clock Transport · We make sure it gets there', format: { w: W, h: H, fps: 30 }, bpm: SONG.bpm, scenes };
 }
 
 for (const fmt of ['9x16', '1x1']) {
