@@ -74,187 +74,110 @@
     },
     {
      "type": "group",
-     "x": 0.6,
-     "y": 0.27,
+     "x": 0.775,
+     "y": 0.335,
      "children": [
       {
        "type": "image",
-       "src": "../../brand/assets/area47/mascot/body.svg",
-       "w": 0.24,
+       "src": "../../brand/assets/area47/sev/face-side.png",
+       "w": 0.2154,
        "wUnit": "U",
-       "anchor": "top-left",
+       "h": 0.25,
+       "anchor": "bottom",
        "x": 0,
-       "y": 0
-      },
-      {
-       "type": "group",
-       "x": 0.12,
-       "y": 0.0232,
-       "moves": [
-        {
-         "at": 3,
-         "dur": 0.12600000000000003,
-         "rot": 6,
-         "ease": "outQuad"
-        },
-        {
-         "at": 3.126,
-         "dur": 0.15400000000000003,
-         "rot": 0,
-         "ease": "inOutQuad"
-        },
-        {
-         "at": 3.6,
-         "dur": 0.12600000000000003,
-         "rot": 6,
-         "ease": "outQuad"
-        },
-        {
-         "at": 3.726,
-         "dur": 0.15400000000000003,
-         "rot": 0,
-         "ease": "inOutQuad"
-        }
-       ],
-       "children": [
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/head.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-side.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 0,
-         "out": {
-          "fx": "cut",
-          "at": 2.4,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 0,
-         "out": {
-          "fx": "cut",
-          "at": 2.4,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-hype.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 2.4,
-         "out": {
-          "fx": "cut",
-          "at": 2.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-ayy.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 2.4,
-         "out": {
-          "fx": "cut",
-          "at": 2.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 2.9,
-         "out": {
-          "fx": "cut",
-          "at": 3.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 2.9,
-         "out": {
-          "fx": "cut",
-          "at": 3.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 3.9,
-         "out": {
-          "fx": "cut",
-          "at": 6.4,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
-         "w": 0.16,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.08,
-         "y": -0.1872,
-         "from": 3.9,
-         "out": {
-          "fx": "cut",
-          "at": 6.4,
-          "dur": 0.001
-         }
-        }
-       ]
+       "y": 0,
+       "from": 0,
+       "out": {
+        "fx": "cut",
+        "at": 2.4,
+        "dur": 0.001
+       }
       },
       {
        "type": "image",
-       "src": "../../brand/assets/area47/logo-circle.png",
-       "w": 0.0336,
+       "src": "../../brand/assets/area47/sev/face-shocked.png",
+       "w": 0.234,
        "wUnit": "U",
-       "x": 0.176,
-       "y": 0.0848
+       "h": 0.25,
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0,
+       "from": 2.4,
+       "out": {
+        "fx": "cut",
+        "at": 2.9,
+        "dur": 0.001
+       }
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/sev/face-laugh.png",
+       "w": 0.2168,
+       "wUnit": "U",
+       "h": 0.25,
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0,
+       "from": 2.9,
+       "out": {
+        "fx": "cut",
+        "at": 3.7,
+        "dur": 0.001
+       }
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/sev/face-proud.png",
+       "w": 0.2222,
+       "wUnit": "U",
+       "h": 0.25,
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0,
+       "from": 3.7,
+       "out": {
+        "fx": "cut",
+        "at": 6.4,
+        "dur": 0.001
+       }
+      }
+     ],
+     "moves": [
+      {
+       "at": 2.4,
+       "dur": 0.07,
+       "scale": 1.07,
+       "ease": "outQuad"
+      },
+      {
+       "at": 2.4699999999999998,
+       "dur": 0.28,
+       "scale": 1,
+       "ease": "outBack"
+      },
+      {
+       "at": 2.9,
+       "dur": 0.07,
+       "scale": 1.07,
+       "ease": "outQuad"
+      },
+      {
+       "at": 2.9699999999999998,
+       "dur": 0.28,
+       "scale": 1,
+       "ease": "outBack"
+      },
+      {
+       "at": 3.7,
+       "dur": 0.07,
+       "scale": 1.07,
+       "ease": "outQuad"
+      },
+      {
+       "at": 3.77,
+       "dur": 0.28,
+       "scale": 1,
+       "ease": "outBack"
       }
      ],
      "in": {

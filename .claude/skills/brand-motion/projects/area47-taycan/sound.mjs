@@ -39,7 +39,7 @@ function render(n) {
     tick: (t0, pan = -0.4) => add(t0, 0.04, t => Math.sin(TAU * 2600 * t) * Math.exp(-t / 0.008), 0.12, pan),
   };
   const at = el => (el.in && typeof el.in.at === 'number' ? el.in.at : 0);
-  const isSev = el => el.type === 'group' && (el.children || []).some(c => String(c.src || '').endsWith('body.svg'));
+  const isSev = el => el.type === 'group' && (el.children || []).some(c => String(c.src || '').includes('/sev/'));
   sc.elements.forEach(el => {
     if (el.type === 'text' && el.role === 'display' && el.in) S.hit(at(el) + 0.12);
     else if (el.type === 'path' && el.head && el.in) S.zip(at(el), el.in.dur || 1.3);

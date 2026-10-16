@@ -9,11 +9,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mascot } from '../../kits/area47-mascot.mjs';
+import { sev } from '../../kits/area47-sev.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const MB = '../../brand/assets/area47/mascot', LOGO47 = '../../brand/assets/area47/logo-circle.png';
 // SEV, the AREA 47 head of security: cameos on slides 2, 4, 6 (never the main subject) and slams the stamp on slide 5
-const sev = o => mascot(Object.assign({ base: MB, logo: LOGO47, sparkle: false }, o));
 
 const W = 1080, H = 1350, U = 1080, N = 6;
 const r4 = v => Math.round(v * 10000) / 10000;
@@ -108,8 +106,7 @@ const out = [];
     { type: 'sparkle', r: 0.03, fill: 'white', x: 0.87, y: 0.33, in: { fx: 'pop', at: 1.8, dur: 0.4 }, loop: { fx: 'pulse', period: 1.4, amp: 1.5, phase: 0.6 } },
     scrim('bottom', 0.42),
     scrim('top', 0.16, 'shadeMid'),
-    sev({ x: 0.72, y: 0.865, w: 0.28, end: dur, faces: [[0, 'side', 'smirk'], [3.7, 'wink', 'grin'], [4.6, 'side', 'smirk']], nods: [2.7, 3.3],
-      in: { fx: 'slide-up', at: 2.0, dur: 0.6 }, sfx: 'bloop' }),
+    sev({ x: 0.85, y: 1.03, h: 0.33, end: dur, art: [[0, 'face-side'], [2.9, 'face-smirk'], [3.7, 'face-wink'], [4.6, 'face-proud']], in: { fx: 'slide-up', at: 2.0, dur: 0.6 }, sfx: 'bloop' }),
     tag('EVIDENCE 01 // PAINT', Y(880), 0.3),
     { type: 'text', text: 'Mirror\nfinish', role: 'display', size: 0.12, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
     { type: 'text', text: 'Yes, those clouds are in the paint.', role: 'body', size: 0.036, color: 'steel', align: 'left', anchor: 'left', x: 0.07, y: Y(1250), shadow: SH, in: { fx: 'rise', at: 1.1, dur: 0.5 } },
@@ -141,11 +138,10 @@ const out = [];
   out.push(story(4, dur, [
     { type: 'image', src: seq[0], seq, w: 1, h: FULL_H, fit: 'cover', x: 0.5, y: 0.5, moves: [{ at: 3.4, dur: 1.8, scale: 1.06, ease: 'outQuad' }] },
     reticle(0.14, { x: 0.36, y: 0.45, in: { fx: 'pop', at: 0.3, dur: 0.45 }, sfx: 'pop', moves: [{ at: 0.6, dur: 2.8, x: 0.7, y: 0.4, ease: 'inOutQuad' }] }),
-    hud('BADGE // LOCKED', 0.58, Y(335), { color: 'white', in: { fx: 'type', at: 3.3, dur: 0.5 }, sfx: false }),
+    hud('BADGE // LOCKED', 0.58, Y(400), { color: 'white', in: { fx: 'type', at: 3.3, dur: 0.5 }, sfx: false }),
     scrim('bottom', 0.45),
     scrim('top', 0.16, 'shadeMid'),
-    sev({ x: 0.79, y: 0.075, w: 0.26, rot: 180, end: dur, faces: [[0, 'cool', 'smirk'], [3.0, 'wink', 'grin'], [3.9, 'cool', 'smirk']],
-      in: { fx: 'slide-down', at: 1.6, dur: 0.6, ease: 'outBack' }, loop: { fx: 'sway', period: 2.4, amp: 0.5 }, sfx: 'bloop' }),
+    sev({ x: 0.6, y: 0.035, h: 0.27, rot: 180, end: dur, art: [[0, 'face-flat'], [2.8, 'face-wink'], [3.7, 'face-smirk']], in: { fx: 'slide-down', at: 1.6, dur: 0.6, ease: 'outBack' }, loop: { fx: 'sway', period: 2.4, amp: 0.5 }, sfx: 'bloop' }),
     tag('EVIDENCE 03 // DETAILS', Y(880), 0.3),
     { type: 'text', text: 'Every\nedge.', role: 'display', size: 0.12, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
     { type: 'text', text: 'Badges, trims and the gaps you never see.', role: 'body', size: 0.036, color: 'steel', align: 'left', anchor: 'left', x: 0.07, y: Y(1250), shadow: SH, in: { fx: 'rise', at: 1.1, dur: 0.5 } },
@@ -167,8 +163,7 @@ const out = [];
     { type: 'repeat', mode: 'grid', count: 140, cols: 10, gap: [0.1, 0.1], x: 0.5, y: 0.5, child: { type: 'circle', r: 0.0022, fill: 'slate' } },
     hud('// CASE FILE 047', 0.07, Y(200), { in: { fx: 'type', at: 0.1, dur: 0.5 }, sfx: false }),
     { type: 'text', text: 'The evidence', role: 'display', size: 0.077, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(262), in: { fx: 'mask-up', at: 0.2, dur: 0.5 } },
-    sev({ x: 0.6, y: 0.27, w: 0.24, end: dur, faces: [[0, 'side', 'smirk'], [2.4, 'hype', 'ayy'], [2.9, 'wink', 'grin'], [3.9, 'cool', 'smirk']], nods: [3.0, 3.6],
-      in: { fx: 'slide-up', at: 1.75, dur: 0.5 }, sfx: 'bloop' }),
+    sev({ x: 0.775, y: 0.335, h: 0.25, end: dur, art: [[0, 'face-side'], [2.4, 'face-shocked'], [2.9, 'face-laugh'], [3.7, 'face-proud']], in: { fx: 'slide-up', at: 1.75, dur: 0.5 }, sfx: 'bloop' }),
     ...ex.map((e, i) => ({ type: 'group', x: e.x, y: e.y, rot: e.rot, shadow: CARD_SH, in: { fx: 'drop-near', at: 0.55 + i * 0.32, dur: 0.6 }, sfx: 'plop',
       children: [
         { type: 'rect', wUnit: 'U', w: cw + 0.03, h: ch + 0.085, fill: 'white', radius: 0.006, y: 0.025 },
@@ -221,7 +216,7 @@ const out = [];
       { type: 'pill', wUnit: 'U', w: 0.62, h: 0.085, fill: 'primary', shadow: { color: 'rgba(0,185,252,0.45)', blur: 0.05, y: 0 } },
       { type: 'text', text: 'DM TO BOOK  ·  @a47.detailing', role: 'title', size: 0.032, color: 'onPrimary', case: 'none' },
     ] },
-    sev({ x: 0.985, y: 0.53, w: 0.3, rot: -90, end: dur, faces: [[0, 'side', 'smirk'], [4.4, 'wink', 'grin']], in: { fx: 'slide-left', at: 3.0, dur: 0.6, ease: 'outBack' }, sfx: 'bloop' }),
+    sev({ x: 1.03, y: 0.42, h: 0.29, rot: -90, end: dur, art: [[0, 'face-side'], [4.4, 'face-wink']], in: { fx: 'slide-left', at: 3.0, dur: 0.6, ease: 'outBack' }, sfx: 'bloop' }),
     { type: 'group', x: 0.79, y: 0.29, in: { fx: 'pop', at: 4.4, dur: 0.4 }, sfx: 'pop', children: [
       { type: 'poly', pts: [[0.03, 0.03], [0.07, 0.03], [0.09, 0.075]], fill: 'white', radius: 0.004 },
       { type: 'rect', wUnit: 'U', w: 0.25, h: 0.075, radius: 0.03, fill: 'white' },

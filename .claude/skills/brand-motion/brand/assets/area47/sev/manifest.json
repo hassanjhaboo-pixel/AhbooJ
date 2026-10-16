@@ -1,0 +1,19 @@
+{
+ "face-chill": 0.8947,
+ "face-flat": 0.8785,
+ "face-hype": 0.8603,
+ "face-laugh": 0.8673,
+ "face-proud": 0.8889,
+ "face-shocked": 0.936,
+ "face-side": 0.8614,
+ "face-smirk": 0.875,
+ "face-wink": 0.8844,
+ "hero": 0.7462,
+ "pose-47": 0.8363,
+ "pose-keys": 0.8099,
+ "pose-point": 0.7239,
+ "turn-34": 0.3745,
+ "turn-back": 0.392,
+ "turn-front": 0.3767,
+ "turn-side": 0.2869
+}

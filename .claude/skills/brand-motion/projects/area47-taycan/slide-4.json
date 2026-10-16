@@ -244,7 +244,7 @@
      "align": "left",
      "anchor": "left",
      "x": 0.58,
-     "y": 0.2481,
+     "y": 0.2963,
      "shadow": {
       "color": "rgba(0,0,0,0.6)",
       "blur": 0.02,
@@ -285,132 +285,82 @@
     },
     {
      "type": "group",
-     "x": 0.79,
-     "y": 0.075,
+     "x": 0.6,
+     "y": 0.035,
      "children": [
       {
        "type": "image",
-       "src": "../../brand/assets/area47/mascot/body.svg",
-       "w": 0.26,
+       "src": "../../brand/assets/area47/sev/face-flat.png",
+       "w": 0.2372,
        "wUnit": "U",
-       "anchor": "top-left",
+       "h": 0.27,
+       "anchor": "bottom",
        "x": 0,
-       "y": 0
-      },
-      {
-       "type": "group",
-       "x": 0.13,
-       "y": 0.0251,
-       "moves": [],
-       "children": [
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/head.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 0,
-         "out": {
-          "fx": "cut",
-          "at": 3,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 0,
-         "out": {
-          "fx": "cut",
-          "at": 3,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 3,
-         "out": {
-          "fx": "cut",
-          "at": 3.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 3,
-         "out": {
-          "fx": "cut",
-          "at": 3.9,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 3.9,
-         "out": {
-          "fx": "cut",
-          "at": 5.2,
-          "dur": 0.001
-         }
-        },
-        {
-         "type": "image",
-         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
-         "w": 0.1733,
-         "wUnit": "U",
-         "anchor": "top-left",
-         "x": -0.0867,
-         "y": -0.2028,
-         "from": 3.9,
-         "out": {
-          "fx": "cut",
-          "at": 5.2,
-          "dur": 0.001
-         }
-        }
-       ]
+       "y": 0,
+       "from": 0,
+       "out": {
+        "fx": "cut",
+        "at": 2.8,
+        "dur": 0.001
+       }
       },
       {
        "type": "image",
-       "src": "../../brand/assets/area47/logo-circle.png",
-       "w": 0.0364,
+       "src": "../../brand/assets/area47/sev/face-wink.png",
+       "w": 0.2388,
        "wUnit": "U",
-       "x": 0.1907,
-       "y": 0.0919
+       "h": 0.27,
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0,
+       "from": 2.8,
+       "out": {
+        "fx": "cut",
+        "at": 3.7,
+        "dur": 0.001
+       }
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/sev/face-smirk.png",
+       "w": 0.2363,
+       "wUnit": "U",
+       "h": 0.27,
+       "anchor": "bottom",
+       "x": 0,
+       "y": 0,
+       "from": 3.7,
+       "out": {
+        "fx": "cut",
+        "at": 5.2,
+        "dur": 0.001
+       }
+      }
+     ],
+     "moves": [
+      {
+       "at": 2.8,
+       "dur": 0.07,
+       "scale": 1.07,
+       "ease": "outQuad"
+      },
+      {
+       "at": 2.8699999999999997,
+       "dur": 0.28,
+       "scale": 1,
+       "ease": "outBack"
+      },
+      {
+       "at": 3.7,
+       "dur": 0.07,
+       "scale": 1.07,
+       "ease": "outQuad"
+      },
+      {
+       "at": 3.77,
+       "dur": 0.28,
+       "scale": 1,
+       "ease": "outBack"
       }
      ],
      "rot": 180,
