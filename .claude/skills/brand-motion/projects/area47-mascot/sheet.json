@@ -1,0 +1,382 @@
+{
+ "title": "AREA 47 mascot sheet",
+ "format": {
+  "w": 1920,
+  "h": 1080,
+  "fps": 30
+ },
+ "bpm": 100,
+ "scenes": [
+  {
+   "id": "sheet",
+   "dur": 2,
+   "bg": "bg",
+   "elements": [
+    {
+     "type": "repeat",
+     "mode": "grid",
+     "count": 160,
+     "cols": 16,
+     "gap": [
+      0.11,
+      0.11
+     ],
+     "x": 0.5,
+     "y": 0.5,
+     "child": {
+      "type": "circle",
+      "r": 0.002,
+      "fill": "slate"
+     }
+    },
+    {
+     "type": "text",
+     "text": "AREA 47 // CHARACTER SHEET",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.03,
+     "color": "primary",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.04,
+     "y": 0.0648
+    },
+    {
+     "type": "text",
+     "text": "Head of security",
+     "role": "display",
+     "size": 0.075,
+     "color": "white",
+     "align": "left",
+     "anchor": "left",
+     "x": 0.04,
+     "y": 0.1296
+    },
+    {
+     "type": "group",
+     "x": 0.0237,
+     "y": 0.4352,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.36,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.18,
+       "y": 0.0348,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0504,
+       "wUnit": "U",
+       "x": 0.264,
+       "y": 0.1272
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "UNBOTHERED",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.03,
+     "color": "primary",
+     "x": 0.125,
+     "y": 0.838
+    },
+    {
+     "type": "group",
+     "x": 0.2738,
+     "y": 0.4352,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.36,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.18,
+       "y": 0.0348,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0504,
+       "wUnit": "U",
+       "x": 0.264,
+       "y": 0.1272
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "SAY LESS",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.03,
+     "color": "primary",
+     "x": 0.375,
+     "y": 0.838
+    },
+    {
+     "type": "group",
+     "x": 0.5238,
+     "y": 0.4352,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.36,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.18,
+       "y": 0.0348,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-side.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0504,
+       "wUnit": "U",
+       "x": 0.264,
+       "y": 0.1272
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "SIDE-EYE",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.03,
+     "color": "primary",
+     "x": 0.625,
+     "y": 0.838
+    },
+    {
+     "type": "group",
+     "x": 0.7737,
+     "y": 0.4352,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.36,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.18,
+       "y": 0.0348,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-hype.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-ayy.svg",
+         "w": 0.24,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.12,
+         "y": -0.2808,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 99,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0504,
+       "wUnit": "U",
+       "x": 0.264,
+       "y": 0.1272
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "AYY!",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.03,
+     "color": "primary",
+     "x": 0.875,
+     "y": 0.838
+    }
+   ]
+  }
+ ]
+}

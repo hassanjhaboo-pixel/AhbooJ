@@ -60,7 +60,7 @@
      "type": "text",
      "text": "The evidence",
      "role": "display",
-     "size": 0.1,
+     "size": 0.07,
      "color": "white",
      "align": "left",
      "anchor": "left",
@@ -286,7 +286,7 @@
        "type": "text",
        "text": "Case closed",
        "role": "display",
-       "size": 0.13,
+       "size": 0.086,
        "color": "primary",
        "y": -0.012
       },

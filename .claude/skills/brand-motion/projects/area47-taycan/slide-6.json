@@ -198,7 +198,7 @@
      "type": "text",
      "text": "Your car\nis next.",
      "role": "display",
-     "size": 0.14,
+     "size": 0.098,
      "color": "white",
      "x": 0.5,
      "y": 0.6,

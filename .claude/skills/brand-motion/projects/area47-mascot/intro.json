@@ -1,0 +1,617 @@
+{
+ "title": "AREA 47 mascot intro",
+ "format": {
+  "w": 1080,
+  "h": 1350,
+  "fps": 30
+ },
+ "bpm": 100,
+ "scenes": [
+  {
+   "id": "intro",
+   "dur": 6.6,
+   "bg": "bg",
+   "grade": {
+    "vignette": 0.3,
+    "grain": 0.03
+   },
+   "elements": [
+    {
+     "type": "dots",
+     "count": 60,
+     "seed": 9,
+     "fill": [
+      "slate",
+      "cyanDeep"
+     ],
+     "r": 0.003,
+     "area": [
+      0.02,
+      0.02,
+      0.98,
+      0.98
+     ],
+     "motion": "drift",
+     "speed": 0.1,
+     "opacity": 0.8
+    },
+    {
+     "type": "repeat",
+     "mode": "grid",
+     "count": 77,
+     "cols": 7,
+     "gap": [
+      0.15,
+      0.15
+     ],
+     "x": 0.5,
+     "y": 0.62,
+     "child": {
+      "type": "circle",
+      "r": 0.002,
+      "fill": "slate"
+     }
+    },
+    {
+     "type": "image",
+     "src": "ufo.svg",
+     "w": 0.34,
+     "x": 0.5,
+     "y": 0.1111,
+     "in": {
+      "fx": "drop-soft",
+      "at": -0.2,
+      "dur": 0.5
+     },
+     "loop": {
+      "fx": "float",
+      "period": 2,
+      "amp": 0.5
+     },
+     "moves": [
+      {
+       "at": 1.7,
+       "dur": 0.6,
+       "x": 1.3,
+       "y": -0.1,
+       "scale": 0.6,
+       "ease": "inCubic"
+      }
+     ],
+     "sfx": "whoosh"
+    },
+    {
+     "type": "poly",
+     "pts": [
+      [
+       -0.08,
+       0
+      ],
+      [
+       0.08,
+       0
+      ],
+      [
+       0.42,
+       1.05
+      ],
+      [
+       -0.42,
+       1.05
+      ]
+     ],
+     "grad": [
+      "beam",
+      "beamClear"
+     ],
+     "x": 0.5,
+     "y": 0.1407,
+     "blend": "screen",
+     "opacity": 0,
+     "moves": [
+      {
+       "at": 0.2,
+       "dur": 0.2,
+       "opacity": 1
+      },
+      {
+       "at": 1.45,
+       "dur": 0.25,
+       "opacity": 0
+      }
+     ],
+     "loop": {
+      "fx": "pulse",
+      "period": 0.5,
+      "amp": 0.3
+     },
+     "sfx": false
+    },
+    {
+     "type": "pill",
+     "wUnit": "U",
+     "w": 0.8,
+     "h": 0.04,
+     "fill": "cyanDeep",
+     "opacity": 0,
+     "x": 0.5,
+     "y": 1,
+     "moves": [
+      {
+       "at": 1.1,
+       "dur": 0.4,
+       "opacity": 0.6
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.22,
+     "y": 0.585,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.56,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.28,
+       "y": 0.0541,
+       "moves": [
+        {
+         "at": 1.8,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 1.9260000000000002,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        },
+        {
+         "at": 2.4,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 2.526,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        },
+        {
+         "at": 3,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 3.126,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        },
+        {
+         "at": 3.5999999999999996,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 3.7259999999999995,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        },
+        {
+         "at": 4.7,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 4.8260000000000005,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        },
+        {
+         "at": 5.3,
+         "dur": 0.12600000000000003,
+         "rot": 6,
+         "ease": "outQuad"
+        },
+        {
+         "at": 5.426,
+         "dur": 0.15400000000000003,
+         "rot": 0,
+         "ease": "inOutQuad"
+        }
+       ],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-hype.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 1.3,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-ayy.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 1.3,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 1.3,
+         "out": {
+          "fx": "cut",
+          "at": 2.55,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 1.3,
+         "out": {
+          "fx": "cut",
+          "at": 2.55,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-closed.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 2.55,
+         "out": {
+          "fx": "cut",
+          "at": 2.67,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 2.55,
+         "out": {
+          "fx": "cut",
+          "at": 2.67,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 2.67,
+         "out": {
+          "fx": "cut",
+          "at": 3.9,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 2.67,
+         "out": {
+          "fx": "cut",
+          "at": 3.9,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-side.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 3.9,
+         "out": {
+          "fx": "cut",
+          "at": 4.7,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 3.9,
+         "out": {
+          "fx": "cut",
+          "at": 4.7,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 4.7,
+         "out": {
+          "fx": "cut",
+          "at": 5.7,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 4.7,
+         "out": {
+          "fx": "cut",
+          "at": 5.7,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 5.7,
+         "out": {
+          "fx": "cut",
+          "at": 6.6,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.3733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1867,
+         "y": -0.4368,
+         "from": 5.7,
+         "out": {
+          "fx": "cut",
+          "at": 6.6,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0784,
+       "wUnit": "U",
+       "x": 0.4107,
+       "y": 0.1979
+      },
+      {
+       "type": "sparkle",
+       "r": 0.0168,
+       "fill": "white",
+       "x": 0.2501,
+       "y": 0.2128,
+       "opacity": 0.95,
+       "loop": {
+        "fx": "pulse",
+        "period": 1.1,
+        "amp": 1.6,
+        "phase": 0
+       }
+      },
+      {
+       "type": "sparkle",
+       "r": 0.0168,
+       "fill": "white",
+       "x": 0.3099,
+       "y": 0.2165,
+       "opacity": 0.95,
+       "loop": {
+        "fx": "pulse",
+        "period": 1.1,
+        "amp": 1.6,
+        "phase": 0.37
+       }
+      },
+      {
+       "type": "sparkle",
+       "r": 0.0168,
+       "fill": "white",
+       "x": 0.28,
+       "y": 0.2893,
+       "opacity": 0.95,
+       "loop": {
+        "fx": "pulse",
+        "period": 1.1,
+        "amp": 1.6,
+        "phase": 0.74
+       }
+      }
+     ],
+     "in": {
+      "fx": "drop-soft",
+      "at": 0.35,
+      "dur": 0.95
+     },
+     "sfx": "plop",
+     "loop": {
+      "fx": "float",
+      "period": 2.4,
+      "amp": 0.25
+     }
+    },
+    {
+     "type": "text",
+     "text": "// NEW RECRUIT",
+     "role": "caption",
+     "face": "hud",
+     "size": 0.026,
+     "color": "primary",
+     "x": 0.5,
+     "y": 0.0704,
+     "in": {
+      "fx": "type",
+      "at": 2,
+      "dur": 0.6
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "Meet the",
+     "role": "display",
+     "size": 0.07,
+     "color": "white",
+     "x": 0.5,
+     "y": 0.1148,
+     "in": {
+      "fx": "mask-up",
+      "at": 2.2,
+      "dur": 0.45
+     }
+    },
+    {
+     "type": "text",
+     "text": "Head of security",
+     "role": "display",
+     "size": 0.07,
+     "color": "primary",
+     "x": 0.5,
+     "y": 0.1719,
+     "in": {
+      "fx": "mask-up",
+      "at": 2.4,
+      "dur": 0.45
+     }
+    },
+    {
+     "type": "group",
+     "x": 0.5,
+     "y": 0.2222,
+     "in": {
+      "fx": "pop",
+      "at": 3.2,
+      "dur": 0.4
+     },
+     "sfx": "pop",
+     "children": [
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.46,
+       "h": 0.05,
+       "fill": "white"
+      },
+      {
+       "type": "text",
+       "text": "NAME: CLASSIFIED",
+       "role": "caption",
+       "face": "hud",
+       "size": 0.026,
+       "color": "bg"
+      }
+     ]
+    },
+    {
+     "type": "sparkle",
+     "r": 0.04,
+     "fill": "white",
+     "x": 0.535,
+     "y": 0.562,
+     "in": {
+      "fx": "pop",
+      "at": 4.75,
+      "dur": 0.3
+     },
+     "out": {
+      "fx": "fade",
+      "at": 5.4,
+      "dur": 0.3
+     },
+     "sfx": "twinkle"
+    }
+   ]
+  }
+ ]
+}
