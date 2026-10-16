@@ -38,7 +38,11 @@
     "clear": "rgba(7,9,12,0)",
     "stamp": "#00b9fc",
     "red": "#ff3b4e",
-    "sevSkin": "#3cc9ff"
+    "sevSkin": "#3cc9ff",
+    "grid": "rgba(0,185,252,0.35)",
+    "scan": "rgba(0,0,0,0.22)",
+    "boss": "#ff3b4e",
+    "gold": "#ffd23f"
   },
   "type": {
     "fontUrls": [],
@@ -62,6 +66,11 @@
         "family": "Tektur",
         "weight": 500,
         "src": "assets/area47/fonts/Tektur-Medium.ttf"
+      },
+      {
+        "family": "Pixelify Sans",
+        "weight": 500,
+        "src": "assets/area47/fonts/PixelifySans-Medium.ttf"
       }
     ],
     "display": {
@@ -102,6 +111,14 @@
       "title": 0.06,
       "body": 0.042,
       "caption": 0.03
+    },
+    "pixel": {
+      "family": "Pixelify Sans",
+      "fallback": "monospace",
+      "weight": 500,
+      "case": "upper",
+      "tracking": 0.06,
+      "lineHeight": 1.05
     }
   },
   "logo": {
