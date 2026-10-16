@@ -198,7 +198,7 @@
      "type": "text",
      "text": "Your car\nis next.",
      "role": "display",
-     "size": 0.098,
+     "size": 0.106,
      "color": "white",
      "x": 0.5,
      "y": 0.6,
@@ -364,6 +364,162 @@
        "size": 0.032,
        "color": "onPrimary",
        "case": "none"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "x": 0.985,
+     "y": 0.53,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.3,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.15,
+       "y": 0.029,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.2,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1,
+         "y": -0.234
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-side.svg",
+         "w": 0.2,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1,
+         "y": -0.234,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 4.4,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.2,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1,
+         "y": -0.234,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 4.4,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
+         "w": 0.2,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1,
+         "y": -0.234,
+         "from": 4.4,
+         "out": {
+          "fx": "cut",
+          "at": 7,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
+         "w": 0.2,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.1,
+         "y": -0.234,
+         "from": 4.4,
+         "out": {
+          "fx": "cut",
+          "at": 7,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.042,
+       "wUnit": "U",
+       "x": 0.22,
+       "y": 0.106
+      }
+     ],
+     "rot": -90,
+     "in": {
+      "fx": "slide-left",
+      "at": 3,
+      "dur": 0.6,
+      "ease": "outBack"
+     },
+     "sfx": "bloop"
+    },
+    {
+     "type": "group",
+     "x": 0.79,
+     "y": 0.29,
+     "in": {
+      "fx": "pop",
+      "at": 4.4,
+      "dur": 0.4
+     },
+     "sfx": "pop",
+     "children": [
+      {
+       "type": "poly",
+       "pts": [
+        [
+         0.03,
+         0.03
+        ],
+        [
+         0.07,
+         0.03
+        ],
+        [
+         0.09,
+         0.075
+        ]
+       ],
+       "fill": "white",
+       "radius": 0.004
+      },
+      {
+       "type": "rect",
+       "wUnit": "U",
+       "w": 0.25,
+       "h": 0.075,
+       "radius": 0.03,
+       "fill": "white"
+      },
+      {
+       "type": "text",
+       "text": "Too clean.",
+       "role": "display",
+       "size": 0.036,
+       "color": "bg"
       }
      ]
     },

@@ -585,7 +585,7 @@
       },
       {
        "type": "text",
-       "text": "NAME: CLASSIFIED",
+       "text": "NAME: SEV",
        "role": "caption",
        "face": "hud",
        "size": 0.026,

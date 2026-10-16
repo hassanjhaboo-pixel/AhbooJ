@@ -31,7 +31,7 @@
     },
     {
      "type": "text",
-     "text": "AREA 47 // CHARACTER SHEET",
+     "text": "AREA 47 // CHARACTER SHEET // \"TOO CLEAN.\"",
      "role": "caption",
      "face": "hud",
      "size": 0.03,
@@ -43,7 +43,7 @@
     },
     {
      "type": "text",
-     "text": "Head of security",
+     "text": "Sev · head of security",
      "role": "display",
      "size": 0.075,
      "color": "white",

@@ -36,7 +36,7 @@ const hud = (text, x, y, extra = {}) => Object.assign({ type: 'text', text, role
       { type: 'text', text: 'Head of security', role: 'display', size: 0.07, color: 'primary', x: 0.5, y: Y(232), in: { fx: 'mask-up', at: 2.4, dur: 0.45 } },
       { type: 'group', x: 0.5, y: Y(300), in: { fx: 'pop', at: 3.2, dur: 0.4 }, sfx: 'pop', children: [
         { type: 'rect', wUnit: 'U', w: 0.46, h: 0.05, fill: 'white' },
-        { type: 'text', text: 'NAME: CLASSIFIED', role: 'caption', face: 'hud', size: 0.026, color: 'bg' },
+        { type: 'text', text: 'NAME: SEV', role: 'caption', face: 'hud', size: 0.026, color: 'bg' },
       ] },
       // grill sparkle on the wink
       { type: 'sparkle', r: 0.04, fill: 'white', x: 0.535, y: 0.562, in: { fx: 'pop', at: 4.75, dur: 0.3 }, out: { fx: 'fade', at: 5.4, dur: 0.3 }, sfx: 'twinkle' },
@@ -50,8 +50,8 @@ const hud = (text, x, y, extra = {}) => Object.assign({ type: 'text', text, role
   const looks = [['cool', 'smirk', 'UNBOTHERED'], ['wink', 'grin', 'SAY LESS'], ['side', 'smirk', 'SIDE-EYE'], ['hype', 'ayy', 'AYY!']];
   const els = [
     { type: 'repeat', mode: 'grid', count: 160, cols: 16, gap: [0.11, 0.11], x: 0.5, y: 0.5, child: { type: 'circle', r: 0.002, fill: 'slate' } },
-    { type: 'text', text: 'AREA 47 // CHARACTER SHEET', role: 'caption', face: 'hud', size: 0.03, color: 'primary', align: 'left', anchor: 'left', x: 0.04, y: Y(70) },
-    { type: 'text', text: 'Head of security', role: 'display', size: 0.075, color: 'white', align: 'left', anchor: 'left', x: 0.04, y: Y(140) },
+    { type: 'text', text: 'AREA 47 // CHARACTER SHEET // "TOO CLEAN."', role: 'caption', face: 'hud', size: 0.03, color: 'primary', align: 'left', anchor: 'left', x: 0.04, y: Y(70) },
+    { type: 'text', text: 'Sev · head of security', role: 'display', size: 0.075, color: 'white', align: 'left', anchor: 'left', x: 0.04, y: Y(140) },
   ];
   looks.forEach(([e, m, label], i) => {
     const cx = 240 + i * 480, w = 0.36; // U

@@ -20,6 +20,16 @@ Service names come from his pinned service list (Basic Wash, Deluxe Wash, Full D
 No licence plates appear (the reveal clip is cut before the plate shows). The Porsche badges appear only as the car's own parts, never as our branding.
 Key text stays inside the 3:4 profile-grid crop.
 
+## v2 changes (owner feedback)
+- **Fonts:** Inter Display Black for headlines (blocky but a notch lighter than Erica One), Tektur for HUD labels, Inter for body text.
+- **SEV, the mascot** (`kits/area47-mascot.mjs`), cameos in spots away from the hero: slide 2 rises from the bottom-right corner,
+  slide 4 hangs upside-down from the top edge, slide 6 peeks in sideways from the right with a "TOO CLEAN." bubble. On slide 5 he
+  peeks over exhibit B and his hand swings the stamp down: CASE CLOSED.
+- **Slide 3** stops while the wheel is centred and pushes in, so "Gold standard" always sits on the gold wheel; the reticle locks on.
+- **Slide 2** is reframed so the crest sits in the upper half, clear of the headline.
+- **Sonic identity** (`sound.mjs`): beam-rise + two-note ping (the audio logo), sub hit on each headline, UFO zip on the path,
+  bloop when SEV appears, slam on the stamp. Synthesized and royalty-free, -16 LUFS so Instagram music can sit on top.
+
 ## Engine addition
 `image` elements can now play **video clips** as frame sequences (`seq`, `seqFps`, `seqAt`, `seqRate`; see `references/engine-api.md`).
 
@@ -29,7 +39,7 @@ Key text stays inside the 3:4 profile-grid crop.
 node make.mjs                                     # slide-1.json … slide-6.json
 for i in 1 2 3 4 5 6; do
   node ../../scripts/build.mjs --brand ../../brand/area47.json --story slide-$i.json --out out/slide-$i.html
-  node ../../scripts/render.mjs out/slide-$i.html --blur 3
+  node ../../scripts/render.mjs out/slide-$i.html --audio out/slide-$i.wav --blur 3   # after: node sound.mjs
 done
 ```
-Posting: upload slides 1–6 in order as one carousel post. The slides are silent, so add music in Instagram (it plays across the whole carousel).
+Posting: upload slides 1–6 in order as one carousel post. Each slide carries the AREA 47 sound design; add music in Instagram on top if wanted.

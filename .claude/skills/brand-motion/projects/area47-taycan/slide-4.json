@@ -285,6 +285,150 @@
     },
     {
      "type": "group",
+     "x": 0.79,
+     "y": 0.075,
+     "children": [
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/mascot/body.svg",
+       "w": 0.26,
+       "wUnit": "U",
+       "anchor": "top-left",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "group",
+       "x": 0.13,
+       "y": 0.0251,
+       "moves": [],
+       "children": [
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/head.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 3,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 0,
+         "out": {
+          "fx": "cut",
+          "at": 3,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-wink.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 3,
+         "out": {
+          "fx": "cut",
+          "at": 3.9,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-grin.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 3,
+         "out": {
+          "fx": "cut",
+          "at": 3.9,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/eyes-cool.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 3.9,
+         "out": {
+          "fx": "cut",
+          "at": 5.2,
+          "dur": 0.001
+         }
+        },
+        {
+         "type": "image",
+         "src": "../../brand/assets/area47/mascot/mouth-smirk.svg",
+         "w": 0.1733,
+         "wUnit": "U",
+         "anchor": "top-left",
+         "x": -0.0867,
+         "y": -0.2028,
+         "from": 3.9,
+         "out": {
+          "fx": "cut",
+          "at": 5.2,
+          "dur": 0.001
+         }
+        }
+       ]
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/area47/logo-circle.png",
+       "w": 0.0364,
+       "wUnit": "U",
+       "x": 0.1907,
+       "y": 0.0919
+      }
+     ],
+     "rot": 180,
+     "in": {
+      "fx": "slide-down",
+      "at": 1.6,
+      "dur": 0.6,
+      "ease": "outBack"
+     },
+     "loop": {
+      "fx": "sway",
+      "period": 2.4,
+      "amp": 0.5
+     },
+     "sfx": "bloop"
+    },
+    {
+     "type": "group",
      "x": 0.07,
      "y": 0.6519,
      "in": {
@@ -326,7 +470,7 @@
      "type": "text",
      "text": "Every\nedge.",
      "role": "display",
-     "size": 0.112,
+     "size": 0.12,
      "color": "white",
      "align": "left",
      "anchor": "left",

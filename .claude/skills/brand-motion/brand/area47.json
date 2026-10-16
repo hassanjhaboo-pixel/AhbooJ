@@ -1,6 +1,6 @@
 {
   "name": "AREA 47 Detailing",
-  "tagline": "Close encounters of the clean kind",
+  "tagline": "Too clean.",
   "url": "@a47.detailing",
   "voice": {
     "tone": "confident, playful, sci-fi",
@@ -37,15 +37,16 @@
     "shadeMid": "rgba(7,9,12,0.6)",
     "clear": "rgba(7,9,12,0)",
     "stamp": "#00b9fc",
-    "red": "#ff3b4e"
+    "red": "#ff3b4e",
+    "sevSkin": "#3cc9ff"
   },
   "type": {
     "fontUrls": [],
     "fontFiles": [
       {
-        "family": "Erica One",
-        "weight": 400,
-        "src": "assets/area47/fonts/EricaOne-Regular.ttf"
+        "family": "Inter Display",
+        "weight": 900,
+        "src": "assets/area47/fonts/InterDisplay-Black.otf"
       },
       {
         "family": "Inter",
@@ -64,12 +65,12 @@
       }
     ],
     "display": {
-      "family": "Erica One",
+      "family": "Inter Display",
       "fallback": "'Liberation Sans', sans-serif",
-      "weight": 400,
+      "weight": 900,
       "case": "upper",
-      "tracking": 0.0,
-      "lineHeight": 0.95
+      "tracking": -0.015,
+      "lineHeight": 0.92
     },
     "headline": {
       "family": "Inter",

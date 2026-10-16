@@ -1,4 +1,4 @@
-// AREA 47 mascot (working name: "CLASSIFIED"). Waist-up alien in a durag, iced chain with a UFO pendant,
+// AREA 47 mascot SEV ("Too clean."). Waist-up alien in a durag, iced chain with a UFO pendant,
 // hoodie with the 47 patch, microfiber towel on the shoulder, arms crossed. Built from layered SVGs in
 // brand/assets/area47/mascot/ so the head can nod and the face can swap expressions on any beat.
 //

@@ -9,7 +9,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { mascot } from '../../kits/area47-mascot.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
+const MB = '../../brand/assets/area47/mascot', LOGO47 = '../../brand/assets/area47/logo-circle.png';
+// SEV, the AREA 47 head of security: cameos on slides 2, 4, 6 (never the main subject) and slams the stamp on slide 5
+const sev = o => mascot(Object.assign({ base: MB, logo: LOGO47, sparkle: false }, o));
 
 const W = 1080, H = 1350, U = 1080, N = 6;
 const r4 = v => Math.round(v * 10000) / 10000;
@@ -77,7 +81,7 @@ const out = [];
     // title over the sky (frame 0 = grid thumbnail)
     ...[
       hud('// INCOMING TRANSMISSION', 0.07, Y(330), { in: { fx: 'type', at: -0.2, dur: 0.8 }, sfx: false }),
-      { type: 'text', text: 'Close\nencounter', role: 'display', size: 0.13, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(530), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: -0.3, dur: 0.6 } },
+      { type: 'text', text: 'Close\nencounter', role: 'display', size: 0.14, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(530), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: -0.3, dur: 0.6 } },
       { type: 'text', text: 'OF THE CLEAN KIND', role: 'caption', face: 'hud', size: 0.042, color: 'primary', align: 'left', anchor: 'left', x: 0.07, y: Y(735), shadow: SH, in: { fx: 'wipe', at: 0.4, dur: 0.6 } },
     ].map(e => Object.assign(e, { moves: [{ at: 3.0, dur: 0.5, y: r4(e.y - 0.06), ease: 'inCubic' }], out: { fx: 'fade', at: 3.05, dur: 0.4 } })),
     // the UFO drops in as the camera lands, beam on
@@ -86,7 +90,7 @@ const out = [];
     { type: 'image', src: UFO, w: 0.3, x: 0.5, y: Y(200), in: { fx: 'drop-soft', at: 3.25, dur: 0.6 }, loop: { fx: 'float', period: 2.4, amp: 0.6 }, sfx: 'whoosh' },
     scanLine(4.6, 1.2, 0.25, 0.86),
     tag('SPECIMEN ACQUIRED', Y(1040), 5.3),
-    { type: 'text', text: 'Taycan Turbo GT', role: 'display', size: 0.08, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1130), shadow: SH, in: { fx: 'mask-up', at: 5.45, dur: 0.5 } },
+    { type: 'text', text: 'Taycan Turbo GT', role: 'display', size: 0.088, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1130), shadow: SH, in: { fx: 'mask-up', at: 5.45, dur: 0.5 } },
     hud('SWIPE  ›››', 0.93, Y(1215), { align: 'right', anchor: 'right', color: 'white', size: 0.026, in: { fx: 'fade', at: 5.9, dur: 0.4 }, loop: { fx: 'pulse', period: 1, amp: 0.4 } }),
     ...flightPath(5.6),
   ]));
@@ -96,16 +100,18 @@ const out = [];
 {
   const dur = 6;
   out.push(story(2, dur, [
-    { type: 'image', src: 'assets/hood.jpg', w: 1, h: FULL_H, fit: 'cover', x: 0.5, y: 0.42, scale: 1.12, moves: [{ at: 0, dur, scale: 1.2, ease: 'linear' }] },
+    { type: 'image', src: 'assets/hood.jpg', w: 1, h: FULL_H, fit: 'cover', x: 0.526, y: 0.25, scale: 1.4, moves: [{ at: 0, dur, scale: 1.47, ease: 'linear' }] },
     // light sweep across the paint
     { type: 'rect', wUnit: 'U', w: 0.22, h: 2.2, x: -0.3, y: 0.5, rot: 18, grad: ['clear', 'glassLight', 'clear'], blend: 'screen', opacity: 0.9, sfx: false,
       moves: [{ at: 0.8, dur: 1.4, x: 1.3, ease: 'inOutCubic' }] },
-    { type: 'sparkle', r: 0.06, fill: 'white', x: 0.72, y: 0.07, in: { fx: 'pop', at: 1.6, dur: 0.4 }, loop: { fx: 'pulse', period: 1.4, amp: 1.5 } },
-    { type: 'sparkle', r: 0.03, fill: 'white', x: 0.8, y: 0.15, in: { fx: 'pop', at: 1.8, dur: 0.4 }, loop: { fx: 'pulse', period: 1.4, amp: 1.5, phase: 0.6 } },
+    { type: 'sparkle', r: 0.055, fill: 'white', x: 0.8, y: 0.27, in: { fx: 'pop', at: 1.6, dur: 0.4 }, loop: { fx: 'pulse', period: 1.4, amp: 1.5 } },
+    { type: 'sparkle', r: 0.03, fill: 'white', x: 0.87, y: 0.33, in: { fx: 'pop', at: 1.8, dur: 0.4 }, loop: { fx: 'pulse', period: 1.4, amp: 1.5, phase: 0.6 } },
     scrim('bottom', 0.42),
     scrim('top', 0.16, 'shadeMid'),
+    sev({ x: 0.72, y: 0.865, w: 0.28, end: dur, faces: [[0, 'side', 'smirk'], [3.7, 'wink', 'grin'], [4.6, 'side', 'smirk']], nods: [2.7, 3.3],
+      in: { fx: 'slide-up', at: 2.0, dur: 0.6 }, sfx: 'bloop' }),
     tag('EVIDENCE 01 // PAINT', Y(880), 0.3),
-    { type: 'text', text: 'Mirror\nfinish', role: 'display', size: 0.112, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
+    { type: 'text', text: 'Mirror\nfinish', role: 'display', size: 0.12, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
     { type: 'text', text: 'Yes, those clouds are in the paint.', role: 'body', size: 0.036, color: 'steel', align: 'left', anchor: 'left', x: 0.07, y: Y(1250), shadow: SH, in: { fx: 'rise', at: 1.1, dur: 0.5 } },
     ...flightPath(0.15),
   ]));
@@ -113,17 +119,17 @@ const out = [];
 
 // ===== 3 · EVIDENCE 02: wheels. A reticle tracks the gold wheel as the camera pans =====
 {
-  const seq = frames('wheel'), dur = r4(seq.length / 30);
+  const seq = frames('wheel').slice(0, 64), dur = 5.4;  // stop while the wheel is centred, then push in
   out.push(story(3, dur, [
-    { type: 'image', src: seq[0], seq, w: 1, h: FULL_H, fit: 'cover', x: 0.5, y: 0.5 },
+    { type: 'image', src: seq[0], seq, w: 1, h: FULL_H, fit: 'cover', x: 0.5, y: 0.5, moves: [{ at: 2.1, dur: 3.3, scale: 1.08, ease: 'outQuad' }] },
     reticle(0.21, { x: 0.53, y: 0.36, in: { fx: 'pop', at: 0.25, dur: 0.45 }, sfx: 'pop',
-      moves: [{ at: 2.0, dur: 2.2, x: 0.1, y: 0.4, ease: 'inOutQuad' }], out: { fx: 'fade', at: 3.6, dur: 0.4 } }),
-    hud('RIM // DE-DUSTED', 0.58, Y(770), { color: 'white', in: { fx: 'type', at: 0.7, dur: 0.6 }, out: { fx: 'fade', at: 2.0, dur: 0.3 }, sfx: false }),
-    hud('TYRE // CLEANED + DRESSED', 0.58, Y(810), { in: { fx: 'type', at: 1.0, dur: 0.7 }, out: { fx: 'fade', at: 2.0, dur: 0.3 }, sfx: false }),
+      moves: [{ at: 2.1, dur: 0.12, scale: 1.12, ease: 'outQuad' }, { at: 2.22, dur: 0.3, scale: 1.0, ease: 'outBack' }] }),
+    hud('RIM // DE-DUSTED', 0.5, Y(770), { color: 'white', in: { fx: 'type', at: 0.7, dur: 0.6 }, sfx: false }),
+    hud('TYRE // CLEANED + DRESSED', 0.5, Y(810), { in: { fx: 'type', at: 1.0, dur: 0.7 }, sfx: false }),
     scrim('bottom', 0.45),
     scrim('top', 0.16, 'shadeMid'),
     tag('EVIDENCE 02 // WHEELS', Y(880), 0.3),
-    { type: 'text', text: 'Gold\nstandard', role: 'display', size: 0.112, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
+    { type: 'text', text: 'Gold\nstandard', role: 'display', size: 0.12, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
     { type: 'text', text: 'Wheels, tyres, arches. Nothing left behind.', role: 'body', size: 0.036, color: 'steel', align: 'left', anchor: 'left', x: 0.07, y: Y(1250), shadow: SH, in: { fx: 'rise', at: 1.1, dur: 0.5 } },
     ...flightPath(0.15),
   ]));
@@ -138,8 +144,10 @@ const out = [];
     hud('BADGE // LOCKED', 0.58, Y(335), { color: 'white', in: { fx: 'type', at: 3.3, dur: 0.5 }, sfx: false }),
     scrim('bottom', 0.45),
     scrim('top', 0.16, 'shadeMid'),
+    sev({ x: 0.79, y: 0.075, w: 0.26, rot: 180, end: dur, faces: [[0, 'cool', 'smirk'], [3.0, 'wink', 'grin'], [3.9, 'cool', 'smirk']],
+      in: { fx: 'slide-down', at: 1.6, dur: 0.6, ease: 'outBack' }, loop: { fx: 'sway', period: 2.4, amp: 0.5 }, sfx: 'bloop' }),
     tag('EVIDENCE 03 // DETAILS', Y(880), 0.3),
-    { type: 'text', text: 'Every\nedge.', role: 'display', size: 0.112, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
+    { type: 'text', text: 'Every\nedge.', role: 'display', size: 0.12, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(1062), shadow: SH, split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 0.45, dur: 0.55 } },
     { type: 'text', text: 'Badges, trims and the gaps you never see.', role: 'body', size: 0.036, color: 'steel', align: 'left', anchor: 'left', x: 0.07, y: Y(1250), shadow: SH, in: { fx: 'rise', at: 1.1, dur: 0.5 } },
     ...flightPath(0.15),
   ]));
@@ -158,19 +166,33 @@ const out = [];
   out.push(story(5, dur, [
     { type: 'repeat', mode: 'grid', count: 140, cols: 10, gap: [0.1, 0.1], x: 0.5, y: 0.5, child: { type: 'circle', r: 0.0022, fill: 'slate' } },
     hud('// CASE FILE 047', 0.07, Y(200), { in: { fx: 'type', at: 0.1, dur: 0.5 }, sfx: false }),
-    { type: 'text', text: 'The evidence', role: 'display', size: 0.07, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(262), in: { fx: 'mask-up', at: 0.2, dur: 0.5 } },
+    { type: 'text', text: 'The evidence', role: 'display', size: 0.077, color: 'white', align: 'left', anchor: 'left', x: 0.07, y: Y(262), in: { fx: 'mask-up', at: 0.2, dur: 0.5 } },
+    sev({ x: 0.6, y: 0.27, w: 0.24, end: dur, faces: [[0, 'side', 'smirk'], [2.4, 'hype', 'ayy'], [2.9, 'wink', 'grin'], [3.9, 'cool', 'smirk']], nods: [3.0, 3.6],
+      in: { fx: 'slide-up', at: 1.75, dur: 0.5 }, sfx: 'bloop' }),
     ...ex.map((e, i) => ({ type: 'group', x: e.x, y: e.y, rot: e.rot, shadow: CARD_SH, in: { fx: 'drop-near', at: 0.55 + i * 0.32, dur: 0.6 }, sfx: 'plop',
       children: [
         { type: 'rect', wUnit: 'U', w: cw + 0.03, h: ch + 0.085, fill: 'white', radius: 0.006, y: 0.025 },
         { type: 'image', src: e.src, w: cw, h: ch, mask: 'rounded', radius: 0.004, fit: 'cover', y: 0 },
         { type: 'text', text: e.label, role: 'caption', face: 'hud', size: 0.017, color: 'bg', y: r4(ch / 2 + 0.035) },
       ] })),
-    // the stamp
-    { type: 'group', x: 0.5, y: 0.56, rot: -11, in: { fx: 'scale-down', at: 2.45, dur: 0.3 }, sfx: 'plop', children: [
+    // the stamp mark
+    { type: 'group', x: 0.5, y: 0.56, rot: -11, in: { fx: 'scale-down', at: 2.45, dur: 0.22 }, sfx: false, children: [
       { type: 'rect', wUnit: 'U', w: 0.74, h: 0.2, radius: 0.012, fill: 'glass', stroke: 'primary', strokeW: 0.012 },
-      { type: 'text', text: 'Case closed', role: 'display', size: 0.086, color: 'primary', y: -0.012 },
+      { type: 'text', text: 'Case closed', role: 'display', size: 0.092, color: 'primary', y: -0.012 },
       { type: 'text', text: 'DETAILED BY AREA 47', role: 'caption', face: 'hud', size: 0.022, color: 'white', y: 0.066 },
     ] },
+    // Sev's hand with the rubber stamp: swings in from him (top right), anticipation lift, SLAM, lifts away
+    { type: 'group', x: 0.78, y: 0.2, rot: 20, opacity: 0, sfx: false,
+      moves: [{ at: 2.0, dur: 0.05, opacity: 1 }, { at: 2.0, dur: 0.28, x: 0.56, y: 0.43, rot: -8, ease: 'outCubic' }, { at: 2.28, dur: 0.1, y: 0.41, ease: 'outQuad' },
+        { at: 2.38, dur: 0.07, y: 0.5, ease: 'inQuad' }, { at: 2.75, dur: 0.35, x: 0.85, y: 0.12, rot: 25, ease: 'inCubic' }, { at: 3.0, dur: 0.1, opacity: 0 }],
+      children: [
+        { type: 'rect', wUnit: 'U', w: 0.2, h: 0.04, radius: 0.008, fill: 'primary', stroke: 'bg', strokeW: 0.006, y: 0.075 },
+        { type: 'rect', wUnit: 'U', w: 0.05, h: 0.09, radius: 0.01, fill: 'panel', stroke: 'bg', strokeW: 0.006, y: 0.02 },
+        { type: 'circle', r: 0.05, fill: 'panel', stroke: 'bg', strokeW: 0.006, y: -0.04 },
+        { type: 'circle', r: 0.055, fill: 'sevSkin', stroke: 'bg', strokeW: 0.007, y: -0.06 },
+        ...[-0.035, 0, 0.035].map(fx => ({ type: 'pill', wUnit: 'U', w: 0.03, h: 0.06, fill: 'sevSkin', stroke: 'bg', strokeW: 0.006, x: fx, y: -0.02 })),
+      ] },
+    { type: 'dots', count: 18, seed: 5, fill: ['primary', 'white'], r: 0.006, x: 0.5, y: 0.56, area: [0.15, 0.35, 0.85, 0.78], motion: 'burst', in: { at: 2.45, dur: 0.5 }, sfx: 'plop' },
     ...flightPath(0.15),
   ], 'panel'));
 }
@@ -188,7 +210,7 @@ const out = [];
       moves: [{ at: 1.7, dur: 0.3, opacity: 1 }], loop: { fx: 'pulse', period: 1.2, amp: 0.25 } },
     { type: 'image', src: UFO, w: 0.065, x: 0.5, y: Y(210), from: 1.5, moves: [{ at: 1.5, dur: 0.4, scale: 3.6, ease: 'outBack' }], loop: { fx: 'float', period: 2.4, amp: 0.4 }, sfx: false },
     { type: 'logo', w: 0.27, x: 0.5, y: Y(520), in: { fx: 'iris', at: 1.95, dur: 0.6 }, loop: { fx: 'float', period: 3, amp: 0.4 } },
-    { type: 'text', text: 'Your car\nis next.', role: 'display', size: 0.098, color: 'white', x: 0.5, y: Y(810), split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 2.5, dur: 0.5 } },
+    { type: 'text', text: 'Your car\nis next.', role: 'display', size: 0.106, color: 'white', x: 0.5, y: Y(810), split: 'line', stagger: 0.1, in: { fx: 'mask-up', at: 2.5, dur: 0.5 } },
     ...chips.map((c, i) => ({ type: 'group', x: r4(0.5 + (i - 1) * 0.3), y: Y(980), in: { fx: 'pop', at: 3.1 + i * 0.12, dur: 0.4 }, sfx: 'pop', children: [
       { type: 'pill', wUnit: 'U', w: 0.27, h: 0.06, fill: 'panel', stroke: 'primary', strokeW: 0.003 },
       { type: 'text', text: c, role: 'caption', face: 'hud', size: 0.022, color: 'white' },
@@ -198,6 +220,12 @@ const out = [];
     { type: 'group', x: 0.5, y: Y(1180), in: { fx: 'pop', at: 4.1, dur: 0.45 }, loop: { fx: 'pulse', period: 1.6, amp: 0.3 }, children: [
       { type: 'pill', wUnit: 'U', w: 0.62, h: 0.085, fill: 'primary', shadow: { color: 'rgba(0,185,252,0.45)', blur: 0.05, y: 0 } },
       { type: 'text', text: 'DM TO BOOK  ·  @a47.detailing', role: 'title', size: 0.032, color: 'onPrimary', case: 'none' },
+    ] },
+    sev({ x: 0.985, y: 0.53, w: 0.3, rot: -90, end: dur, faces: [[0, 'side', 'smirk'], [4.4, 'wink', 'grin']], in: { fx: 'slide-left', at: 3.0, dur: 0.6, ease: 'outBack' }, sfx: 'bloop' }),
+    { type: 'group', x: 0.79, y: 0.29, in: { fx: 'pop', at: 4.4, dur: 0.4 }, sfx: 'pop', children: [
+      { type: 'poly', pts: [[0.03, 0.03], [0.07, 0.03], [0.09, 0.075]], fill: 'white', radius: 0.004 },
+      { type: 'rect', wUnit: 'U', w: 0.25, h: 0.075, radius: 0.03, fill: 'white' },
+      { type: 'text', text: 'Too clean.', role: 'display', size: 0.036, color: 'bg' },
     ] },
     { type: 'text', text: 'or call +1 (868) 329-5373', role: 'body', size: 0.028, color: 'steel', x: 0.5, y: Y(1250), in: { fx: 'fade', at: 4.4, dur: 0.4 } },
   ]));

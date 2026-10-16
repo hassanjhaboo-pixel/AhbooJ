@@ -1,4 +1,4 @@
-# AREA 47 mascot (v1.1, working name "CLASSIFIED")
+# AREA 47 mascot (v1.1, SEV · catchphrase "Too clean.")
 
 An alien "head of security" with street energy: durag (antennae poke through), heavy-lidded unbothered eyes, iced grill,
 chunky iced chain with a UFO pendant, black hoodie with the 47 patch, a microfiber towel on the shoulder (he's a detailer),
