@@ -4,6 +4,10 @@ A 33s 9:16 Reel. SEV judges five common car-care mistakes. Each case: the counte
 one plain reason why it's bad (types on), SEV roasts it (voiced + lip-synced), then a GUILTY stamp hits with a camera jolt.
 Outro: "Or just let Area 47 handle it. Too clean." with grill sparkles and the booking card.
 
+SEV speaks alien gibberish (`gibberish()` + `fx: 'alien'` in scripts/voice.mjs: made-up syllables with the same rhythm and
+punctuation as the English line, pitched up with tremolo, vibrato, phaser and chorus). His English runs as typed subtitles under
+him. Only the last words, "Too clean.", are spoken in English.
+
 | Case | Crime | Why (on screen) |
 |---|---|---|
 | 01 | Dish soap on the paint | It strips the wax. Your paint loses its protection. |

@@ -33,12 +33,27 @@ export const FX = {
   shout: ['volume=2.2', 'asoftclip=type=tanh', 'equalizer=f=2400:t=q:w=1.2:g=6', 'acompressor=threshold=-18dB:ratio=6:attack=2:release=60'],
   whisper: ['highpass=f=320', 'equalizer=f=5000:t=q:w=1:g=4', 'aecho=0.6:0.4:18:0.25'],
   ghost: ['vibrato=f=4.5:d=0.18', 'aecho=0.8:0.75:70|140:0.35|0.22', 'lowpass=f=3600'],
+  alien: ['tremolo=f=26:d=0.32', 'vibrato=f=8:d=0.22', 'aphaser=type=t:speed=1.6:decay=0.45', 'chorus=0.6:0.9:45|62:0.38|0.3:0.3|0.45:2|1.4', 'equalizer=f=2600:t=q:w=1:g=3', 'highpass=f=140'],
   old: ['vibrato=f=6:d=0.07', 'highpass=f=140'],
   megaphone: ['highpass=f=520', 'lowpass=f=3200', 'volume=1.8', 'asoftclip=type=tanh', 'aecho=0.8:0.6:45:0.3'],
   tv: ['highpass=f=280', 'lowpass=f=5200', 'acompressor=threshold=-20dB:ratio=4'],
 };
 // Sensible per-preset prosody so callers can just say fx: 'shout'.
-const PRESET = { shout: { speed: 1.08, pitch: 1.5 }, whisper: { speed: 0.95 }, ghost: { speed: 0.85, pitch: -4 }, old: { speed: 0.9, pitch: 1 }, megaphone: { speed: 1.0 } };
+const PRESET = { shout: { speed: 1.08, pitch: 1.5 }, whisper: { speed: 0.95 }, ghost: { speed: 0.85, pitch: -4 }, old: { speed: 0.9, pitch: 1 }, megaphone: { speed: 1.0 }, alien: { speed: 1.08, pitch: 4 } };
+
+// Alien gibberish with the same rhythm as an English line: each word becomes made-up syllables (about one per vowel group),
+// punctuation is kept so questions still go up. Deterministic per text. Pair it with fx: 'alien' and show the English as subtitles.
+const SYL = ['zor', 'ka', 'vee', 'tluk', 'mi', 'ra', 'qua', 'zeb', 'ni', 'oo', 'grak', 'sha', 'lo', 'xi', 'buu', 'tep', 'vok', 'yel', 'ix', 'dro', 'kesh', 'num', 'pah', 'zii'];
+export function gibberish(text) {
+  let h = 47; for (const c of text) h = (h * 31 + c.charCodeAt(0)) % 100003;
+  const rnd = () => (h = (h * 16807) % 2147483647) / 2147483647;
+  return text.split(/\s+/).map(w => {
+    const core = w.replace(/[^A-Za-z0-9']/g, ''), tail = w.match(/[.,?!]+$/)?.[0] || '';
+    const n = Math.max(1, Math.min(3, (core.toLowerCase().match(/[aeiouy]+/g) || ['']).length));
+    let out = ''; for (let i = 0; i < n; i++) out += SYL[Math.floor(rnd() * SYL.length)];
+    return out + tail;
+  }).join(' ');
+}
 
 function ttsPaths(dir) {
   dir = dir || process.env.BRAND_MOTION_TTS || path.join(os.homedir(), '.cache/brand-motion/tts');

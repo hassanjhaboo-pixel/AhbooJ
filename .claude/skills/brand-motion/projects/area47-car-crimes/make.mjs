@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { voiceLines } from '../../scripts/voice.mjs';
+import { voiceLines, gibberish } from '../../scripts/voice.mjs';
 import { sevPuppet, sevPoint } from '../../kits/area47-sevrig.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const W = 1080, H = 1920, FPS = 30;
@@ -30,7 +30,12 @@ const CRIMES = [
 ];
 const OUTRO = { id: 'outro', text: 'Or just let Area 47 handle it. Too clean.', head: 'proud', arm: 'wave' };
 const ALL = [INTRO, ...CRIMES, OUTRO];
-const V = await voiceLines(ALL.map(l => Object.assign({ id: l.id, text: l.text }, VOICE)), path.join(here, 'voices'));
+// SEV speaks alien gibberish (same rhythm as the English line); the English runs as subtitles. The last words, "Too clean.", are in English.
+const ALIEN = { voice: 'am_onyx', fx: 'alien', pitch: 4, speed: 1.08 };
+const voiceOf = l => l.id === 'outro'
+  ? Object.assign({ id: l.id, parts: [Object.assign({ text: gibberish('Or just let Area 47 handle it.') }, ALIEN), Object.assign({ text: 'Too clean.', gap: 0.22 }, VOICE)] })
+  : Object.assign({ id: l.id, text: gibberish(l.text) }, ALIEN);
+const V = await voiceLines(ALL.map(voiceOf), path.join(here, 'voices'));
 if (Object.values(V).some(v => !v)) throw new Error('voice engine missing: bash ../../scripts/setup-tts.sh');
 
 // ---------- timeline ----------
@@ -76,6 +81,15 @@ CRIMES.forEach((c, i) => {
     { type: 'text', text: 'GUILTY', role: 'display', face: 'street', size: 0.115, color: 'boss' },
   ] });
   cue(c.stamp, 'stamp'); cue(c.next - 0.12, 'zip');
+});
+
+// ---------- translation subtitles (SEV's English, typed out under him) ----------
+[INTRO, ...CRIMES].forEach(l => {
+  const size = 0.038, est = l.text.length * size * 0.5, lines = Math.ceil(est / 0.84), w = r4(Math.min(0.9, est / lines + 0.07));
+  els.push({ type: 'group', x: 0.5, y: Y(1560), sfx: false, in: { fx: 'cut', at: r4(l.at), dur: 0.001 }, out: cut(l.at + l.dur + 0.35), children: [
+    { type: 'rect', wUnit: 'U', w, h: r4(lines * size * 1.25 + 0.034), radius: 0.01, fill: 'bg', opacity: 0.9 },
+    { type: 'text', text: l.text, role: 'body', face: 'plainBold', size, color: 'white', maxWidth: 0.84, in: { fx: 'type', at: r4(l.at), dur: r4(l.dur * 0.7) } },
+  ] });
 });
 
 // ---------- outro ----------
