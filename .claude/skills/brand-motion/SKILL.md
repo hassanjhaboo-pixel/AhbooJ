@@ -26,6 +26,7 @@ brand/<brand>.json  +  storyboards/<style>.json  ──build.mjs──▶  out/<
 | `references/layout-type.md` | Frame grid, safe areas, type scale, spacing, colour-role usage. |
 | `references/engine-api.md` | Every element, effect, transition and field the engine supports. |
 | `references/qa-checklist.md` | Run before you deliver. |
+| `references/anti-vibecode.md` | **Read before designing.** The 20 tells that make work look AI-made (Inter everywhere, grain over gradients, eyebrow badges, rise/fade on everything, em dashes...) and what to do instead. |
 | `references/research-notes.md` | What was borrowed from MotionGfx, Graphite, Crumbl and Starbucks, and the backlog. |
 | `engine/motion.js`, `engine/player.html` | Deterministic canvas engine and preview player. No dependencies. |
 | `scripts/build.mjs`, `scripts/render.mjs` | Bundle to one HTML file (with timeline lint); render to MP4 / stills / contact sheet / `--qa` motion report, optional `--blur` motion blur. |

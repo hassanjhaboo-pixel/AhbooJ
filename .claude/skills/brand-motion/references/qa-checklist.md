@@ -10,6 +10,14 @@
 - [ ] Copy follows `voice.case` and is ≤ `voice.maxWordsPerCard` words per card. Tone matches `voice.tone`.
 - [ ] Every rule in `brand.rules.do/dont` is respected.
 
+## Not vibecoded (`references/anti-vibecode.md`)
+- [ ] No grain unless it is a film/photo look with a stated reason. No gradient washes except the one that is the concept.
+- [ ] No `// EYEBROW` tag above headlines unless it carries data (step, time, price).
+- [ ] Entrances are the piece's motion idea (slam, mask, draw, cut on beat), not rise/fade on everything.
+- [ ] No accent-stroke chip on every label, no glass panels, no emoji, no em dashes in on-screen copy.
+- [ ] Small text is big enough and ≥ 4.5:1 on its stage. Copy is the owner's specifics, not buzzwords.
+- [ ] Display type is not Inter unless the brand kit says so with a reason.
+
 ## Layout
 - [ ] No text crosses the safe margin or clips at the frame edge (check the widest word in cyclers).
 - [ ] No unintended overlaps between headline and hero.
