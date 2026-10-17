@@ -71,6 +71,21 @@
         "family": "Pixelify Sans",
         "weight": 500,
         "src": "assets/area47/fonts/PixelifySans-Medium.ttf"
+      },
+      {
+        "family": "Big Shoulders",
+        "weight": 700,
+        "src": "assets/area47/fonts/BigShoulders-Bold.ttf"
+      },
+      {
+        "family": "Outfit",
+        "weight": 700,
+        "src": "assets/area47/fonts/Outfit-Bold.ttf"
+      },
+      {
+        "family": "Outfit",
+        "weight": 400,
+        "src": "assets/area47/fonts/Outfit-Regular.ttf"
       }
     ],
     "display": {
@@ -119,6 +134,30 @@
       "case": "upper",
       "tracking": 0.06,
       "lineHeight": 1.05
+    },
+    "street": {
+      "family": "Big Shoulders",
+      "fallback": "'Liberation Sans Narrow', sans-serif",
+      "weight": 700,
+      "case": "upper",
+      "tracking": 0.005,
+      "lineHeight": 0.88
+    },
+    "plain": {
+      "family": "Outfit",
+      "fallback": "sans-serif",
+      "weight": 400,
+      "case": "none",
+      "tracking": 0,
+      "lineHeight": 1.2
+    },
+    "plainBold": {
+      "family": "Outfit",
+      "fallback": "sans-serif",
+      "weight": 700,
+      "case": "none",
+      "tracking": 0,
+      "lineHeight": 1.15
     }
   },
   "logo": {
