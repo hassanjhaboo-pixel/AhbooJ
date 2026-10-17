@@ -1,0 +1,58 @@
+{
+ "duration": 14.757,
+ "cues": [
+  {
+   "t": 0,
+   "kind": "beam"
+  },
+  {
+   "t": 0.35,
+   "kind": "zip"
+  },
+  {
+   "t": 1.08,
+   "kind": "land"
+  },
+  {
+   "t": 11.177,
+   "kind": "ping",
+   "p": 1.5
+  },
+  {
+   "t": 11.427,
+   "kind": "ping",
+   "p": 1.8
+  },
+  {
+   "t": 11.557,
+   "kind": "hit"
+  },
+  {
+   "t": 11.757,
+   "kind": "ping",
+   "p": 1.2
+  }
+ ],
+ "voices": [
+  {
+   "file": "voices/yo.wav",
+   "at": 1.45
+  },
+  {
+   "file": "voices/from.wav",
+   "at": 2.883
+  },
+  {
+   "file": "voices/dirty.wav",
+   "at": 5.192
+  },
+  {
+   "file": "voices/say.wav",
+   "at": 7.935
+  },
+  {
+   "file": "voices/clean.wav",
+   "at": 10.237
+  }
+ ]
+}

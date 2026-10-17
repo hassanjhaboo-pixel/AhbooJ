@@ -481,6 +481,7 @@
     // --- drawers (draw in local coords; box top-left at (-ax*w, -ay*h)) ---
     function anchorOf(el) {
       const a = el.anchor || 'center';
+      if (Array.isArray(a)) return a; // custom pivot as [fx, fy] of the element box (rigged limbs: shoulder, neck)
       const map = { center: [0.5, 0.5], left: [0, 0.5], right: [1, 0.5], top: [0.5, 0], bottom: [0.5, 1], 'top-left': [0, 0], 'top-right': [1, 0], 'bottom-left': [0, 1], 'bottom-right': [1, 1] };
       return map[a] || [0.5, 0.5];
     }
