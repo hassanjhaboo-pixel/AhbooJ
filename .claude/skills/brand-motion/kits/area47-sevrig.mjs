@@ -17,7 +17,7 @@ const r4 = v => Math.round(v * 10000) / 10000;
 const cut = at => ({ fx: 'cut', at: r4(at), dur: 0.001 });
 
 export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], lines = [], dur, fps = 30, U = 1080,
-  rigSrc = '../area47-sev-talk/assets/rig', rest = 'closed', endMouth = 'smirk', blinkEvery = 2.6, extraMoves = [], eyes = null, ...extra }) {
+  rigSrc = '../area47-sev-talk/assets/rig', rest = 'closed', endMouth = 'smirk', blinkEvery = 2.6, extraMoves = [], eyes = null, mouths = null, ...extra }) {
   const RIG = JSON.parse(fs.readFileSync(path.join(here, '..', 'projects', 'area47-sev-talk', 'assets', 'rig', 'rig.json'), 'utf8'));
   const B = RIG.boxes, P = RIG.pivots, k = scale / U;
   const off = (px, py, o = origin) => [r4((px - o[0]) * k), r4((py - o[1]) * k)];
@@ -31,7 +31,7 @@ export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], 
   const last = lines.length ? lines[lines.length - 1] : null;
   lines.forEach((l, li) => {
     const f0 = Math.round(l.at * fps); let hold = 0, cur = 'closed';
-    l.env.forEach((v, i) => {
+    (l.env || []).forEach((v, i) => {
       if (f0 + i >= frames) return;
       if (hold > 0) { hold--; m[f0 + i] = cur; return; }
       const h = (i * 7 + li * 3) % 6;
@@ -39,8 +39,11 @@ export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], 
       m[f0 + i] = cur; hold = 1;
     });
     const nextAt = li + 1 < lines.length ? lines[li + 1].at : dur;
-    for (let f = f0 + l.env.length; f < Math.round(nextAt * fps) && f < frames; f++) m[f] = l === last ? endMouth : (l.after || rest);
+    for (let f = f0 + (l.env || []).length; f < Math.round(nextAt * fps) && f < frames; f++) m[f] = l === last ? endMouth : (l.after || rest);
   });
+  // mouths = [[t, shape], ...]: acted mouth shapes with no voice (smirk, laugh, oh...); a shape holds until the next key, null = back to lip-sync
+  if (mouths) { const ks = mouths.slice().sort((p, q) => p[0] - q[0]);
+    ks.forEach(([t0, s], i) => { if (!s) return; const t1 = i + 1 < ks.length ? ks[i + 1][0] : dur; for (let f = Math.round(t0 * fps); f < Math.round(t1 * fps) && f < frames; f++) m[f] = s; }); }
   const runs = []; m.forEach((s, f) => { if (runs.length && runs[runs.length - 1].s === s) runs[runs.length - 1].n++; else runs.push({ s, f, n: 1 }); });
   const NECK = P.head, hb = B.head, hx = r4((hb.x + hb.w / 2 - NECK[0]) * k), hy = r4((hb.y + hb.h / 2 - NECK[1]) * k);
   const headKids = runs.map(({ s, f, n }) => img(`head-${s}`, hb, { x: hx, y: hy, from: r4(f / fps), out: cut((f + n) / fps) }));
