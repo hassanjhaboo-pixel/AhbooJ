@@ -17,7 +17,7 @@ const r4 = v => Math.round(v * 10000) / 10000;
 const cut = at => ({ fx: 'cut', at: r4(at), dur: 0.001 });
 
 export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], lines = [], dur, fps = 30, U = 1080,
-  rigSrc = '../area47-sev-talk/assets/rig', rest = 'closed', endMouth = 'smirk', blinkEvery = 2.6, extraMoves = [], ...extra }) {
+  rigSrc = '../area47-sev-talk/assets/rig', rest = 'closed', endMouth = 'smirk', blinkEvery = 2.6, extraMoves = [], eyes = null, ...extra }) {
   const RIG = JSON.parse(fs.readFileSync(path.join(here, '..', 'projects', 'area47-sev-talk', 'assets', 'rig', 'rig.json'), 'utf8'));
   const B = RIG.boxes, P = RIG.pivots, k = scale / U;
   const off = (px, py, o = origin) => [r4((px - o[0]) * k), r4((py - o[1]) * k)];
@@ -44,7 +44,21 @@ export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], 
   const runs = []; m.forEach((s, f) => { if (runs.length && runs[runs.length - 1].s === s) runs[runs.length - 1].n++; else runs.push({ s, f, n: 1 }); });
   const NECK = P.head, hb = B.head, hx = r4((hb.x + hb.w / 2 - NECK[0]) * k), hy = r4((hb.y + hb.h / 2 - NECK[1]) * k);
   const headKids = runs.map(({ s, f, n }) => img(`head-${s}`, hb, { x: hx, y: hy, from: r4(f / fps), out: cut((f + n) / fps) }));
-  for (let b = 0.9; b < dur - 0.3; b += blinkEvery + ((b * 7) % 1) * 0.8) headKids.push(img('lids', hb, { x: hx, y: hy, from: r4(b), out: cut(b + 0.1) }));
+  const blinkAt = []; for (let b = 0.9; b < dur - 0.3; b += blinkEvery + ((b * 7) % 1) * 0.8) blinkAt.push(r4(b));
+  if (!eyes) blinkAt.forEach(b => headKids.push(img('lids', hb, { x: hx, y: hy, from: b, out: cut(b + 0.1) })));
+  else {
+    // eye states from the eye chart (rig.json "eyes"): eyes = [[t, state], ...]; blinks = half → closed → half
+    const F = 1 / fps, track = eyes.slice().sort((a, b) => a[0] - b[0]);
+    const ev = []; track.forEach(([t0, s], i) => ev.push([t0, i + 1 < track.length ? track[i + 1][0] : dur, s]));
+    const segs = [];
+    ev.forEach(([a, b, s]) => {
+      let c = a;
+      blinkAt.filter(t => t >= a && t + 4 * F <= b && !['closed', 'wink', 'happy'].includes(s)).forEach(t => {
+        segs.push([c, t, s], [t, t + F, 'blink-half'], [t + F, t + 3 * F, 'closed'], [t + 3 * F, t + 4 * F, 'blink-half']); c = t + 4 * F; });
+      segs.push([c, b, s]);
+    });
+    segs.filter(([a, b]) => b - a > 1e-4).forEach(([a, b, s]) => headKids.push(img(`eyes-${s}`, hb, { x: hx, y: hy, from: r4(a), out: cut(b) })));
+  }
 
   // acting
   const head = [], armL = [], armR = [];
@@ -78,3 +92,15 @@ export function sevPuppet({ x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], 
 // frame position of a master pixel for a puppet placed with the same x/y/scale/origin (for props: sparkles on the grill, etc.)
 export const sevPoint = (px, py, { x = 0.5, y = 1, scale = 1.25, origin = [512, 1100], W = 1080, H = 1920 } = {}) =>
   [r4(x + (px - origin[0]) * scale / W), r4(y + (py - origin[1]) * scale / H)];
+
+// Side-view walk cycle (brand/assets/area47/sev/walk/walk-1..8.png). x0 → x1 = bottom-centre path in frame fractions,
+// h = figure height in U, fps = cycle frame rate (8 frames = 2 steps). Facing right; walking left mirrors it.
+// The figure glides at a speed matched to the stride, so set the duration from the distance (or pass dur to override).
+export function sevWalk({ x0, x1, y, h = 0.7, at = 0, fps = 12, dur, base = '../../brand/assets/area47/sev/walk', W = 1080, H = 1920, ...extra }) {
+  const frames = Array.from({ length: 8 }, (_, i) => `${base}/walk-${i + 1}.png`);
+  const man = JSON.parse(fs.readFileSync(path.join(here, '..', 'brand', 'assets', 'area47', 'sev', 'v3.json'), 'utf8')).walk['walk-1'];
+  const speed = 0.95 * h;                                   // U per second at 12 fps (about one stride per cycle)
+  const d = dur != null ? dur : Math.abs(x1 - x0) * W / 1080 / (speed * fps / 12);
+  return Object.assign({ type: 'image', src: frames[0], seq: frames, seqLoop: true, seqFps: fps, seqAt: at, w: r4(h * man.w / man.h), wUnit: 'U', h,
+    anchor: 'bottom', x: x0, y, sx: x1 < x0 ? -1 : 1, moves: [{ at, dur: r4(d), x: x1, ease: 'linear' }], walkEnd: r4(at + d) }, extra);
+}

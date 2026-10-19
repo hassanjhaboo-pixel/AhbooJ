@@ -31,3 +31,16 @@ node ../../scripts/build.mjs --brand ../../brand/area47.json --story story.json 
 node ../../scripts/render.mjs out/sev.html --audio out/sev.wav --blur 3
 ```
 To give SEV new lines, edit `LINES` in make.mjs (text, caption words, highlighted words, arm + head acting) and re-run.
+
+## v3 assets (walk, hands, head turn, eyes)
+`cut_sheets.py` keys and cuts the four v3 sheets (`src/walk.png`, `hands.png`, `turn8.png`, `eyes.png`) into
+`brand/assets/area47/sev/` with a manifest at `sev/v3.json`:
+- `walk/walk-1..8.png`: side-view walk cycle (contact, down, passing, up ×2) on one shared canvas, shoe line and torso aligned
+- `hands/hand-*.png`: open, fist, point, thumbs-up, peace, spray, towel, wave, keys, four, ok, stop
+- `turn8/head-*.png`: 8-angle head turn (000 front, 045, 090 profile, 135, 180 back, 225, 270 profile, 315), shoulders aligned
+- `eyes/eye-<state>-a|b.png`: 12 states × 2 eyes (a = viewer-left)
+
+`fit_eyes.py` fits the eye chart onto the talking rig (`assets/rig/eyes-<state>.png`). In the kit:
+- `sevPuppet({ …, eyes: [[t, 'look-left'], …] })` swaps eye states; blinks become half → closed → half automatically.
+- `sevWalk({ x0, x1, y, h, at, fps })` plays the walk cycle (engine `seqLoop`) and glides at a stride-matched speed; returns `walkEnd`.
+`demo-v3.mjs` is an 8s silent test of all of it.

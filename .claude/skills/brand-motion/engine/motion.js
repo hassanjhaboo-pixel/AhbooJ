@@ -666,7 +666,7 @@
     // holds the first frame before seqAt and the last frame after the end (seek-safe, deterministic)
     function seqFrame(el, t) {
       const i = Math.floor(Math.max(0, t - (el.seqAt || 0)) * (el.seqFps || 30) * (el.seqRate || 1));
-      return el.seq[Math.min(el.seq.length - 1, i)];
+      return el.seqLoop ? el.seq[i % el.seq.length] : el.seq[Math.min(el.seq.length - 1, i)]; // seqLoop: cycles (walk cycles, loops)
     }
     function drawImage(el, st, w, h, src) {
       const im = images[src];

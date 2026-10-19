@@ -1,0 +1,290 @@
+{
+ "walk": {
+  "walk-1": {
+   "file": "walk/walk-1.png",
+   "w": 283,
+   "h": 510,
+   "pose": "contact"
+  },
+  "walk-2": {
+   "file": "walk/walk-2.png",
+   "w": 283,
+   "h": 510,
+   "pose": "down"
+  },
+  "walk-3": {
+   "file": "walk/walk-3.png",
+   "w": 283,
+   "h": 510,
+   "pose": "passing"
+  },
+  "walk-4": {
+   "file": "walk/walk-4.png",
+   "w": 283,
+   "h": 510,
+   "pose": "up"
+  },
+  "walk-5": {
+   "file": "walk/walk-5.png",
+   "w": 283,
+   "h": 510,
+   "pose": "contact2"
+  },
+  "walk-6": {
+   "file": "walk/walk-6.png",
+   "w": 283,
+   "h": 510,
+   "pose": "down2"
+  },
+  "walk-7": {
+   "file": "walk/walk-7.png",
+   "w": 283,
+   "h": 510,
+   "pose": "passing2"
+  },
+  "walk-8": {
+   "file": "walk/walk-8.png",
+   "w": 283,
+   "h": 510,
+   "pose": "up2"
+  }
+ },
+ "hands": {
+  "hand-open": {
+   "file": "hands/hand-open.png",
+   "w": 235,
+   "h": 300,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-fist": {
+   "file": "hands/hand-fist.png",
+   "w": 199,
+   "h": 255,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-point": {
+   "file": "hands/hand-point.png",
+   "w": 221,
+   "h": 277,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-thumbs-up": {
+   "file": "hands/hand-thumbs-up.png",
+   "w": 226,
+   "h": 295,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-peace": {
+   "file": "hands/hand-peace.png",
+   "w": 164,
+   "h": 302,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-spray": {
+   "file": "hands/hand-spray.png",
+   "w": 228,
+   "h": 283,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-towel": {
+   "file": "hands/hand-towel.png",
+   "w": 244,
+   "h": 269,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-wave": {
+   "file": "hands/hand-wave.png",
+   "w": 313,
+   "h": 296,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-keys": {
+   "file": "hands/hand-keys.png",
+   "w": 188,
+   "h": 295,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-four": {
+   "file": "hands/hand-four.png",
+   "w": 218,
+   "h": 316,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-ok": {
+   "file": "hands/hand-ok.png",
+   "w": 192,
+   "h": 312,
+   "anchor": "bottom (wrist cuff)"
+  },
+  "hand-stop": {
+   "file": "hands/hand-stop.png",
+   "w": 203,
+   "h": 320,
+   "anchor": "bottom (wrist cuff)"
+  }
+ },
+ "turn8": {
+  "head-000-front": {
+   "file": "turn8/head-000-front.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-045": {
+   "file": "turn8/head-045.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-090-profile": {
+   "file": "turn8/head-090-profile.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-135": {
+   "file": "turn8/head-135.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-180-back": {
+   "file": "turn8/head-180-back.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-225": {
+   "file": "turn8/head-225.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-270-profile": {
+   "file": "turn8/head-270-profile.png",
+   "w": 297,
+   "h": 435
+  },
+  "head-315": {
+   "file": "turn8/head-315.png",
+   "w": 297,
+   "h": 435
+  }
+ },
+ "eyes": {
+  "eye-neutral-a": {
+   "file": "eyes/eye-neutral-a.png",
+   "w": 149,
+   "h": 158
+  },
+  "eye-neutral-b": {
+   "file": "eyes/eye-neutral-b.png",
+   "w": 154,
+   "h": 160
+  },
+  "eye-half-a": {
+   "file": "eyes/eye-half-a.png",
+   "w": 152,
+   "h": 157
+  },
+  "eye-half-b": {
+   "file": "eyes/eye-half-b.png",
+   "w": 152,
+   "h": 157
+  },
+  "eye-closed-a": {
+   "file": "eyes/eye-closed-a.png",
+   "w": 151,
+   "h": 158
+  },
+  "eye-closed-b": {
+   "file": "eyes/eye-closed-b.png",
+   "w": 153,
+   "h": 159
+  },
+  "eye-blink-half-a": {
+   "file": "eyes/eye-blink-half-a.png",
+   "w": 154,
+   "h": 154
+  },
+  "eye-blink-half-b": {
+   "file": "eyes/eye-blink-half-b.png",
+   "w": 149,
+   "h": 154
+  },
+  "eye-look-left-a": {
+   "file": "eyes/eye-look-left-a.png",
+   "w": 154,
+   "h": 157
+  },
+  "eye-look-left-b": {
+   "file": "eyes/eye-look-left-b.png",
+   "w": 154,
+   "h": 156
+  },
+  "eye-look-right-a": {
+   "file": "eyes/eye-look-right-a.png",
+   "w": 152,
+   "h": 154
+  },
+  "eye-look-right-b": {
+   "file": "eyes/eye-look-right-b.png",
+   "w": 151,
+   "h": 153
+  },
+  "eye-look-up-a": {
+   "file": "eyes/eye-look-up-a.png",
+   "w": 149,
+   "h": 161
+  },
+  "eye-look-up-b": {
+   "file": "eyes/eye-look-up-b.png",
+   "w": 150,
+   "h": 160
+  },
+  "eye-side-eye-a": {
+   "file": "eyes/eye-side-eye-a.png",
+   "w": 154,
+   "h": 158
+  },
+  "eye-side-eye-b": {
+   "file": "eyes/eye-side-eye-b.png",
+   "w": 156,
+   "h": 160
+  },
+  "eye-wink-a": {
+   "file": "eyes/eye-wink-a.png",
+   "w": 155,
+   "h": 166
+  },
+  "eye-wink-b": {
+   "file": "eyes/eye-wink-b.png",
+   "w": 150,
+   "h": 165
+  },
+  "eye-wide-a": {
+   "file": "eyes/eye-wide-a.png",
+   "w": 146,
+   "h": 199
+  },
+  "eye-wide-b": {
+   "file": "eyes/eye-wide-b.png",
+   "w": 146,
+   "h": 199
+  },
+  "eye-happy-a": {
+   "file": "eyes/eye-happy-a.png",
+   "w": 156,
+   "h": 171
+  },
+  "eye-happy-b": {
+   "file": "eyes/eye-happy-b.png",
+   "w": 156,
+   "h": 171
+  },
+  "eye-squint-a": {
+   "file": "eyes/eye-squint-a.png",
+   "w": 155,
+   "h": 154
+  },
+  "eye-squint-b": {
+   "file": "eyes/eye-squint-b.png",
+   "w": 154,
+   "h": 153
+  }
+ }
+}

@@ -55,5 +55,19 @@
   "l",
   "smirk",
   "laugh"
+ ],
+ "eyes": [
+  "blink-half",
+  "closed",
+  "half",
+  "happy",
+  "look-left",
+  "look-right",
+  "look-up",
+  "neutral",
+  "side-eye",
+  "squint",
+  "wide",
+  "wink"
  ]
 }
