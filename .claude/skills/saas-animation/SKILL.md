@@ -114,6 +114,7 @@ Check these with the user before anything is published:
 | running the ad into real footage | `references/into-footage.md` |
 | adding sound, a voiceover or music | `references/sound-and-music.md` |
 | something looks wrong | `references/pitfalls.md` |
+| scoring a render round before showing anyone | `references/motion-bible.md` |
 
 ## Setup
 
