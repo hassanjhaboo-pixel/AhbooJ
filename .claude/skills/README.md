@@ -8,6 +8,9 @@ Three skills that build a brand system and produce on-brand motion graphics for 
 | `brand-kit/` | Extends that file into a full identity system (strategy, voice, logo rules, colour + contrast audit, type, imagery, motion tokens, sound, social) and generates a shareable **brand book page**, design tokens (CSS / Tailwind / W3C JSON), `DESIGN.md` and motion guidelines. Holds the creative-brief, promo-brief, campaign-plan, shot-list and voice templates. |
 | `brand-motion/` | Writes a storyboard in one of six decoded ad styles (Pop Pulse / Kinetic Type / Line Journey / Diorama Build / Lineup Reveal / Hero Constant), builds a live HTML preview, generates a synced soundtrack, QA-checks motion, and renders an MP4 with motion blur. |
 
+## SaaS and product ads
+`saas-animation/` builds 8 to 20s app, product and logo ads as code (canvas, WebGL panels, puppet pins, headless Blender) and renders them to 4K with a synced SFX mix. No AI video models. Its `SKILL.md` opens with the house rules that override its defaults.
+
 ## Reverse engineering
 `rea-ahbooj/` adapts [morluto/rea](https://github.com/morluto/rea) (MIT): investigate a feature in another app (APK, Electron, website, binary) with the REA MCP server, then turn it into an Ahbooj OS build spec. One-time setup on your machine: `npx rea-agents setup` → choose Claude Code → restart. Ask: "Use rea-ahbooj to work out how <app> does <feature>".
 
