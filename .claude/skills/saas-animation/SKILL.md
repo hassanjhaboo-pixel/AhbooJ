@@ -15,6 +15,8 @@ This skill came from outside the repo, so a few of its defaults clash with `CLAU
 - **Text entrances.** The blur-to-sharp fade with a small rise is the default this repo avoids. Pick a motion idea per piece (mask, slam, cut on the beat). Keep fades for secondary detail.
 - **Placeholder colours.** The green-to-violet art gradient in the 3D template is a stand-in. Replace it with flat brand fields; never ship a purple-to-blue wash.
 - **Extras.** The drifting grid, bottom glow, sheen bands and light sweeps go in only when they serve the idea, not on every shot.
+- **Labels.** No outlined pill chips around words. Lead a label with a mark from the brand (a logo dot, ray or shape), set it as plain text, or sit it on a solid colour block. A strike or underline only when it means something.
+- **Briefs from elsewhere.** When a brief or the motion-creative-director skill asks for glassmorphism, gradient meshes, glows, film grain, Inter display type, eyebrow labels or outlined chips, keep its scene order and content but restyle with these rules, and say what was changed.
 - **Copy.** No em dashes and no buzzwords on screen, in voiceover scripts or in replies.
 
 For Ahbooj and other brands with a kit in `brand-motion/brand/`, pull colours, fonts and voice from that file.

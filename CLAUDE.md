@@ -23,6 +23,7 @@ Hassan flagged these as tells that make work look AI-made. Avoid all of them unl
 18. Serif italic accent words
 19. Space Grotesk + Instrument Serif
 20. Grain over a gradient
+21. Outlined pill chips around words (labels, features, menu names). Use a brand mark as the bullet, plain text, or a solid block
 
 Full table with what to do instead, for web and for video: `.claude/skills/brand-motion/references/anti-vibecode.md`.
 Check new work against it before delivering. Existing Ahbooj OS screens still use some of these (Lucide icons,

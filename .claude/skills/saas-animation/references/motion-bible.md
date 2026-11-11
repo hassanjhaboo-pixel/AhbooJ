@@ -48,6 +48,7 @@ Customer.io and SAP Fiori, Hassan's handwritten rules, `style-rules.md` and `bra
 - Real UI rebuilt faithfully (names, colours, controls); personal details removed.
 - Text: brand font, sentence case, short, true. No invented stats or claims.
 - Spec ads end with "Spec ad. Not affiliated with <brand>."
+- Labels never sit in outlined pill chips. Use a brand mark as the bullet, plain text, or a solid block.
 - Anti-vibecode list: no purple-to-blue washes, gradient headlines, emoji, Inter display type, glass cards,
   eyebrow badges, three-icon rows, fade-in-on-scroll entrances, em dashes or buzzwords.
 
