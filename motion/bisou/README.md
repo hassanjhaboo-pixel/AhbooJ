@@ -16,8 +16,8 @@ one direction to the next. The last plate (pancakes) gets eaten to crumbs and a 
 The placemat darkens to black, the three utensils drop onto the rail and swing to rest, BISOU settles in, then
 "New on the breakfast menu" and @bisoutt.
 
-Running order (proposal): benedict (red plate, strongest hook) > shakshuka > potato cake > chilli scramble > pancakes.
-Dish names: working names only until we have Bisou's real menu names.
+Running order (proposal): benedict (red plate, strongest hook) > shakshuka > Turkish Eggs & Bake > Eggs & Chilli Oil > pancakes.
+Names from their poll: Shakshuka, Turkish Eggs & Bake, Eggs & chilli oil, Fried Chicken Eggs Benedict. Pancakes: name not in the poll yet.
 
 ## Assets checklist
 | File | From | Status |
