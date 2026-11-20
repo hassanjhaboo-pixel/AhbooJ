@@ -19,8 +19,8 @@ const DISHES = [
 ];
 // every beat lives here. arrive = plate centred at full size; push = end of its lean-in (the whip to the next starts there)
 const B = { iDrops: [0.3, 0.48, 0.66], present: 0.85, toCard: 1.6, words: [1.85, 2.15, 2.55], dive: [3.6, 5.0],
-  arrive: [5, 8.5, 12, 15.5, 19], push: [7.5, 11, 14.5, 18, 21.5], back: 22.2, eat: [22.8, 23.5], down: [24.1, 25.7],
-  ring: [25.3, 27], letters: 26.8, rail: 27.1, drops: [27.5, 27.7, 27.9], line: 28.5, card: 30.1, ask: 30.5, plates: 30.8, handle: 31.4, contact: 33.5, END: 39 };
+  arrive: [5, 9.5, 14, 18.5, 23], push: [8.5, 13, 17.5, 22, 26.5], back: 27.2, eat: [27.8, 28.5], down: [29.1, 30.7],
+  ring: [30.3, 32], letters: 31.8, rail: 32.1, drops: [32.5, 32.7, 32.9], line: 33.5, card: 35.1, ask: 35.5, plates: 35.8, handle: 36.4, contact: 38.5, END: 44 };
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
 const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
 const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
