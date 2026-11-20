@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Bisou breakfast storyboard</title>
+<style>
+  @font-face { font-family: Brand; src: url("../fonts/Nunito-600.ttf"); font-weight: 400 600; }
+  @font-face { font-family: Brand; src: url("../fonts/Nunito-800.ttf"); font-weight: 700 900; }
+  * { box-sizing: border-box; } html, body { margin: 0; background: #120d0a; color: #f6efe6; font-family: Brand, sans-serif; }
+  .board { width: 1920px; padding: 40px 32px; }
+  h1 { margin: 0 0 8px; font-size: 44px; font-weight: 800; } h1 span { color: #a8988a; font-weight: 600; }
+  .sub { font-size: 19px; color: #cbbfb3; margin-bottom: 30px; max-width: 1800px; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: repeat(6, 290px); gap: 34px 26px; }
+  .frame { position: relative; width: 290px; height: 516px; border-radius: 10px; overflow: hidden; background: #000; }
+  .frame img { width: 100%; height: 100%; display: block; }
+  .num { position: absolute; left: 10px; top: 10px; width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #000; font-weight: 800; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+  .t { font-size: 14px; color: #a8988a; margin-top: 10px; } .b { font-size: 20px; font-weight: 800; margin: 2px 0 5px; }
+  .d { font-size: 15px; color: #e3d8cc; line-height: 1.45; }
+  .mv { margin-top: 7px; font-size: 14px; color: #F5C95C; line-height: 1.4; } .sx { margin-top: 7px; font-size: 14px; color: #9DC7F5; line-height: 1.4; }
+  .tr { margin-top: 7px; font-size: 14px; color: #7EDBA6; line-height: 1.4; }
+</style></head><body>
+<div class="board"><h1>Bisou <span>· new breakfast menu · 9:16 · about 42s</span></h1>
+  <div class="sub">One unbroken overhead take on their placemat. The star is a fork that keeps trying to steal a bite and the plates keep dodging it, until the pancakes, where it finally wins. Plates always travel upward, so the camera never reverses.
+  Yellow = what moves. Blue = sound. Green = how this shot becomes the next.</div>
+  <div class="grid" id="g"></div></div>
+<script>
+const S = [
+ ['0.0–2.0s','Hook: the macro','Frame 1 is already food: glossy hollandaise and microgreens fill the screen.','Slow drift across the egg. The fork tip creeps in from the bottom edge.','Sizzle, a tiny metal tick.','The camera rises straight up off the egg.'],
+ ['2.0–5.5s','Fried Chicken Eggs Benedict','The red plate lands centre on the placemat. Name slides up out of a mask.','Plate settles with a small wobble. Gentle push-in.','Ceramic clink on landing.','The fork lunges.'],
+ ['5.5–6.5s','The dodge','The plate whips up and out of frame. The fork stabs empty placemat.','Fast whip with motion blur; the next plate rides in from below in the same move.','Whoosh, fork thunk on the mat.','The next plate is already in.'],
+ ['6.5–11.5s','Shakshuka','Push deep into the bowl: yolk, feta, pickled onion.','Two-step zoom (full plate to bowl to macro). Steam drifts up.','Bubbling, soft clink.','Fork from the left, plate dodges again, faster.'],
+ ['11.5–16.5s','Turkish Eggs & Bake','The bake lands. Herbs and chilli oil up close.','Fork lunges from the side and misses by a hair.','Swipe, miss.','Plate whips up.'],
+ ['16.5–21.5s','Eggs & Chilli Oil','Push in on the chilli oil. The fork just waits.','"Patience." pops on the beat. The fork taps once, twice.','Two tiny taps.','Plate whips up.'],
+ ['21.5–26.0s','Pancakes','Cream melting, sugar falling like snow.','Slowest push-in of the film. Sugar drifts down.','Soft chime.','The fork finally gets its turn.'],
+ ['26.0–30.0s','Okay. One bite.','The fork wins. Stop-motion: full, half eaten, finished.','Three jumps on the beat, crumbs left behind, the fork drops onto the plate.','Bite, crunch, fork clatter.','The lights go down.'],
+ ['30.0–32.0s','Lights down','The table dims around the empty plate.','Camera rises. The placemat fades to black.','Room tone drops away.','The white plate rim shrinks into the O of BISOU.'],
+ ['32.0–34.5s','Plate becomes the logo','The rim lands as the O. The rest of the letters arrive.','The whisk, spatula and turner drop onto the rail and swing.','Three little hangs, ding.','Utensils swing to rest.'],
+ ['34.5–37.5s','The mark','Their own mark, exactly as in their outro.','Utensils settle with a last small sway.','Quiet.','The mark slides up.'],
+ ['37.5–42.0s','Which one first?','Same question as their post. All five plates in a row, @bisoutt.','Plates bob one after another. Held long enough to read and comment.','Last chime.','End.'],
+];
+document.getElementById('g').innerHTML = S.map(([t,b,d,mv,sx,tr],i)=>`<div><div class="frame"><div class="num">${i+1}</div><img src="frames/${i+1}.jpg"></div>
+ <div class="t">${t}</div><div class="b">${b}</div><div class="d">${d}</div><div class="mv">${mv}</div><div class="sx">${sx}</div><div class="tr">→ ${tr}</div></div>`).join('');
+</script></body></html>
