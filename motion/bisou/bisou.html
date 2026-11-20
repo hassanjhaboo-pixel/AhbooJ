@@ -45,7 +45,10 @@ function buildCamera() {
     d.zPush = Math.min(0.92 / (ks(d) * kd), 3.4); [d.fx, d.fy] = world(d, i, ...g.focus); });
   const D = DISHES; const push = i => [B.push[i], D[i].zPush, D[i].fx, D[i].fy], land = i => [B.arrive[i], 1.0, 540, plateY(i)];
   const keys = [[0, D[0].zPush * 0.96, D[0].fx, D[0].fy], land(0), [B.push[0], 1.28, D[0].fx, D[0].fy]];
-  for (let i = 1; i < 5; i++) keys.push(land(i), push(i));
+  // each whip: ease most of the zoom off first (in place), then glide, so nothing smears at high zoom
+  const loosen = i => [B.push[i] + 0.38, Math.min(D[i].zPush, 1.0 + (D[i].zPush - 1) * 0.22), lerp(D[i].fx, 540, 0.5), D[i].fy + (plateY(i + 1) - D[i].fy) * 0.12];
+  keys.push(loosen(0));
+  for (let i = 1; i < 5; i++) { keys.push(land(i), push(i)); if (i < 4) keys.push(loosen(i)); }
   keys.push([B.back, 1.0, 540, plateY(4)], [B.eat[1] + 0.6, 1.03, 540, plateY(4)], [B.down[1], 0.74, 540, plateY(4)], [B.END, 0.72, 540, plateY(4)]);
   const z = mono(keys.map(k => [k[0], k[1]])), x = mono(keys.map(k => [k[0], k[2]])), y = mono(keys.map(k => [k[0], k[3]]));
   cam = t => ({ cx: x(t), cy: y(t), z: z(t) });
@@ -65,7 +68,7 @@ function plate(c, d, i, t, imgKey = null, alpha = 1) {
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LT.width, LT.height);
   lctx.setTransform(SCALE * s, 0, 0, SCALE * s, SCALE * (px - g.plate[0] * s), SCALE * (py - g.plate[1] * s));
   if (imgKey) lctx.drawImage(I[imgKey], -g.off[0], -g.off[1]); else lctx.drawImage(I[d.k + '_hero'], 0, 0);
-  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 0.8, 1.1)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
+  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 1.0, 1.4)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
       lctx.save(); lctx.globalAlpha = a; lctx.transform(A, Bb, -Bb, A, tx, ty); lctx.drawImage(I[im], 0, 0); lctx.restore(); });
     lctx.globalCompositeOperation = 'destination-in'; lctx.drawImage(I[d.k + '_hero'], 0, 0); lctx.globalCompositeOperation = 'source-over'; }
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = alpha; ctx.drawImage(LT, 0, 0); ctx.restore();
