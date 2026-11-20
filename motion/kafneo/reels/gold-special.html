@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Kafneo Gold Special</title>
+<style>
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-500-normal.woff2"); font-weight: 500; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Kafneo Gold Special, 15s 9:16. Premium and slow: one gold leaf (faceted like the logo cup) turns in the dark, drops onto
+// the real drink, the cup opens out around it, gold dot-node callouts name what's in it, then the cup folds into the logo.
+const B = {
+  head1: [0.20, 2.20], head2: [0.90, 2.20], turn: [0.00, 2.40], sheen: [0.70, 1.90],
+  land: [2.30, 3.30], reveal: [2.85, 3.75], handoff: [3.35, 3.75], sub: [3.60, 8.30],
+  calls: [4.60, 5.20, 5.80], callsOut: [8.30, 8.75],
+  title: [8.70, 11.10], toLogo: [11.20, 12.20], logoA: 11.75, ask: 13.10, where: 13.50, still: 14.50, END: 15.0,
+};
+const C = { bg: '#2B170B', gold: '#D9A24A', cream: '#F6EFE3' };
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d');
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a)), pr = (t, w) => prog(t, w[0], w[1]);
+const inQ = k => 1 - Math.pow(1 - clamp01(k), 5), outE = k => Math.pow(clamp01(k), 3), slow = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const TAU = Math.PI * 2, L2 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)];
+let PHOTO, LG = {};
+function line(str, t, tin, tout, { x = 540, y, size = 80, col = C.cream, weight = 600, align = 'center' }) {   // words slide up through a mask
+  if (t < tin || (tout !== null && t > tout + 0.4)) return; const e = inQ(prog(t, tin, tin + 0.5)), o = tout === null ? 0 : outE(prog(t, tout, tout + 0.35));
+  ctx.save(); ctx.font = `${weight} ${size}px Pop, sans-serif`; ctx.letterSpacing = (-size * 0.02) + 'px'; ctx.textAlign = align; const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+  ctx.beginPath(); ctx.rect(x0 - 20, y - size * 1.0, w + 40, size * 1.35); ctx.clip(); ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.25 + o * size * 1.3); ctx.restore();
+}
+// ---------- photo placement: the leaf in the photo sits at (243,108) ----------
+const PS = 1.4, PC = [540, 1000], ph = ([x, y]) => [PC[0] + (x - 220) * PS, PC[1] + (y - 240) * PS], LEAF = ph([243, 108]), DISC = 400;
+// ---------- the gold leaf: a crinkled square cut into low-poly facets, like the logo cup ----------
+const FACETS = (() => { let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const P = [[-1, -0.72], [0, -0.82], [1, -0.66], [0.92, 0.05], [1.04, 0.74], [0.05, 0.8], [-0.98, 0.7], [-1.06, -0.02], [-0.25, -0.15], [0.35, 0.22], [0.4, -0.35], [-0.45, 0.4]].map(([x, y]) => [x + (r() - 0.5) * 0.08, y + (r() - 0.5) * 0.08]);
+  const T = [[0, 1, 8], [1, 10, 8], [1, 2, 10], [2, 3, 10], [10, 3, 9], [3, 4, 9], [4, 5, 9], [5, 11, 9], [5, 6, 11], [6, 7, 11], [7, 0, 8], [7, 8, 11], [8, 9, 11], [8, 10, 9]];
+  return T.map((tr, i) => ({ pts: tr.map(k => P[k]), shade: 0.55 + 0.45 * r(), cx: (P[tr[0]][0] + P[tr[1]][0] + P[tr[2]][0]) / 3 })); })();
+function leaf(cx, cy, size, turn, sheenX, alpha = 1) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(-0.08); ctx.scale(size / 2 * Math.max(0.04, Math.cos(turn)), size / 2 * 0.72 / 0.82);
+  FACETS.forEach(f => { const band = Math.exp(-Math.pow((f.cx - sheenX) / 0.35, 2)), k = clamp01(f.shade + band * 0.6);
+    const c = [lerp(150, 255, k), lerp(102, 226, k), lerp(32, 140, k)].map(Math.round); ctx.beginPath(); f.pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
+    ctx.fillStyle = `rgb(${c})`; ctx.fill(); ctx.lineWidth = 0.012; ctx.strokeStyle = 'rgba(90,55,15,0.5)'; ctx.stroke(); });
+  ctx.restore();
+}
+// ---------- callouts: a gold dot on the drink, a line out, a plain label (no boxes) ----------
+const CALLS = [{ at: ph([165, 150]), to: [150, 520], label: 'Double shot', align: 'left' }, { at: LEAF, to: [930, 520], label: '24k gold leaf', align: 'right' }, { at: ph([95, 300]), to: [150, 1470], label: 'Biscotti on the side', align: 'left' }];
+function callout(c, t, t0) {
+  const d = inQ(prog(t, t0, t0 + 0.25)), l = slow(prog(t, t0 + 0.1, t0 + 0.6)), back = slow(pr(t, B.callsOut)); if (d <= 0) return;
+  const end = L2(c.at, c.to, l * (1 - back)); ctx.save(); ctx.strokeStyle = C.gold; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(...c.at); ctx.lineTo(...end); ctx.stroke();
+  ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(c.at[0], c.at[1], 10 * d * (1 - back), 0, TAU); ctx.fill(); if (l >= 1 && back === 0) { ctx.beginPath(); ctx.arc(c.to[0], c.to[1], 7, 0, TAU); ctx.fill(); } ctx.restore();
+  const dy = c.to[1] < 1000 ? -26 : 62; line(c.label, t, t0 + 0.45, B.callsOut[0], { x: c.align === 'left' ? c.to[0] - 10 : c.to[0] + 10, y: c.to[1] + dy, size: 44, weight: 600, align: c.align === 'left' ? 'left' : 'right' });
+}
+// ---------- logo builds from its parts ----------
+const LGL = 0.45, LGAT = [540, 860], lp = ([x, y]) => [LGAT[0] + (x - 800) * LGL, LGAT[1] + (y - 800) * LGL];
+function logo(t, t0, speed = 1.3) {
+  const u = (t - t0) * speed, put = fn => { ctx.save(); ctx.translate(...LGAT); ctx.scale(LGL, LGL); ctx.translate(-800, -800); fn(); ctx.restore(); };
+  const ln = slow(prog(u, 0, 1.0)); if (ln > 0) put(() => { ctx.save(); if (ln < 1) { ctx.beginPath(); ctx.moveTo(800, 640); ctx.arc(800, 640, 1200, -Math.PI / 2, -Math.PI / 2 + TAU * ln); ctx.closePath(); ctx.clip(); } ctx.drawImage(LG.line, 0, 0); ctx.restore(); });
+  const gl = inQ(prog(u, 0.75, 1.15)); if (gl > 0) put(() => { ctx.save(); ctx.translate(795, 493); ctx.scale(gl, 1); ctx.translate(-795, -493); ctx.drawImage(LG.globe, 0, 0); ctx.restore(); });
+  const ray = inQ(prog(u, 0.6, 1.3)); if (ray > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.arc(800, 720, 280 + 640 * ray, 0, TAU); ctx.clip(); ctx.drawImage(LG.rays, 0, 0); ctx.restore(); });
+  const slide = (img, k, y0, y1) => { if (k > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, 1600, y1 - y0); ctx.clip(); ctx.translate(0, (1 - k) * (y1 - y0) * 1.1); ctx.drawImage(img, 0, 0); ctx.restore(); }); };
+  slide(LG.word, inQ(prog(u, 1.1, 1.55)), 1100, 1290); const c = inQ(prog(u, 1.3, 1.75)); slide(LG.coffee, c, 1295, 1410); slide(LG.leaves, c, 1295, 1410);
+}
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = C.bg; ctx.fillRect(-200, -200, W + 400, H + 400);
+  const Z = 1 + 0.004 * Math.min(t, B.still); ctx.translate(540, 960); ctx.scale(Z, Z); ctx.translate(-540, -960);   // one slow push for the whole film
+  const ld = slow(pr(t, B.land)), rv = slow(pr(t, B.reveal)), tl = slow(pr(t, B.toLogo));
+  // the cup: a cream disc opens out from the leaf, with the real photo inside; later it folds into the logo cup's rim
+  if (rv > 0 && tl < 1) {
+    const push = 1 + 0.06 * slow(prog(t, B.reveal[1], B.toLogo[0])), rim = lp([790, 640]);
+    const cx = lerp(lerp(LEAF[0], PC[0], rv), rim[0], tl), cy = lerp(lerp(LEAF[1], PC[1], rv), rim[1], tl), rx = lerp(DISC * rv * push, 128, tl), ry = lerp(DISC * rv * push, 26, tl);
+    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, TAU); ctx.fillStyle = C.cream; ctx.globalAlpha = 1 - prog(tl, 0.45, 0.8); ctx.fill(); ctx.globalAlpha = prog(tl, 0.35, 0.7) * (1 - prog(t, B.logoA + 0.2, B.logoA + 0.6)); ctx.lineWidth = 9; ctx.strokeStyle = C.cream; ctx.stroke(); ctx.clip();
+    ctx.globalAlpha = 1 - prog(tl, 0, 0.25); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingQuality = 'high';
+    ctx.translate(PC[0], PC[1]); ctx.scale(push * (1 - 0.6 * tl), push * (1 - 0.6 * tl)); ctx.translate(-PC[0], -PC[1]); ctx.drawImage(PHOTO, PC[0] - 220 * PS, PC[1] - 240 * PS, 440 * PS, 480 * PS); ctx.restore();
+  }
+  // the leaf: turns to face us, catches the light once, then drops onto the drink and hands over to the real leaf
+  if (t < B.handoff[1]) { const turn = (1 - slow(pr(t, B.turn))) * 1.15, sx = lerp(-1.6, 1.6, slow(pr(t, B.sheen))), pos = L2([540, 860], LEAF, ld), size = lerp(440, 75 * PS, ld);
+    leaf(pos[0], pos[1], size, turn, sx, 1 - pr(t, B.handoff)); }
+  CALLS.forEach((c, i) => callout(c, t, B.calls[i]));
+  line('24k gold.', t, B.head1[0], B.head1[1], { y: 470, size: 132, col: C.gold });
+  line('In your latte.', t, B.head2[0], B.head2[1], { y: 580, size: 72 });
+  line('On a double-shot maple latte.', t, B.sub[0], B.sub[1], { y: 340, size: 58 });
+  line('Kafneo', t, B.title[0], B.title[1], { y: 380, size: 80 }); line('Gold Special.', t, B.title[0] + 0.12, B.title[1], { y: 500, size: 112, col: C.gold });
+  if (t >= B.logoA) logo(Math.min(t, B.still), B.logoA);
+  line('Ask for it at Kafneo.', t, B.ask, null, { y: 1290, size: 58 });
+  line('Pasea Road, Tunapuna · Open daily, 6am to 6pm', t, B.where, null, { y: 1370, size: 32, weight: 500, col: C.gold });
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('600 80px Pop'), document.fonts.load('500 40px Pop'), img('hi/04-gold-leaf-latte-biscotti.png'), ...['line', 'globe', 'rays', 'word', 'coffee', 'leaves'].map(k => img(`hi/logo_${k}.png`))]).then(([, , p, ...ls]) => {
+  PHOTO = p; ['line', 'globe', 'rays', 'word', 'coffee', 'leaves'].forEach((k, i) => LG[k] = ls[i]);
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

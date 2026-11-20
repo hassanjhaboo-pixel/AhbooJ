@@ -21,6 +21,12 @@ This skill came from outside the repo, so a few of its defaults clash with `CLAU
 
 For Ahbooj and other brands with a kit in `brand-motion/brand/`, pull colours, fonts and voice from that file.
 The style rules here on transitions, centring, one continuous camera and never reversing direction still apply.
+(Exception, from client feedback: a gentle push-in on each product as it arrives, easing back between them, is welcome.
+Smooth zooms beat cuts.)
+
+**Working pipeline and templates:** `motion/README.md` holds the canvas renderer, asset cut-out and alignment tools,
+Gemini prompt packs and finished ads to start from (product one-takes, brand reels, a SaaS spec ad). Read it before
+building a new ad, and start from the closest template rather than from scratch.
 
 
 Build a short ad as code, check it frame by frame, render it to 4K, then add sound. Because it's all code, a note like
