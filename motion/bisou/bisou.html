@@ -19,7 +19,7 @@ const DISHES = [
 ];
 // every beat lives here. arrive = plate centred at full size; push = end of its lean-in (the whip to the next starts there)
 const B = { arrive: [2.0, 6.6, 12.4, 18.0, 23.0], push: [5.6, 11.4, 17.0, 22.0, 27.0], back: 27.8, eat: [28.5, 29.3], down: [30.0, 32.0],
-  ring: [31.5, 33.3], letters: 33.1, rail: 33.4, drops: [33.9, 34.15, 34.4], line: 35.4, card: 37.8, ask: 38.3, plates: 38.6, handle: 39.3, END: 42.5 };
+  ring: [31.5, 33.3], letters: 33.1, rail: 33.4, drops: [33.9, 34.15, 34.4], line: 35.4, card: 37.8, ask: 38.3, plates: 38.6, handle: 39.3, contact: 41.4, END: 47.5 };
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
 const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
 const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
@@ -68,7 +68,7 @@ function plate(c, d, i, t, imgKey = null, alpha = 1) {
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LT.width, LT.height);
   lctx.setTransform(SCALE * s, 0, 0, SCALE * s, SCALE * (px - g.plate[0] * s), SCALE * (py - g.plate[1] * s));
   if (imgKey) lctx.drawImage(I[imgKey], -g.off[0], -g.off[1]); else lctx.drawImage(I[d.k + '_hero'], 0, 0);
-  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 1.0, 1.4)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
+  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 1.0, 1.16)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
       lctx.save(); lctx.globalAlpha = a; lctx.transform(A, Bb, -Bb, A, tx, ty); lctx.drawImage(I[im], 0, 0); lctx.restore(); });
     lctx.globalCompositeOperation = 'destination-in'; lctx.drawImage(I[d.k + '_hero'], 0, 0); lctx.globalCompositeOperation = 'source-over'; }
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = alpha; ctx.drawImage(LT, 0, 0); ctx.restore();
@@ -115,12 +115,12 @@ function mark(t, at) {
     put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 190, 440, 120); ctx.clip(); ctx.translate(0, (1 - e) * 125); ctx.fillStyle = CREAM; ctx.fill(p); ctx.restore(); }); });
   const se = snap(prog(t, B.letters + 0.35, B.letters + 0.9)); if (se > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 318, 440, 40); ctx.clip(); ctx.translate(0, (1 - se) * 40); ctx.fillStyle = CREAM; PARTS.sub.forEach(p => ctx.fill(p)); ctx.restore(); });
   // rail draws in left to right
-  const re = io(prog(t, B.rail, B.rail + 0.5)); if (re > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(100, 0, 240 * re, G.railY + 4); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); });
+  const re = io(prog(t, B.rail, B.rail + 0.5)); if (re > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(100, 19, 240 * re, 11); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); });
   // utensils drop onto their hooks and swing to rest
   G.utensils.forEach((u, j) => { const t0 = B.drops[j], fall = prog(t, t0 - 0.32, t0); if (t < t0 - 0.32) return; const v = t - t0;
     const dy = v < 0 ? -(1 - fall * fall) * 220 : 0, ang = v < 0 ? 0 : 0.42 * (j === 1 ? -1 : 1) * Math.exp(-2.6 * v) * Math.sin(7.2 * v);
-    put(() => { ctx.save(); ctx.translate(u.hook[0], u.hook[1] + dy); ctx.rotate(ang); ctx.translate(-u.hook[0], -u.hook[1]);
-      ctx.beginPath(); ctx.rect(u.x0, G.railY + 3, u.x1 - u.x0, 200); ctx.rect(u.hook[0] - 9, u.hook[1] - 5, 18, G.railY - u.hook[1] + 9); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); }); });
+    put(() => { ctx.save(); ctx.translate(u.hook[0], 24 + dy); ctx.rotate(ang); ctx.translate(-u.hook[0], -24);
+      ctx.beginPath(); ctx.rect(u.x0, 30, u.x1 - u.x0, 200); ctx.rect(u.hook[0] - 10, 6, 20, 13); if (v < 0) ctx.rect(u.hook[0] - 10, 19, 20, 11); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); }); });
 }
 function ring(c, t) {   // the empty plate's rim shrinks and slides into the O
   const k = io(prog(t, B.ring[0] + 0.5, B.ring[1])); const [rx0, ry0] = toScreen(c, 540 + (G.rim[0] - G.dish.pancake.plate[0] - G.dish.pancake.off[0]) * ks(DISHES[4]), plateY(4) + (G.rim[1] - G.dish.pancake.plate[1] - G.dish.pancake.off[1]) * ks(DISHES[4]));
@@ -143,11 +143,16 @@ function frame(t) {
   DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
   ring(c, t); if (t >= B.ring[1] - 0.05 || t >= B.letters) mark(t, markAt(t));
   slideText('New on the breakfast menu', t, B.line, B.card, { y: 1250, size: 46, weight: 700 });
-  slideText('Which one first?', t, B.ask, null, { y: 1010, size: 76, weight: 800 });
-  DISHES.forEach((d, i) => { const e = snap(prog(t, B.plates + i * 0.09, B.plates + 0.5 + i * 0.09)); if (e <= 0) return; const g = G.dish[d.k], sz = 172, s = sz / (2 * g.plate[2]);
+  slideText('Which one first?', t, B.ask, B.contact, { y: 1010, size: 76, weight: 800 });
+  DISHES.forEach((d, i) => { const e = snap(prog(t, B.plates + i * 0.09, B.plates + 0.5 + i * 0.09)) * (1 - io(prog(t, B.contact + i * 0.05, B.contact + 0.4 + i * 0.05))); if (e <= 0) return; const g = G.dish[d.k], sz = 172, s = sz / (2 * g.plate[2]);
     const x = 540 + (i - 2) * 190, y = 1215 + (1 - e) * 60 + Math.sin(t * 2.4 - i * 0.7) * 5 * e; ctx.save(); ctx.globalAlpha = e; ctx.translate(x, y); ctx.scale(s, s); ctx.translate(-g.plate[0], -g.plate[1]); ctx.drawImage(I[d.k + '_hero'], 0, 0); ctx.restore(); });
-  slideText('Tell us below', t, B.handle - 0.2, null, { y: 1410, size: 38, weight: 700, alpha: 0.85 });
-  slideText('@bisoutt', t, B.handle, null, { y: 1530, size: 44, weight: 800 });
+  slideText('Tell us below', t, B.handle - 0.2, B.contact, { y: 1410, size: 38, weight: 700, alpha: 0.85 });
+  // contact card: reservations and orders
+  const C = B.contact + 0.35;
+  slideText('Book a table', t, C, null, { y: 860, size: 80, weight: 800 });
+  slideText('or order ahead', t, C + 0.1, null, { y: 940, size: 44, weight: 700, alpha: 0.82 });
+  [['WhatsApp', '+1 868 333 1287', 52], ['Call', '+1 868 237 8218', 52], ['Email', 'bisoutrinidad@gmail.com', 44], ['Instagram', '@bisoutt', 50]].forEach(([k, v, sz], i) => {
+    const y = 1085 + i * 128; slideText(k, t, C + 0.3 + i * 0.12, null, { y: y - 52, size: 28, weight: 700, alpha: 0.62, track: 2 }); slideText(v, t, C + 0.36 + i * 0.12, null, { y, size: sz, weight: 800 }); });
 }
 function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
   for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }

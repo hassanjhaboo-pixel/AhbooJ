@@ -45,25 +45,18 @@ def clatter():
     y = bell(3100, .6, ((1, 1), (1.73, .7), (2.91, .5), (4.4, .3)), 9); y2 = bell(2600, .5, ((1, 1), (2.2, .6), (3.7, .3)), 12)
     out = np.zeros(int(SR * .8)); out[:len(y)] += y; out[int(SR * .09):int(SR * .09) + len(y2)] += y2 * .7; return out
 # hook + plates
-add(sizzle(2.6), 0.0, .35)
 for i, a in enumerate(B['arrive']):
-    add(clink(), a - 0.05, .5, [-.2, .15, -.1, .2, 0][i])
-for p in B['push'][:4]: add(whoosh(1.0), p - 0.05, .55)
-add(bubbles(B['push'][1] - B['arrive'][1] + .4), B['arrive'][1], .18, -.15)
-add(bubbles(B['push'][2] - B['arrive'][2] + .4), B['arrive'][2], .12, .15)
-add(sizzle(B['push'][3] - B['arrive'][3]), B['arrive'][3], .16)
-add(bell(1568, 2.2, decay=1.8) * .6 + bell(2093, 2.2, decay=2.2) * .35, B['arrive'][4] + 0.3, .22)   # sugar
+    add(clink(), a - 0.05, .26, [-.2, .15, -.1, .2, 0][i])
+for p in B['push'][:4]: add(whoosh(1.0), p + 0.2, .22)
+add(bell(1568, 2.2, decay=1.8) * .6 + bell(2093, 2.2, decay=2.2) * .35, B['arrive'][4] + 0.3, .12)   # sugar
 # eaten, lights down, plate becomes the O
-add(crunch(), B['eat'][0] - .04, .7, -.1); add(crunch(), B['eat'][1] - .04, .75, .1); add(clatter(), B['eat'][1] + .06, .38, .2)
-add(swell(B['ring'][1] - B['ring'][0]), B['ring'][0], .5)
-add(bell(880, 1.6, decay=2.4), B['ring'][1], .35)
-for j, d in enumerate(B['drops']): add(bell([1320, 1175, 1480][j], .9, ((1, 1), (2.4, .5), (4.1, .25)), 5), d, .28, [-.35, 0, .35][j])
-add(whoosh(.5, .2), B['rail'], .18)
-add(whoosh(.8, .05), B['card'], .3)
-for i in range(5): add(tick(), B['plates'] + i * .09, .18, (i - 2) * .25)
-add(bell(1046, 2.4, decay=1.6) * .7 + bell(1568, 2.4, decay=2.0) * .3, B['handle'], .3)
+add(crunch(), B['eat'][0] - .04, .4, -.1); add(crunch(), B['eat'][1] - .04, .42, .1); add(clatter(), B['eat'][1] + .06, .16, .2)
+add(swell(B['ring'][1] - B['ring'][0]), B['ring'][0], .2)
+add(bell(880, 1.6, decay=2.4), B['ring'][1], .18)
+for j, d in enumerate(B['drops']): add(bell([1320, 1175, 1480][j], .9, ((1, 1), (2.4, .5), (4.1, .25)), 5), d, .13, [-.35, 0, .35][j])
+add(bell(1046, 2.4, decay=1.6) * .7 + bell(1568, 2.4, decay=2.0) * .3, B['handle'], .14)
 # master: soft-clip, normalise to -1 dBFS peak
-mix = np.tanh(mix * 1.2) / np.tanh(1.2); mix *= 10 ** (-1 / 20) / max(1e-9, np.abs(mix).max())
+mix *= 10 ** (-9 / 20) / max(1e-9, np.abs(mix).max())   # quiet: effects sit under the in-app music
 os.makedirs(R + '/out', exist_ok=True)
 with wave.open(R + '/out/bisou_sfx.wav', 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((mix[:int(SR * END)] * 32767).astype('<i2').tobytes())
