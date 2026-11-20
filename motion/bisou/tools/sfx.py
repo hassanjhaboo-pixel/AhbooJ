@@ -47,7 +47,7 @@ def clatter():
 # hook + plates
 add(sizzle(2.6), 0.0, .35)
 for i, a in enumerate(B['arrive']):
-    add(clink(), a - 0.05, .5, [-.2, .15, -.1, .2, 0][i]); add(tick(), a - 0.25, .12, .6)
+    add(clink(), a - 0.05, .5, [-.2, .15, -.1, .2, 0][i])
 for p in B['push'][:4]: add(whoosh(1.0), p - 0.05, .55)
 add(bubbles(B['push'][1] - B['arrive'][1] + .4), B['arrive'][1], .18, -.15)
 add(bubbles(B['push'][2] - B['arrive'][2] + .4), B['arrive'][2], .12, .15)

@@ -100,18 +100,6 @@ function nameLabel(str, t, tin, tout) {   // solid ink block led by their utensi
   ctx.save(); ctx.translate(x + 26, y + (bh - ih) / 2); ctx.scale(ih / 180, ih / 180); ctx.translate(-118, -10); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore();
   ctx.fillStyle = CREAM; ctx.textBaseline = 'middle'; ctx.fillText(str, x + 26 + iw + 22, y + bh / 2 + 2); ctx.restore();
 }
-function counter(t) {   // small, soft and quiet: n/5 on a little ink tile with five dots underneath
-  const n = B.arrive.reduce((m, a, i) => t >= a - 0.25 ? i + 1 : m, 1), on = 1 - io(prog(t, B.back - 0.2, B.back + 0.3)); if (on <= 0) return;
-  const x = 948, y = 236, w = 92, h = 64; ctx.save(); ctx.globalAlpha = 0.5 * on;
-  ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, 16); ctx.fill();
-  ctx.globalAlpha = 0.86 * on; ctx.fillStyle = CREAM; ctx.font = '800 28px Nun, sans-serif'; ctx.textBaseline = 'alphabetic';
-  const cur = String(n), tick = snap(prog(t, B.arrive[n - 1] - 0.25, B.arrive[n - 1] + 0.2));
-  ctx.textAlign = 'right'; ctx.save(); ctx.beginPath(); ctx.rect(x - 40, y - 30, 40, 36); ctx.clip();
-  ctx.fillText(cur, x - 2, y + 4 + (n > 1 ? (1 - tick) * 30 : 0)); if (n > 1 && tick < 1) ctx.fillText(String(n - 1), x - 2, y + 4 - tick * 30); ctx.restore();
-  ctx.textAlign = 'left'; ctx.font = '700 20px Nun, sans-serif'; ctx.fillText('/5', x + 1, y + 4);
-  for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x - 22 + k * 11, y + 19, 3, 0, TAU); ctx.globalAlpha = 0.86 * on * (k < n ? 1 : 0.32); ctx.fill(); }
-  ctx.restore();
-}
 // ---------- the mark: the plate rim becomes the O, then the letters, rail and utensils ----------
 const MS = 1.62, MX = 540, MY = 860;             // mark scale and centre (viewBox 440x380)
 const markPt = (x, y, at) => [at.x + (x - 220) * at.s, at.y + (y - 190) * at.s];
@@ -150,7 +138,6 @@ function frame(t) {
     if (dark > 0) { ctx.fillStyle = `rgba(11,8,7,${dark})`; ctx.fillRect(0, 0, W, H); } }
   if (dark > 0.6 && t >= B.down[1]) { /* fully dark: the plate lives on only as its rim */ }
   DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
-  counter(t);
   ring(c, t); if (t >= B.ring[1] - 0.05 || t >= B.letters) mark(t, markAt(t));
   slideText('New on the breakfast menu', t, B.line, B.card, { y: 1250, size: 46, weight: 700 });
   slideText('Which one first?', t, B.ask, null, { y: 1010, size: 76, weight: 800 });
