@@ -11,18 +11,20 @@
 // best detail, then eases back as it moves on. The pancakes get eaten in three stop-motion jumps, the room goes
 // dark, and the empty plate's rim shrinks into the O of BISOU. The utensils drop onto the rail and swing to rest.
 const DISHES = [
-  { k: 'benedict', name: 'Fried Chicken Eggs Benedict' },
-  { k: 'shakshuka', name: 'Shakshuka', steam: true },
-  { k: 'turkish', name: 'Turkish Eggs & Bake', steam: true },
-  { k: 'chilli', name: 'Eggs & Chilli Oil' },
-  { k: 'pancake', name: 'Pancakes', sugar: true },
+  { k: 'benedict', name: 'Fried Chicken Eggs Benedict', lines: ['FRIED CHICKEN', 'EGGS BENEDICT'], col: '#B01620' },
+  { k: 'shakshuka', name: 'Shakshuka', lines: ['SHAKSHUKA'], col: '#C2432A', steam: true },
+  { k: 'turkish', name: 'Turkish Eggs & Bake', lines: ['TURKISH EGGS', '& BAKE'], col: '#4E6B34', steam: true },
+  { k: 'chilli', name: 'Eggs & Chilli Oil', lines: ['EGGS &', 'CHILLI OIL'], col: '#8E2A17' },
+  { k: 'pancake', name: 'Pancakes', lines: ['PANCAKES'], col: '#94601F', sugar: true },
 ];
 // every beat lives here. arrive = plate centred at full size; push = end of its lean-in (the whip to the next starts there)
-const B = { arrive: [2.0, 6.6, 12.4, 18.0, 23.0], push: [5.6, 11.4, 17.0, 22.0, 27.0], back: 27.8, eat: [28.5, 29.3], down: [30.0, 32.0],
-  ring: [31.5, 33.3], letters: 33.1, rail: 33.4, drops: [33.9, 34.15, 34.4], line: 35.4, card: 37.8, ask: 38.3, plates: 38.6, handle: 39.3, contact: 41.4, END: 47.5 };
+const B = { iDrops: [0.22, 0.34, 0.46], present: 0.55, toCard: 1.05, words: [1.25, 1.45, 1.75], dive: [2.4, 3.5],
+  arrive: [3.5, 7.0, 10.5, 14.0, 17.5], push: [6.0, 9.5, 13.0, 16.5, 20.0], back: 20.7, eat: [21.3, 22.0], down: [22.6, 24.2],
+  ring: [23.8, 25.5], letters: 25.3, rail: 25.6, drops: [26.0, 26.2, 26.4], line: 27.0, card: 28.6, ask: 29.0, plates: 29.3, handle: 29.9, contact: 32.0, END: 37.5 };
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
 const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
 const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+const WT = document.createElement('canvas');
 const LT = document.createElement('canvas'); LT.width = cv.width; LT.height = cv.height; const lctx = LT.getContext('2d'); lctx.imageSmoothingQuality = 'high';
 const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
 const snap = k => 1 - Math.pow(1 - clamp01(k), 5), io = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
@@ -33,7 +35,7 @@ function mono(keys) {   // smooth curve through keys that never overshoots
   return t => { if (t <= T[0]) return V[0]; if (t >= T[T.length - 1]) return V[V.length - 1]; let i = 0; while (t > T[i + 1]) i++;
     const h = T[i + 1] - T[i], u = (t - T[i]) / h; return (2 * u ** 3 - 3 * u ** 2 + 1) * V[i] + (u ** 3 - 2 * u ** 2 + u) * h * m[i] + (-2 * u ** 3 + 3 * u ** 2) * V[i + 1] + (u ** 3 - u ** 2) * h * m[i + 1]; };
 }
-let I = {}, G, LADS, MAT, MATH, PARTS, cam, PLATE_R = 470, GAP = 1500, SHADOW = {}, PUFF;
+let I = {}, G, LADS, MAT, MATH, PARTS, cam, PLATE_R = 470, GAP = 1500, SHADOW = {}, PUFF, SCN = null, LIFT = 130;
 const plateY = i => i * GAP;
 const ks = d => PLATE_R / G.dish[d.k].plate[2];                       // hero px -> world
 const world = (d, i, px, py) => { const p = G.dish[d.k].plate; return [540 + (px - p[0]) * ks(d), plateY(i) + (py - p[1]) * ks(d)]; };
@@ -43,13 +45,13 @@ function buildCamera() {
   const zx = [], cx = [], cy = [];
   DISHES.forEach((d, i) => { const g = G.dish[d.k], deep = LADS[d.k][LADS[d.k].length - 1], kd = Math.hypot(deep[1], deep[2]);
     d.zPush = Math.min(0.92 / (ks(d) * kd), 3.4); [d.fx, d.fy] = world(d, i, ...g.focus); });
-  const D = DISHES; const push = i => [B.push[i], D[i].zPush, D[i].fx, D[i].fy], land = i => [B.arrive[i], 1.0, 540, plateY(i)];
-  const keys = [[0, D[0].zPush * 0.96, D[0].fx, D[0].fy], land(0), [B.push[0], 1.28, D[0].fx, D[0].fy]];
+  const D = DISHES; const push = i => [B.push[i], D[i].zPush, D[i].fx, D[i].fy + LIFT / D[i].zPush], land = i => [B.arrive[i], 1.0, 540, plateY(i) + LIFT];
+  const keys = [land(0), push(0)];
   // each whip: ease most of the zoom off first (in place), then glide, so nothing smears at high zoom
   const loosen = i => [B.push[i] + 0.38, Math.min(D[i].zPush, 1.0 + (D[i].zPush - 1) * 0.22), lerp(D[i].fx, 540, 0.5), D[i].fy + (plateY(i + 1) - D[i].fy) * 0.12];
   keys.push(loosen(0));
   for (let i = 1; i < 5; i++) { keys.push(land(i), push(i)); if (i < 4) keys.push(loosen(i)); }
-  keys.push([B.back, 1.0, 540, plateY(4)], [B.eat[1] + 0.6, 1.03, 540, plateY(4)], [B.down[1], 0.74, 540, plateY(4)], [B.END, 0.72, 540, plateY(4)]);
+  keys.push([B.back, 1.0, 540, plateY(4) + LIFT * 0.4], [B.eat[1] + 0.6, 1.03, 540, plateY(4)], [B.down[1], 0.74, 540, plateY(4)], [B.END, 0.72, 540, plateY(4)]);
   const z = mono(keys.map(k => [k[0], k[1]])), x = mono(keys.map(k => [k[0], k[2]])), y = mono(keys.map(k => [k[0], k[3]]));
   cam = t => ({ cx: x(t), cy: y(t), z: z(t) });
 }
@@ -89,33 +91,36 @@ function sugar(c, d, i, t, a0, a1) {
 }
 // ---------- type ----------
 function slideText(str, t, tin, tout, { x = 540, y, size = 44, col = CREAM, weight = 800, align = 'center', alpha = 1, track = 0 }) {
-  if (t < tin || (tout !== null && t > tout + 0.4)) return; const e = snap(prog(t, tin, tin + 0.55)), o = tout === null ? 0 : io(prog(t, tout, tout + 0.35));
+  if (t < tin || (tout !== null && t > tout + 0.4)) return; const e = snap(prog(t, tin, tin + 0.5)), o = tout === null ? 0 : io(prog(t, tout, tout + 0.26));
   ctx.save(); ctx.globalAlpha = alpha; ctx.font = `${weight} ${size}px Nun, sans-serif`; ctx.letterSpacing = track + 'px'; ctx.textAlign = align; const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : x;
   ctx.beginPath(); ctx.rect(x0 - 20, y - size * 1.05, w + 40, size * 1.4); ctx.clip(); ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.4 - o * size * 1.4); ctx.restore();
 }
-function nameLabel(str, t, tin, tout) {   // solid ink block led by their utensil mark, rises out of a mask
-  if (t < tin || t > tout + 0.4) return; const e = snap(prog(t, tin, tin + 0.6)), o = io(prog(t, tout, tout + 0.35));
-  ctx.save(); ctx.font = '800 46px Nun, sans-serif'; const tw = ctx.measureText(str).width, ih = 52, iw = ih * 1.12, bw = tw + iw + 76, bh = 92, x = 540 - bw / 2, y = 1430;
-  ctx.beginPath(); ctx.rect(x - 4, y - 4, bw + 8, bh + 8); ctx.clip(); ctx.translate(0, (1 - e) * (bh + 10) + o * (bh + 10));
-  ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 10); ctx.fill();
-  ctx.save(); ctx.translate(x + 26, y + (bh - ih) / 2); ctx.scale(ih / 180, ih / 180); ctx.translate(-118, -10); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore();
-  ctx.fillStyle = CREAM; ctx.textBaseline = 'middle'; ctx.fillText(str, x + 26 + iw + 22, y + bh / 2 + 2); ctx.restore();
+function slabLabel(d, t, tin, tout) {   // full-width slab in the dish's own colour, under the plate; type rises out of it
+  if (t < tin || t > tout + 0.4) return; const n = d.lines.length, size = 96, lh = size * 0.98, h = 44 + n * lh + 34, y0 = 1385;
+  const wipe = io(prog(t, tin, tin + 0.32)), off = io(prog(t, tout, tout + 0.3));
+  ctx.save(); ctx.beginPath(); ctx.rect(off * W, y0, W * wipe - off * W, h); ctx.clip();
+  ctx.fillStyle = d.col; ctx.fillRect(0, y0, W, h);
+  ctx.font = `900 ${size}px Nun, sans-serif`; ctx.fillStyle = CREAM; ctx.textBaseline = 'alphabetic';
+  d.lines.forEach((ln, k) => { const e = snap(prog(t, tin + 0.16 + k * 0.08, tin + 0.62 + k * 0.08)), yb = y0 + 40 + size * 0.8 + k * lh;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, yb - size * 0.86, W, size * 1.02); ctx.clip(); ctx.fillText(ln, 70, yb + (1 - e) * size); ctx.restore(); });
+  const ie = snap(prog(t, tin + 0.35, tin + 0.8)), ih = 74; ctx.save(); ctx.translate(W - 70 - ih * 1.25, y0 + 40 + (1 - ie) * 30); ctx.globalAlpha = ie; ctx.scale(ih / 175, ih / 175); ctx.translate(-118, -12); ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore();
+  ctx.restore();
 }
 // ---------- the mark: the plate rim becomes the O, then the letters, rail and utensils ----------
 const MS = 1.62, MX = 540, MY = 860;             // mark scale and centre (viewBox 440x380)
 const markPt = (x, y, at) => [at.x + (x - 220) * at.s, at.y + (y - 190) * at.s];
 function markAt(t) { const k = io(prog(t, B.card, B.card + 0.9)); return { s: lerp(MS, MS * 0.62, k), x: MX, y: lerp(MY, 470, k) }; }
-function mark(t, at) {
+function mark(t, at, T = { ring: B.ring[1], letters: B.letters, rail: B.rail, drops: B.drops }) {
   const put = fn => { ctx.save(); ctx.translate(at.x, at.y); ctx.scale(at.s, at.s); ctx.translate(-220, -190); fn(); ctx.restore(); };
   // letters: the O is already there (it was the plate); B I S U and the subline rise out of their baseline
-  PARTS.word.forEach((p, i) => { if (i === 3) { if (t >= B.ring[1]) put(() => { ctx.fillStyle = CREAM; ctx.fill(p); }); return; }
-    const e = snap(prog(t, B.letters + [0, 0.07, 0.14, 0, 0.21][i], B.letters + 0.5 + [0, 0.07, 0.14, 0, 0.21][i])); if (e <= 0) return;
+  PARTS.word.forEach((p, i) => { if (i === 3) { if (t >= T.ring) put(() => { ctx.fillStyle = CREAM; ctx.fill(p); }); return; }
+    const e = snap(prog(t, T.letters + [0, 0.07, 0.14, 0, 0.21][i], T.letters + 0.5 + [0, 0.07, 0.14, 0, 0.21][i])); if (e <= 0) return;
     put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 190, 440, 120); ctx.clip(); ctx.translate(0, (1 - e) * 125); ctx.fillStyle = CREAM; ctx.fill(p); ctx.restore(); }); });
-  const se = snap(prog(t, B.letters + 0.35, B.letters + 0.9)); if (se > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 318, 440, 40); ctx.clip(); ctx.translate(0, (1 - se) * 40); ctx.fillStyle = CREAM; PARTS.sub.forEach(p => ctx.fill(p)); ctx.restore(); });
+  const se = snap(prog(t, T.letters + 0.35, T.letters + 0.9)); if (se > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 318, 440, 40); ctx.clip(); ctx.translate(0, (1 - se) * 40); ctx.fillStyle = CREAM; PARTS.sub.forEach(p => ctx.fill(p)); ctx.restore(); });
   // rail draws in left to right
-  const re = io(prog(t, B.rail, B.rail + 0.5)); if (re > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(100, 19, 240 * re, 11); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); });
+  const re = io(prog(t, T.rail, T.rail + 0.5)); if (re > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(100, 19, 240 * re, 11); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); });
   // utensils drop onto their hooks and swing to rest
-  G.utensils.forEach((u, j) => { const t0 = B.drops[j], fall = prog(t, t0 - 0.32, t0); if (t < t0 - 0.32) return; const v = t - t0;
+  G.utensils.forEach((u, j) => { const t0 = T.drops[j], fall = prog(t, t0 - 0.32, t0); if (t < t0 - 0.32) return; const v = t - t0;
     const dy = v < 0 ? -(1 - fall * fall) * 220 : 0, ang = v < 0 ? 0 : 0.42 * (j === 1 ? -1 : 1) * Math.exp(-2.6 * v) * Math.sin(7.2 * v);
     put(() => { ctx.save(); ctx.translate(u.hook[0], 24 + dy); ctx.rotate(ang); ctx.translate(-u.hook[0], -24);
       ctx.beginPath(); ctx.rect(u.x0, 30, u.x1 - u.x0, 200); ctx.rect(u.hook[0] - 10, 6, 20, 13); if (v < 0) ctx.rect(u.hook[0] - 10, 19, 20, 11); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); }); });
@@ -126,10 +131,49 @@ function ring(c, t) {   // the empty plate's rim shrinks and slides into the O
   if (on <= 0) return; const x = lerp(rx0, ox, k), y = lerp(ry0, oy, k), rx = lerp(r0, (G.O[2] - 7) * at.s, k), ry = lerp(r0, (G.O[3] - 7) * at.s, k), lw = lerp(10, 14 * at.s, k);
   ctx.save(); ctx.globalAlpha = on; ctx.strokeStyle = CREAM; ctx.lineWidth = lw; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.stroke(); ctx.restore();
 }
+// ---------- intro: their mark presents; JUST ADDED in letters cut from the food; then the camera dives through the O ----------
+const CARD = { x: 540, y: 400, s: 0.92 };              // where the mark rests on the title card (viewBox -> screen)
+const OC = () => markPt(G.O[0], G.O[1], CARD);
+const INNER = 0.74;                                     // inner hole of the O as a share of its outer radii
+function foodWord(str, dish, y, t, tin, drift) {       // a word whose letters are filled with a dish, slammed up out of a mask
+  const e = snap(prog(t, tin, tin + 0.45)); if (e <= 0) return;
+  let size = 330; ctx.font = `900 ${size}px Nun, sans-serif`; while (ctx.measureText(str).width > 940) { size -= 4; ctx.font = `900 ${size}px Nun, sans-serif`; }
+  const tw = ctx.measureText(str).width, hgt = size * 0.78, x0 = 540 - tw / 2;
+  WT.width = Math.ceil(tw + 20) * SCALE; WT.height = Math.ceil(hgt + 40) * SCALE; const w = WT.getContext('2d'); w.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  const im = I[dish + '_comp'], side = Math.min(im.width, im.height) * 0.42, sx = im.width * 0.5 - side / 2 + drift * side * 0.18 * (t - tin), sy = im.height * 0.5 - side / 2;
+  const k = (tw + 20) / side; w.drawImage(im, sx, sy, side, side * (hgt + 40) / (tw + 20), 0, 0, tw + 20, hgt + 40);
+  w.globalCompositeOperation = 'destination-in'; w.font = `900 ${size}px Nun, sans-serif`; w.textBaseline = 'alphabetic'; w.fillText(str, 10, hgt + 20);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, y - 10, W, hgt + 60); ctx.clip(); ctx.drawImage(WT, x0 - 10, y + (1 - e) * (hgt + 50), tw + 20, hgt + 40); ctx.restore();
+}
+function introCard(t) {   // everything on the title card, drawn in card space
+  ctx.fillStyle = '#0b0807'; ctx.fillRect(-4000, -4000, 9000, 9000);
+  const m = io(prog(t, B.toCard, B.toCard + 0.45)), at = { x: 540, y: lerp(830, CARD.y, m), s: lerp(1.5, CARD.s, m) };
+  mark(t, at, { ring: -1, letters: 0.0, rail: 0.0, drops: B.iDrops });
+  slideText('presents', t, B.present, B.toCard - 0.05, { y: 1250, size: 54, weight: 700 });
+  foodWord('JUST', 'shakshuka', 720, t, B.words[0], 1); foodWord('ADDED', 'benedict', 960, t, B.words[1], -1);
+  slideText('to our breakfast menu', t, B.words[2], null, { y: 1290, size: 52, weight: 800 });
+}
+function intro(t) {
+  if (!SCN) { SCN = document.createElement('canvas'); SCN.width = cv.width; SCN.height = cv.height; const c = cam(B.arrive[0]); scene(c, B.arrive[0]); SCN.getContext('2d').drawImage(work, 0, 0); }
+  const kd = prog(t, B.dive[0], B.dive[1]), u = kd * kd, oc = OC(), rO = G.O[2] * CARD.s * INNER, Zrim = PLATE_R / rO, Zend = 70;
+  const Z = Math.exp(u * Math.log(Zend)), toRim = clamp01(Math.log(Z) / Math.log(Zrim)), tc = [lerp(oc[0], 540, io(toRim)), lerp(oc[1], 960 - LIFT, io(toRim))];
+  ctx.save(); ctx.translate(tc[0], tc[1]); ctx.scale(Z, Z); ctx.translate(-oc[0], -oc[1]); introCard(t); ctx.restore();
+  if (u <= 0) return;
+  const rx = rO * Z, ry = G.O[3] * CARD.s * INNER * Z, k = Math.min(1, rx / PLATE_R);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(tc[0], tc[1], rx, ry, 0, 0, TAU); ctx.clip();
+  ctx.translate(tc[0], tc[1]); ctx.scale(k, k); ctx.translate(-540, -(960 - LIFT)); ctx.drawImage(SCN, 0, 0, W, H); ctx.restore();
+}
 // ---------- frame ----------
 function frame(t) {
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = '#0b0807'; ctx.fillRect(0, 0, W, H);
-  const c = cam(t), dark = io(prog(t, B.down[0], B.down[1]));
+  if (t < B.dive[1]) { intro(t); return; }
+  const c = cam(t); scene(c, t);
+  if (!q.has('nolabel')) DISHES.forEach((d, i) => slabLabel(d, t, B.arrive[i] + 0.3, B.push[i] - 0.25));
+  ending(c, t);
+}
+function scene(c, t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = '#0b0807'; ctx.fillRect(0, 0, W, H);
+  const dark = io(prog(t, B.down[0], B.down[1]));
   if (dark < 1) { table(c);
     DISHES.forEach((d, i) => { if (i < 4) { plate(c, d, i, t); return; }
       const fade = 1 - io(prog(t, B.ring[0], B.ring[0] + 0.7)); if (fade <= 0) return;
@@ -137,27 +181,27 @@ function frame(t) {
     DISHES.forEach((d, i) => { if (d.steam) steam(c, d, t, B.arrive[i] - 0.3, B.push[i] + 0.4); if (d.sugar) sugar(c, d, i, t, B.arrive[i] - 0.2, B.push[i] + 0.5); });
     const v = ctx.createRadialGradient(540, 960, 520, 540, 960, 1250); v.addColorStop(0, 'rgba(20,10,5,0)'); v.addColorStop(1, 'rgba(20,10,5,0.32)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     if (dark > 0) { ctx.fillStyle = `rgba(11,8,7,${dark})`; ctx.fillRect(0, 0, W, H); } }
-  if (dark > 0.6 && t >= B.down[1]) { /* fully dark: the plate lives on only as its rim */ }
-  if (!q.has('nolabel')) DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
+}
+function ending(c, t) {
   ring(c, t); if (t >= B.ring[1] - 0.05 || t >= B.letters) mark(t, markAt(t));
   slideText('New on the breakfast menu', t, B.line, B.card, { y: 1250, size: 46, weight: 700 });
   slideText('Which one first?', t, B.ask, B.contact, { y: 1010, size: 76, weight: 800 });
-  DISHES.forEach((d, i) => { const e = snap(prog(t, B.plates + i * 0.09, B.plates + 0.5 + i * 0.09)) * (1 - io(prog(t, B.contact + i * 0.05, B.contact + 0.4 + i * 0.05))); if (e <= 0) return; const g = G.dish[d.k], sz = 172, s = sz / (2 * g.plate[2]);
+  DISHES.forEach((d, i) => { const e = snap(prog(t, B.plates + i * 0.09, B.plates + 0.5 + i * 0.09)) * (1 - io(prog(t, B.contact + i * 0.03, B.contact + 0.25 + i * 0.03))); if (e <= 0) return; const g = G.dish[d.k], sz = 172, s = sz / (2 * g.plate[2]);
     const x = 540 + (i - 2) * 190, y = 1215 + (1 - e) * 60 + Math.sin(t * 2.4 - i * 0.7) * 5 * e; ctx.save(); ctx.globalAlpha = e; ctx.translate(x, y); ctx.scale(s, s); ctx.translate(-g.plate[0], -g.plate[1]); ctx.drawImage(I[d.k + '_hero'], 0, 0); ctx.restore(); });
   slideText('Tell us below', t, B.handle - 0.2, B.contact, { y: 1410, size: 38, weight: 700, alpha: 0.85 });
   // contact card: reservations and orders
-  const C = B.contact + 0.35;
+  const C = B.contact + 0.12;
   slideText('Book a table', t, C, null, { y: 860, size: 80, weight: 800 });
   slideText('or order ahead', t, C + 0.1, null, { y: 940, size: 44, weight: 700, alpha: 0.82 });
   [['WhatsApp', '+1 868 333 1287', 52], ['Call', '+1 868 237 8218', 52], ['Email', 'bisoutrinidad@gmail.com', 44], ['Instagram', '@bisoutt', 50]].forEach(([k, v, sz], i) => {
-    const y = 1085 + i * 128; slideText(k, t, C + 0.3 + i * 0.12, null, { y: y - 52, size: 28, weight: 700, alpha: 0.62, track: 2 }); slideText(v, t, C + 0.36 + i * 0.12, null, { y, size: sz, weight: 800 }); });
+    const y = 1085 + i * 128; slideText(k, t, C + 0.22 + i * 0.08, null, { y: y - 52, size: 28, weight: 700, alpha: 0.62, track: 2 }); slideText(v, t, C + 0.26 + i * 0.08, null, { y, size: sz, weight: 800 }); });
 }
 function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
   for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
 const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
 const NAMES = ['benedict_hero', 'shakshuka_hero', 'turkish_hero', 'chilli_hero', 'pancake_hero', 'benedict_comp', 'shakshuka_comp', 'turkish_comp', 'chilli_comp', 'pancake_comp', 'pancake_eaten1_full', 'pancake_eaten2_full'];
 window.TOTAL = B.END; window.renderAt = t => render(t);
-window.ready = Promise.all([document.fonts.load('800 46px Nun'), document.fonts.load('700 46px Nun'), fetch('hi/geom.json').then(r => r.json()), fetch('hi/ladders.json').then(r => r.json()), fetch('hi/mark_parts.json').then(r => r.json()), img('sources/gemini/placemat.jpg'), ...NAMES.map(n => img(`hi/${n}.png`))]).then(([, , geom, lad, parts, mat, ...ims]) => {
+window.ready = Promise.all([document.fonts.load('800 46px Nun'), document.fonts.load('700 46px Nun'), document.fonts.load('900 96px Nun'), fetch('hi/geom.json').then(r => r.json()), fetch('hi/ladders.json').then(r => r.json()), fetch('hi/mark_parts.json').then(r => r.json()), img('sources/gemini/placemat.jpg'), ...NAMES.map(n => img(`hi/${n}.png`))]).then(([, , , geom, lad, parts, mat, ...ims]) => {
   NAMES.forEach((n, i) => I[n] = ims[i]); G = geom;
   LADS = {}; DISHES.forEach(d => LADS[d.k] = Object.keys(lad[d.k]).sort().map(l => [`${d.k}_L${l}`, ...lad[d.k][l]]));
   PARTS = { word: parts.word.map(p => new Path2D(p)), sub: parts.sub.map(p => new Path2D(p)), utensils: new Path2D(parts.utensils[0]) };

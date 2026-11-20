@@ -44,6 +44,10 @@ def swell(d):
 def clatter():
     y = bell(3100, .6, ((1, 1), (1.73, .7), (2.91, .5), (4.4, .3)), 9); y2 = bell(2600, .5, ((1, 1), (2.2, .6), (3.7, .3)), 12)
     out = np.zeros(int(SR * .8)); out[:len(y)] += y; out[int(SR * .09):int(SR * .09) + len(y2)] += y2 * .7; return out
+# intro: utensils hang, the two food words land, a soft rush through the O
+for j, d in enumerate(B['iDrops']): add(bell([1320, 1175, 1480][j], .8, ((1, 1), (2.4, .5), (4.1, .25)), 5), d, .11, [-.35, 0, .35][j])
+for w_ in B['words'][:2]: add(lp(np.r_[np.random.default_rng(3).standard_normal(int(SR * .25))], .05) * np.exp(-t_(.25) * 18) * 6, w_ + .05, .3)
+add(whoosh(1.1, .12), B['dive'][0] + .1, .3)
 # hook + plates
 for i, a in enumerate(B['arrive']):
     add(clink(), a - 0.05, .26, [-.2, .15, -.1, .2, 0][i])
