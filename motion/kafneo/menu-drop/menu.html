@@ -1,27 +1,30 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Kafneo menu drop</title>
 <style>
-  @font-face { font-family: Pop; src: url("fonts/poppins-latin-600-normal.woff2"); font-weight: 600; }
-  @font-face { font-family: Pop; src: url("fonts/poppins-latin-500-normal.woff2"); font-weight: 500; }
+  @font-face { font-family: Brico; src: url("fonts/bricolage-grotesque-latin-800-normal.woff2"); font-weight: 800; }
+  @font-face { font-family: Brico; src: url("fonts/bricolage-grotesque-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Arch; src: url("fonts/archivo-latin-400-normal.woff2"); font-weight: 400; }
+  @font-face { font-family: Arch; src: url("fonts/archivo-latin-500-normal.woff2"); font-weight: 500; }
+  @font-face { font-family: Arch; src: url("fonts/archivo-latin-600-normal.woff2"); font-weight: 600; }
   html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
   canvas{width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;display:block}
 </style></head><body><canvas id="c"></canvas>
 <script>
-// Kafneo menu drop: an in-store screen loop (40s, seamless). Three drinks wait under frosted glass domes on the Kafneo
+// Kafneo menu drop: an in-store screen loop (about 57s, seamless). Three drinks wait under frosted glass domes on the Kafneo
 // counter. The camera leans in on each one, the dome lifts away, the frost clears and cold mist spills out, and the
 // name lands on the wooden slats of the counter front. Then the domes come back down, fog over, the light turns from
 // evening to golden afternoon, and the next line is waiting underneath. The last frame flows straight into the first.
 const SETS = [
-  { title: 'Coquito season.', sub: 'Three new iced drinks.', end: 'Coquito, three ways.', cups: [
-    { img: 'coq1', name: 'Iced Coquito Latte', notes: ['Coconut coquito milk', 'Espresso and nutmeg'] },
-    { img: 'coq2', name: 'Coquito Cold Brew', notes: ['Slow-steeped cold brew', 'Coconut cream, toasted coconut'] },
-    { img: 'coq3', name: 'Coquito Frappé', notes: ['Blended coquito', 'Whipped cream, cinnamon'] }] },
-  { title: 'Pumpkin season.', sub: 'Three new iced drinks.', end: 'Pumpkin spice, three ways.', cups: [
-    { img: 'pmk1', name: 'Iced Pumpkin Spice Latte', notes: ['Pumpkin spice', 'Espresso and milk'] },
-    { img: 'pmk2', name: 'Pumpkin Cream Cold Brew', notes: ['Slow-steeped cold brew', 'Pumpkin cream foam'] },
-    { img: 'pmk3', name: 'Iced Pumpkin Chai', notes: ['Spiced chai', 'Whipped cream, cinnamon'] }] },
+  { title: 'Coquito season', sub: 'Three new iced drinks, here until the holidays.', end: 'Coquito, three ways.', cups: [
+    { img: 'coq1', name: ['Iced Coquito', 'Latte'], desc: 'Our house coquito, coconut milk warmed with cinnamon, nutmeg and vanilla, poured over ice with a double shot of espresso.', notes: ['Coquito', 'Espresso', 'Nutmeg'] },
+    { img: 'coq2', name: ['Coquito', 'Cold Brew'], desc: 'Cold brew steeped slowly overnight, finished with a thick layer of whipped coconut cream and toasted coconut.', notes: ['Cold brew', 'Coconut cream', 'Toasted coconut'] },
+    { img: 'coq3', name: ['Coquito', 'Frappé'], desc: 'Coquito blended with ice until thick and frosty, crowned with whipped cream and a dusting of cinnamon.', notes: ['Coquito', 'Whipped cream', 'Cinnamon'] }] },
+  { title: 'Pumpkin season', sub: 'Three new iced drinks, all autumn long.', end: 'Pumpkin spice, three ways.', cups: [
+    { img: 'pmk1', name: ['Iced Pumpkin', 'Spice Latte'], desc: 'Pumpkin, cinnamon and clove stirred into cold milk, with espresso poured over the top so it swirls down through the ice.', notes: ['Pumpkin spice', 'Espresso', 'Milk'] },
+    { img: 'pmk2', name: ['Pumpkin Cream', 'Cold Brew'], desc: 'Smooth cold brew over ice under a velvety pumpkin cold foam that slowly sinks into the coffee as you drink.', notes: ['Cold brew', 'Pumpkin foam', 'Spice'] },
+    { img: 'pmk3', name: ['Iced Pumpkin', 'Chai'], desc: 'Spiced chai and milk over ice with a ribbon of pumpkin at the bottom, topped with whipped cream and a cinnamon stick.', notes: ['Chai', 'Pumpkin', 'Cinnamon'] }] },
 ];
-const LOOP = 40, HALF = 20;
+const HALF = 28.4, LOOP = HALF * 2;
 const W = 1920, H = 1080, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
 const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
 const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
@@ -38,28 +41,29 @@ let I = {};
 // ---------- world: the counter photo scaled to 1080 high (2545 wide). Cups stand on the countertop at y 712 ----------
 const BGW = 2576 * 1080 / 1093, FEET = 712, DOMES = [872, 1272, 1672], CUPH = 360;
 // ---------- timing inside each 20s half: wide, then lean in on each dome in turn, then wide again ----------
-const LIFT = [3.4, 8.4, 13.4], NAME = [[4.0, 7.3], [9.0, 12.3], [14.0, 17.0]], TITLE = [0.35, 2.5], END = [17.7, 19.3], DROP = 18.8;
-const camX = mono([[0, 1272], [2.3, 1272], [3.5, DOMES[0]], [7.4, DOMES[0]], [8.6, DOMES[1]], [12.4, DOMES[1]], [13.6, DOMES[2]], [17.0, DOMES[2]], [18.4, 1272], [20, 1272]]);
-const camZ = mono([[0, 1.0], [2.3, 1.0], [3.5, 1.45], [17.0, 1.45], [18.4, 1.0], [20, 1.0]]);
-const camY = mono([[0, 540], [2.3, 540], [3.5, 560], [17.0, 560], [18.4, 540], [20, 540]]);
+const OFF = 250, LIFT = [3.4, 11.4, 19.4], NAME = [[4.0, 10.3], [12.0, 18.3], [20.0, 26.0]], TITLE = [0.35, 2.5], END = [26.4, 27.7], DROP = 27.0;
+const camX = mono([[0, 1272], [2.3, 1272], [3.5, DOMES[0] - OFF], [10.4, DOMES[0] - OFF], [11.6, DOMES[1] - OFF], [18.4, DOMES[1] - OFF], [19.6, DOMES[2] - OFF], [26.0, DOMES[2] - OFF], [27.2, 1272], [HALF, 1272]]);
+const camZ = mono([[0, 1.0], [2.3, 1.0], [3.5, 1.45], [26.0, 1.45], [27.2, 1.0], [HALF, 1.0]]);
+const camY = mono([[0, 540], [2.3, 540], [3.5, 560], [26.0, 560], [27.2, 540], [HALF, 540]]);
 const cam = t => { const u = t % HALF; return { x: camX(u) + 10 * Math.sin(TAU * t / LOOP), y: camY(u), z: camZ(u) }; };
 const S = (c, x, y) => [(x - c.x) * c.z + 960, (y - c.y) * c.z + 540];
 // periodic blends so the loop has no seam: golden light for the pumpkin half, and which cups sit under the domes
 const wrapRamp = (t, up, down, len) => { let u = t; if (u < len) u += LOOP; return io(prog(u, up, up + len)) * (1 - io(prog(u, down, down + len))); };
-const golden = t => wrapRamp(t, 19.6, 39.6, 1.4), swap = t => wrapRamp(t, 19.95, 39.95, 0.3);
+const golden = t => wrapRamp(t, HALF - 0.4, LOOP - 0.4, 1.4), swap = t => wrapRamp(t, HALF - 0.05, LOOP - 0.05, 0.3);
 // a dome's lift: 0 resting on the counter, 1 gone up out of frame
-function lift(t, k) { const u = t % HALF; const up = io(prog(u, LIFT[k], LIFT[k] + 1.3)), down = io(prog(u, DROP + 0.18 * k, DROP + 0.18 * k + 0.95)); return up * (1 - down); }
+function lift(t, k) { const u = t % HALF; const up = io(prog(u, LIFT[k], LIFT[k] + 1.3)), down = io(prog(u, DROP + 0.15 * k, DROP + 0.15 * k + 0.9)); return up * (1 - down); }
 function counter(c, t) { const g = golden(t), w = BGW * c.z, h = 1080 * c.z, [x, y] = S(c, 0, 0);
   ctx.drawImage(I.counter_night, x, y, w, h); if (g > 0) { ctx.globalAlpha = g; ctx.drawImage(I.counter_golden, x, y, w, h); ctx.globalAlpha = 1; } }
 const TMP = document.createElement('canvas'), tctx = TMP.getContext('2d');
 function cupImg(name, x, y, s, blur, dim, a) { const im = I[name], n = CUPH / im.height, w = im.width * n * s, h = CUPH * s;
   TMP.width = im.width; TMP.height = im.height; tctx.drawImage(im, 0, 0); tctx.globalCompositeOperation = 'source-atop'; tctx.fillStyle = `rgba(20,12,8,${dim})`; tctx.fillRect(0, 0, TMP.width, TMP.height); tctx.globalCompositeOperation = 'source-over';
   ctx.save(); ctx.globalAlpha = a; if (blur > 0.3) ctx.filter = `blur(${blur.toFixed(1)}px)`; ctx.drawImage(TMP, x - w / 2, y - h + 4 * s, w, h); ctx.restore(); }
-function station(c, t, k) { const [x, y] = S(c, DOMES[k], FEET), s = c.z, L = lift(t, k), frost = 1 - io(prog(L, 0.05, 0.55)), p = swap(t), g = golden(t);
+function away(t, k) { const u = t % HALF; return Math.max(...NAME.map(([a, b], j) => j === k ? 0 : io(prog(u, a - 0.6, a)) * (1 - io(prog(u, b + 0.2, b + 0.8))))); }
+function station(c, t, k) { const aw = away(t, k), [x, y] = S(c, DOMES[k], FEET), s = c.z, L = lift(t, k), frost = 1 - io(prog(L, 0.05, 0.55)), p = swap(t), g = golden(t);
   // contact shadow on the countertop
   ctx.save(); ctx.globalCompositeOperation = 'multiply'; const sh = ctx.createRadialGradient(x, y, 0, x, y, 150 * s); sh.addColorStop(0, 'rgba(30,20,14,0.75)'); sh.addColorStop(1, 'rgba(30,20,14,0)'); ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(x, y, 150 * s, 16 * s, 0, 0, TAU); ctx.fill(); ctx.restore();
   // the drink: soft and dim behind the frost, sharp once the dome is up
-  const blur = 9 * frost * s, dim = 0.08 + 0.25 * frost - 0.04 * g;
+  const blur = 9 * frost * s + 7 * aw, dim = 0.08 + 0.25 * frost - 0.04 * g + 0.45 * aw;
   if (p < 1) cupImg(SETS[0].cups[k].img, x, y, s, blur, dim, 1 - p); if (p > 0) cupImg(SETS[1].cups[k].img, x, y, s, blur, dim, p);
   // the dome: glass that only glows where light catches it (screen), frosted until it lifts
   const D = I.dome_frost, dsc = 272 / 778 * s, dw = D.width * dsc, dh = D.height * dsc, dy = y - 1729 * dsc - L * 1000 * s + 6 * s;
@@ -71,17 +75,40 @@ function station(c, t, k) { const [x, y] = S(c, DOMES[k], FEET), s = c.z, L = li
     ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = a; const M = I.mist, mw = 600 * s * (0.7 + 0.5 * e), mh = mw * M.height / M.width;
     ctx.translate(x, y - 40 * s); ctx.save(); ctx.translate(40 * s * e, -30 * s * e); ctx.scale(1, -0.5); ctx.drawImage(M, -mw * 0.05, -mh * 0.85, mw, mh); ctx.restore();
     ctx.translate(-40 * s * e, -30 * s * e); ctx.scale(-1, -0.5); ctx.drawImage(M, -mw * 0.05, -mh * 0.85, mw, mh); ctx.restore(); } }
-// ---------- type on the wooden slats of the counter front ----------
-function words(str, t, tin, tout, { x = 960, y, size = 72, col = CREAM, weight = 600, align = 'center' }) {
-  if (t < tin || t > tout + 0.45) return; const e = snap(prog(t, tin, tin + 0.6)), o = io(prog(t, tout, tout + 0.45));
-  ctx.save(); ctx.font = `${weight} ${size}px Pop, sans-serif`; ctx.letterSpacing = (-size * 0.02) + 'px'; ctx.textAlign = align; const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : x;
-  ctx.beginPath(); ctx.rect(x0 - 30, y - size * 1.05, w + 60, size * 1.4); ctx.clip(); ctx.shadowColor = 'rgba(10,5,2,0.7)'; ctx.shadowBlur = 20; ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.4 - o * size * 1.4); ctx.restore(); }
-function note(str, t, tin, tout, y) { if (t < tin || t > tout + 0.45) return; const e = snap(prog(t, tin, tin + 0.5)), o = 1 - io(prog(t, tout, tout + 0.3)); ctx.save(); ctx.font = '500 42px Pop, sans-serif'; const w = ctx.measureText(str).width; ctx.restore();
-  const x0 = 960 - (w + 36) / 2; ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(x0 + 10, y - 14, 10 * e * o, 0, TAU); ctx.fill(); words(str, t, tin + 0.05, tout, { x: x0 + 36, y, size: 42, weight: 500, align: 'left' }); }
+// ---------- type ----------
+// Display: Bricolage Grotesque ExtraBold. Text: Archivo. Every line rises out of its own mask, staggered, and leaves upward.
+const SP = 24;   // one spacing unit; every gap below is a multiple of it
+function wrap(str, font, size, maxW) { ctx.save(); ctx.font = font.replace('SIZE', size + 'px'); const words = str.split(' '), lines = []; let cur = '';
+  words.forEach(w => { const tr = cur ? cur + ' ' + w : w; if (ctx.measureText(tr).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tr; }); if (cur) lines.push(cur); ctx.restore(); return lines; }
+const F = (w, fam) => `${w} SIZE ${fam}`, fnt = (w, fam, size) => `${w} ${size}px ${fam}`;
+function txt(str, t, tin, tout, x, y, size, weight, fam, opts = {}) {
+  if (t < tin || t > tout + 0.5) return; const e = snap(prog(t, tin, tin + 0.7)), o = io(prog(t, tout, tout + 0.45));
+  ctx.save(); ctx.font = fnt(weight, fam, size); ctx.letterSpacing = (opts.ls || 0) + 'px'; ctx.textAlign = opts.align || 'left';
+  const w = ctx.measureText(str).width, x0 = ctx.textAlign === 'center' ? x - w / 2 : x;
+  ctx.beginPath(); ctx.rect(x0 - 40, y - size * 1.1, w + 80, size * 1.45); ctx.clip(); ctx.globalAlpha = opts.alpha || 1; ctx.fillStyle = opts.col || CREAM;
+  ctx.fillText(str, x, y + (1 - e) * size * 1.25 - o * size * 1.25); ctx.restore(); }
+// the drink card: big two-line name, a gold rule that draws on, a short paragraph, then the ingredients with gold marks
+function card(d, t, a, b, k) { const X = 120, nameS = 116;
+  d.name.forEach((ln, i) => txt(ln, t, a + i * 0.09, b - 0.06 * (1 - i), X, 330 + i * nameS * 0.98, nameS, 800, 'Brico', { ls: -nameS * 0.025 }));
+  const ry = 330 + nameS * 0.98 + SP * 2.2, rw = 120 * snap(prog(t, a + 0.35, a + 0.95)) * (1 - io(prog(t, b, b + 0.4)));
+  if (t > a + 0.35 && rw > 0.5) { ctx.fillStyle = GOLD; ctx.fillRect(X, ry, rw, 4); }
+  const lines = wrap(d.desc, F(400, 'Arch'), 38, 660); lines.forEach((ln, i) => txt(ln, t, a + 0.5 + i * 0.07, b, X, ry + SP * 2.6 + i * 38 * 1.42, 38, 400, 'Arch', { col: '#F2E6D6', alpha: 0.94 }));
+  let nx = X; const ny = ry + SP * 2.6 + lines.length * 38 * 1.42 + SP * 1.6;
+  d.notes.forEach((n, i) => { const tin = a + 0.85 + i * 0.08; if (t < tin || t > b + 0.5) return; const e = snap(prog(t, tin, tin + 0.5)) * (1 - io(prog(t, b, b + 0.35)));
+    ctx.save(); ctx.font = fnt(600, 'Arch', 26); ctx.letterSpacing = '2.5px'; const w = ctx.measureText(n.toUpperCase()).width; ctx.restore();
+    ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(nx + 7, ny - 9, 7 * e, 0, TAU); ctx.fill();
+    txt(n.toUpperCase(), t, tin + 0.04, b, nx + 26, ny, 26, 600, 'Arch', { ls: 2.5, col: '#E9D9C2' }); nx += w + 26 + SP * 1.6; });
+  // counter of where we are in the set, quiet, bottom left
+  txt(`0${k + 1}`, t, a + 0.2, b, X, 960, 30, 600, 'Brico', { col: GOLD }); txt('/ 03', t, a + 0.25, b, X + 46, 960, 30, 600, 'Brico', { col: '#B8A58C' }); }
+// the left side darkens behind the card so it always reads, like a light falling off
+function cardShade(t) { const u = t % HALF; const on = Math.max(...NAME.map(([a, b]) => io(prog(u, a - 0.6, a)) * (1 - io(prog(u, b + 0.2, b + 0.8)))));
+  if (on <= 0) return; const g = ctx.createLinearGradient(0, 0, 1150, 0); g.addColorStop(0, `rgba(14,8,5,${0.88 * on})`); g.addColorStop(0.6, `rgba(14,8,5,${0.66 * on})`); g.addColorStop(1, 'rgba(14,8,5,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 1150, H); }
 function text(t) { const half = Math.floor(t / HALF) % 2, u = t % HALF, set = SETS[half];
-  words(set.title, u, TITLE[0], TITLE[1], { y: 900, size: 104 }); words(set.sub, u, TITLE[0] + 0.3, TITLE[1], { y: 985, size: 46, col: '#FFD9A8', weight: 500 });
-  set.cups.forEach((d, k) => { const [a, b] = NAME[k]; words(d.name, u, a, b, { y: 905, size: 84 }); note(d.notes[0], u, a + 0.45, b, 975); note(d.notes[1], u, a + 0.7, b, 1035); });
-  words(set.end, u, END[0], END[1], { y: 920, size: 84 }); }
+  // opening and closing lines sit big on the counter front
+  txt(set.title, u, TITLE[0], TITLE[1], 960, 905, 128, 800, 'Brico', { align: 'center', ls: -3 });
+  txt(set.sub, u, TITLE[0] + 0.3, TITLE[1], 960, 990, 34, 500, 'Arch', { align: 'center', col: '#F2E6D6' });
+  set.cups.forEach((d, k) => card(d, u, NAME[k][0], NAME[k][1], k));
+  txt(set.end, u, END[0], END[1], 960, 925, 96, 800, 'Brico', { align: 'center', ls: -2 }); }
 // ---------- the Kafneo logo, small and steady in the corner of the counter front ----------
 function logo() { ctx.save(); ctx.translate(1790, 945); ctx.scale(0.11, 0.11); ctx.translate(-800, -800); ['logo_rays', 'logo_line', 'logo_globe', 'logo_word', 'logo_coffee', 'logo_leaves'].forEach(n => ctx.drawImage(I[n], 0, 0)); ctx.restore(); }
 function frame(t) {
@@ -90,14 +117,14 @@ function frame(t) {
   // a soft darkening on the lower slats so the type always reads
   const g = ctx.createLinearGradient(0, 760, 0, 1080); g.addColorStop(0, 'rgba(12,6,3,0)'); g.addColorStop(1, 'rgba(12,6,3,0.55)'); ctx.fillStyle = g; ctx.fillRect(0, 760, W, 320);
   const v = ctx.createRadialGradient(960, 520, 500, 960, 540, 1250); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.35)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
-  text(t); logo();
+  cardShade(t); text(t); logo();
 }
 function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
   for (let i = 0; i < MB; i++) { frame(t + (i / (MB - 1) - 0.5) * 0.0167); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
 const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
 const NAMES = ['counter_night.jpg', 'counter_golden.jpg', 'dome_clear.png', 'dome_frost.png', 'mist.png', 'coq1.png', 'coq2.png', 'coq3.png', 'pmk1.png', 'pmk2.png', 'pmk3.png', 'logo_rays.png', 'logo_line.png', 'logo_globe.png', 'logo_word.png', 'logo_coffee.png', 'logo_leaves.png'];
 window.TOTAL = LOOP; window.renderAt = t => render(t);
-window.ready = Promise.all([document.fonts.load('600 80px Pop'), document.fonts.load('500 40px Pop'), ...NAMES.map(n => img('hi/' + n))]).then(([, , ...ims]) => {
+window.ready = Promise.all([document.fonts.load('800 80px Brico'), document.fonts.load('600 40px Brico'), document.fonts.load('400 40px Arch'), document.fonts.load('500 40px Arch'), document.fonts.load('600 40px Arch'), ...NAMES.map(n => img('hi/' + n))]).then(([, , , , , ...ims]) => {
   NAMES.forEach((n, i) => I[n.split('.')[0]] = ims[i]);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render(n / 1000); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>

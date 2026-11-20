@@ -9,7 +9,7 @@ Before starting, read the house rules in `/CLAUDE.md` (the "don't look vibecoded
 | Folder | What it is | Start from it for |
 |---|---|---|
 | `kafneo/coquito-one-take/coquito.html` | **Best current template.** One unbroken 24s take of three iced drinks on a lazy Susan at night. String lights switch on, the camera pushes in on each drink, then they stack, split and the logo ends it. | Any product line-up (drinks, food, merch) |
-| `kafneo/menu-drop/menu.html` | **In-store screen loop, 16:9, 40s, seamless.** Drinks under frosted glass domes on the real Kafneo counter; each dome lifts with cold mist, names on the counter slats; light turns evening to golden between the coquito and pumpkin sets | Screen loops, menu launches. Swap `hi/counter_*.jpg` and `hi/coq*/pmk*.png` for real photos |
+| `kafneo/menu-drop/menu.html` | **In-store screen loop, 16:9, about 57s, seamless.** Drink cards in Bricolage Grotesque (names) and Archivo (descriptions). Drinks under frosted glass domes on the real Kafneo counter; each dome lifts with cold mist, names on the counter slats; light turns evening to golden between the coquito and pumpkin sets | Screen loops, menu launches. Swap `hi/counter_*.jpg` and `hi/coq*/pmk*.png` for real photos |
 | `kafneo/pumpkin-one-take/pumpkin.html` | The same one-take at autumn dusk, with falling leaves that land on the table | Seasonal variants |
 | `kafneo/reels/your-spot.html` | 30s brand reel (scenes from the Kafneo brief, labels with gold dot bullets) | Brand or venue reels |
 | `kafneo/reels/gold-special.html` | 15s single-drink special | One-product promos |
