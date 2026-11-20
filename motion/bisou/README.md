@@ -17,13 +17,18 @@ background dims, the items gather, and the Bisou logo assembles from its own col
 ## Assets checklist
 | File | From | Status |
 |---|---|---|
-| Logo screenshots (largest you can find) | Instagram profile, highlights, posts | waiting |
-| `logo.svg` + colour layers `hi/logo_*.png` | rebuilt by Claude from the screenshots, checked against them | after screenshots |
-| Their outro graphic (screenshot from a video) | Instagram reels | waiting |
-| Brand colours + fonts | read off the logo and posts | after screenshots |
+| Logo + outro screen recording | `sources/logo_screenshot.png`, `sources/outro_recording.mp4` | in |
+| White mark (utensil rail + BISOU) as vectors | `hi/mark_white.svg`, `hi/mark_parts.json` (rail/utensils, word, letters) via `tools/build_mark.py`, overlay-checked against `sources/outro_mark_crop.png` | done |
+| Brown cutting-board script logo as vectors | `sources/logo_screenshot.png` | not needed yet (videos use the white mark) |
+| Brand colours + fonts | white, near-black, cutting-board brown, red-stained wood; lettering is Nunito (`fonts/`) | done |
 | New menu item photos (their own posts) | Instagram | waiting |
 | Per item: hero + 3 close-ups + back view | Gemini, `prompts/Bisou - Gemini prompts.md` | waiting on item list |
 | Cake stand, bistro world plate | Gemini, same pack | can start now |
+
+## Their look (from the outro recording)
+- Overhead shots on red-stained wood, food on a white square plate.
+- Their outro: the plate gets eaten down to crumbs and a fork, then a cut to the white mark on black.
+- Two logos: brown cutting-board script logo (profile picture) and the white utensil-rail mark (videos).
 
 ## Notes
 - Food on screen must be their real items, shown accurately (no invented toppings or items).
