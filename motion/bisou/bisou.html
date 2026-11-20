@@ -138,7 +138,7 @@ function frame(t) {
     const v = ctx.createRadialGradient(540, 960, 520, 540, 960, 1250); v.addColorStop(0, 'rgba(20,10,5,0)'); v.addColorStop(1, 'rgba(20,10,5,0.32)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     if (dark > 0) { ctx.fillStyle = `rgba(11,8,7,${dark})`; ctx.fillRect(0, 0, W, H); } }
   if (dark > 0.6 && t >= B.down[1]) { /* fully dark: the plate lives on only as its rim */ }
-  DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
+  if (!q.has('nolabel')) DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
   ring(c, t); if (t >= B.ring[1] - 0.05 || t >= B.letters) mark(t, markAt(t));
   slideText('New on the breakfast menu', t, B.line, B.card, { y: 1250, size: 46, weight: 700 });
   slideText('Which one first?', t, B.ask, B.contact, { y: 1010, size: 76, weight: 800 });
