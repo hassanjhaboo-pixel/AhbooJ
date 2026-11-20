@@ -9,10 +9,15 @@ until they sign off. If it goes public before that, end it with "Spec ad. Not af
 - **Ending:** logo builds itself, then "New on the menu" and @bisoutt. Viewer action: visit / DM to order.
 - **Template:** `../kafneo/coquito-one-take/coquito.html` (one continuous take, push-in per product, logo build at the end).
 
-## Concept: "The cake stand"
-One unbroken take. A cake stand in the bistro slowly turns; each new item arrives at the front, the camera eases
-in on it (zoom ladder close-ups), names it, eases back, and the stand turns to the next. After the last item the
-background dims, the items gather, and the Bisou logo assembles from its own colour layers.
+## Concept: "The table" (replaces the cake stand idea)
+One unbroken overhead take across their woven placemat. Each of the five new breakfast plates slides to centre,
+the camera eases in (zoom ladder close-ups) while its name slides up out of a mask, eases back, and glides on in
+one direction to the next. The last plate (pancakes) gets eaten to crumbs and a fork, a nod to their own outro.
+The placemat darkens to black, the three utensils drop onto the rail and swing to rest, BISOU settles in, then
+"New on the breakfast menu" and @bisoutt.
+
+Running order (proposal): benedict (red plate, strongest hook) > shakshuka > potato cake > chilli scramble > pancakes.
+Dish names: working names only until we have Bisou's real menu names.
 
 ## Assets checklist
 | File | From | Status |
@@ -21,9 +26,9 @@ background dims, the items gather, and the Bisou logo assembles from its own col
 | White mark (utensil rail + BISOU) as vectors | `hi/mark_white.svg`, `hi/mark_parts.json` (rail/utensils, word, letters) via `tools/build_mark.py`, overlay-checked against `sources/outro_mark_crop.png` | done |
 | Brown cutting-board script logo as vectors | `sources/logo_screenshot.png` | not needed yet (videos use the white mark) |
 | Brand colours + fonts | white, near-black, cutting-board brown, red-stained wood; lettering is Nunito (`fonts/`) | done |
-| New menu item photos (their own posts) | Instagram | waiting |
-| Per item: hero + 3 close-ups + back view | Gemini, `prompts/Bisou - Gemini prompts.md` | waiting on item list |
-| Cake stand, bistro world plate | Gemini, same pack | can start now |
+| New breakfast menu photos (their post, 5 dishes) | `sources/ref_*.jpg` | in |
+| Per dish: hero + 2 close-ups on teal; pancake eaten x2; placemat | Gemini, `prompts/Bisou - Gemini prompts.md` (18 images) | waiting |
+| Real dish names | Bisou's menu / post caption | waiting |
 
 ## Their look (from the outro recording)
 - Overhead shots on red-stained wood, food on a white square plate.
