@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Bisou breakfast reel</title>
+<style>
+  @font-face { font-family: Nun; src: url("fonts/nunito-latin-var.woff2"); font-weight: 200 1000; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Bisou, new breakfast menu. One unbroken overhead take on their woven placemat. Five plates lie along the table;
+// the camera glides from one to the next (so the plates travel up the screen), lands on each and leans in on its
+// best detail, then eases back as it moves on. The pancakes get eaten in three stop-motion jumps, the room goes
+// dark, and the empty plate's rim shrinks into the O of BISOU. The utensils drop onto the rail and swing to rest.
+const DISHES = [
+  { k: 'benedict', name: 'Fried Chicken Eggs Benedict' },
+  { k: 'shakshuka', name: 'Shakshuka', steam: true },
+  { k: 'turkish', name: 'Turkish Eggs & Bake', steam: true },
+  { k: 'chilli', name: 'Eggs & Chilli Oil' },
+  { k: 'pancake', name: 'Pancakes', sugar: true },
+];
+// every beat lives here. arrive = plate centred at full size; push = end of its lean-in (the whip to the next starts there)
+const B = { arrive: [2.0, 6.6, 12.4, 18.0, 23.0], push: [5.6, 11.4, 17.0, 22.0, 27.0], back: 27.8, eat: [28.5, 29.3], down: [30.0, 32.0],
+  ring: [31.5, 33.3], letters: 33.1, rail: 33.4, drops: [33.9, 34.15, 34.4], line: 35.4, card: 37.8, ask: 38.3, plates: 38.6, handle: 39.3, END: 42.5 };
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+const LT = document.createElement('canvas'); LT.width = cv.width; LT.height = cv.height; const lctx = LT.getContext('2d'); lctx.imageSmoothingQuality = 'high';
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const snap = k => 1 - Math.pow(1 - clamp01(k), 5), io = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const TAU = Math.PI * 2, CREAM = '#FFF8EE', INK = '#2B1A12', INKR = '43,26,18';
+function mono(keys) {   // smooth curve through keys that never overshoots
+  const T = keys.map(k => k[0]), V = keys.map(k => k[1]), d = T.slice(0, -1).map((_, i) => (V[i + 1] - V[i]) / (T[i + 1] - T[i]));
+  const m = [d[0], ...d.slice(1).map((di, i) => d[i] * di <= 0 ? 0 : 2 * d[i] * di / (d[i] + di)), d[d.length - 1]];
+  return t => { if (t <= T[0]) return V[0]; if (t >= T[T.length - 1]) return V[V.length - 1]; let i = 0; while (t > T[i + 1]) i++;
+    const h = T[i + 1] - T[i], u = (t - T[i]) / h; return (2 * u ** 3 - 3 * u ** 2 + 1) * V[i] + (u ** 3 - 2 * u ** 2 + u) * h * m[i] + (-2 * u ** 3 + 3 * u ** 2) * V[i + 1] + (u ** 3 - u ** 2) * h * m[i + 1]; };
+}
+let I = {}, G, LADS, MAT, MATH, PARTS, cam, PLATE_R = 470, GAP = 1500, SHADOW = {}, PUFF;
+const plateY = i => i * GAP;
+const ks = d => PLATE_R / G.dish[d.k].plate[2];                       // hero px -> world
+const world = (d, i, px, py) => { const p = G.dish[d.k].plate; return [540 + (px - p[0]) * ks(d), plateY(i) + (py - p[1]) * ks(d)]; };
+const toScreen = (c, x, y) => [(x - c.cx) * c.z + 540, (y - c.cy) * c.z + 960];
+
+function buildCamera() {
+  const zx = [], cx = [], cy = [];
+  DISHES.forEach((d, i) => { const g = G.dish[d.k], deep = LADS[d.k][LADS[d.k].length - 1], kd = Math.hypot(deep[1], deep[2]);
+    d.zPush = Math.min(0.92 / (ks(d) * kd), 3.4); [d.fx, d.fy] = world(d, i, ...g.focus); });
+  const D = DISHES; const push = i => [B.push[i], D[i].zPush, D[i].fx, D[i].fy], land = i => [B.arrive[i], 1.0, 540, plateY(i)];
+  const keys = [[0, D[0].zPush * 0.96, D[0].fx, D[0].fy], land(0), [B.push[0], 1.28, D[0].fx, D[0].fy]];
+  for (let i = 1; i < 5; i++) keys.push(land(i), push(i));
+  keys.push([B.back, 1.0, 540, plateY(4)], [B.eat[1] + 0.6, 1.03, 540, plateY(4)], [B.down[1], 0.74, 540, plateY(4)], [B.END, 0.72, 540, plateY(4)]);
+  const z = mono(keys.map(k => [k[0], k[1]])), x = mono(keys.map(k => [k[0], k[2]])), y = mono(keys.map(k => [k[0], k[3]]));
+  cam = t => ({ cx: x(t), cy: y(t), z: z(t) });
+}
+// ---------- the table ----------
+function table(c) {
+  const th = MATH, top = c.cy - 960 / c.z - 40, bot = c.cy + 960 / c.z + 40;
+  const left = c.cx - 540 / c.z - 40, right = c.cx + 540 / c.z + 40;
+  for (let k = Math.floor(top / th); k <= Math.floor(bot / th); k++) for (let j = Math.floor(left / 1080); j <= Math.floor(right / 1080); j++) { const [sx, sy] = toScreen(c, j * 1080, k * th);
+    ctx.save(); ctx.translate(sx, sy); ctx.scale(c.z, c.z); if (k & 1) { ctx.translate(0, th); ctx.scale(1, -1); } if (j & 1) { ctx.translate(1080, 0); ctx.scale(-1, 1); } ctx.drawImage(MAT, 0, 0, 1081, th + 1); ctx.restore(); }
+}
+// ---------- a plate, with its close-ups taking over as the camera gets near ----------
+function plate(c, d, i, t, imgKey = null, alpha = 1) {
+  const g = G.dish[d.k], [px, py] = toScreen(c, 540, plateY(i)), s = c.z * ks(d);
+  if (py < -PLATE_R * c.z * 1.4 || py > H + PLATE_R * c.z * 1.4) return;
+  const sh = SHADOW[d.k]; ctx.save(); ctx.globalAlpha = 0.5 * alpha; ctx.translate(px + 16 * c.z, py + 26 * c.z); ctx.scale(s, s); ctx.translate(-g.plate[0] - sh.pad, -g.plate[1] - sh.pad); ctx.drawImage(sh.c, 0, 0); ctx.restore();
+  lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LT.width, LT.height);
+  lctx.setTransform(SCALE * s, 0, 0, SCALE * s, SCALE * (px - g.plate[0] * s), SCALE * (py - g.plate[1] * s));
+  if (imgKey) lctx.drawImage(I[imgKey], -g.off[0], -g.off[1]); else lctx.drawImage(I[d.k + '_hero'], 0, 0);
+  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 0.8, 1.1)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
+      lctx.save(); lctx.globalAlpha = a; lctx.transform(A, Bb, -Bb, A, tx, ty); lctx.drawImage(I[im], 0, 0); lctx.restore(); });
+    lctx.globalCompositeOperation = 'destination-in'; lctx.drawImage(I[d.k + '_hero'], 0, 0); lctx.globalCompositeOperation = 'source-over'; }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = alpha; ctx.drawImage(LT, 0, 0); ctx.restore();
+}
+// ---------- little life: steam off the hot dishes, sugar on the pancakes ----------
+function steam(c, d, t, a0, a1) {
+  const on = io(prog(t, a0, a0 + 0.8)) * (1 - io(prog(t, a1 - 0.4, a1 + 0.2))); if (on <= 0) return;
+  const [fx, fy] = toScreen(c, d.fx, d.fy); ctx.save(); ctx.globalCompositeOperation = 'screen';
+  for (let j = 0; j < 7; j++) for (let n = 0; n < 9; n++) { const life = ((t * 0.32 + j * 0.143 + n * 0.11) % 1), x = fx + (j - 3) * 46 * c.z ** 0.6 + Math.sin(t * 1.3 + j * 2 + life * 5) * 40 * life * c.z ** 0.6,
+      y = fy - life * 520 * c.z ** 0.5, r = (40 + life * 110) * c.z ** 0.5; ctx.globalAlpha = on * 0.055 * Math.sin(Math.PI * life); ctx.drawImage(PUFF, x - r, y - r, 2 * r, 2 * r); }
+  ctx.restore();
+}
+function sugar(c, d, i, t, a0, a1) {
+  const on = io(prog(t, a0, a0 + 0.6)) * (1 - io(prog(t, a1 - 0.2, a1 + 0.3))); if (on <= 0) return; ctx.save(); ctx.fillStyle = '#fff';
+  for (let n = 0; n < 150; n++) { const h1 = Math.sin(n * 12.9898) * 43758.5453 % 1, h2 = Math.sin(n * 78.233) * 12345.678 % 1, h3 = Math.sin(n * 3.17) * 999.1 % 1;
+    const wx = 540 + Math.abs(h1) * 760 - 380 + Math.sin(t * 0.9 + n) * 14, fall = ((t - a0) * (60 + Math.abs(h3) * 70) + Math.abs(h2) * 900) % 900, wy = plateY(i) - 450 + fall;
+    const [x, y] = toScreen(c, wx, wy), r = (1.4 + Math.abs(h3) * 2.6) * Math.sqrt(c.z); ctx.globalAlpha = on * (0.55 + 0.45 * Math.abs(h2)) * Math.min(1, fall / 80, (900 - fall) / 120);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
+// ---------- type ----------
+function slideText(str, t, tin, tout, { x = 540, y, size = 44, col = CREAM, weight = 800, align = 'center', alpha = 1, track = 0 }) {
+  if (t < tin || (tout !== null && t > tout + 0.4)) return; const e = snap(prog(t, tin, tin + 0.55)), o = tout === null ? 0 : io(prog(t, tout, tout + 0.35));
+  ctx.save(); ctx.globalAlpha = alpha; ctx.font = `${weight} ${size}px Nun, sans-serif`; ctx.letterSpacing = track + 'px'; ctx.textAlign = align; const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : x;
+  ctx.beginPath(); ctx.rect(x0 - 20, y - size * 1.05, w + 40, size * 1.4); ctx.clip(); ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.4 - o * size * 1.4); ctx.restore();
+}
+function nameLabel(str, t, tin, tout) {   // solid ink block led by their utensil mark, rises out of a mask
+  if (t < tin || t > tout + 0.4) return; const e = snap(prog(t, tin, tin + 0.6)), o = io(prog(t, tout, tout + 0.35));
+  ctx.save(); ctx.font = '800 46px Nun, sans-serif'; const tw = ctx.measureText(str).width, ih = 52, iw = ih * 1.12, bw = tw + iw + 76, bh = 92, x = 540 - bw / 2, y = 1430;
+  ctx.beginPath(); ctx.rect(x - 4, y - 4, bw + 8, bh + 8); ctx.clip(); ctx.translate(0, (1 - e) * (bh + 10) + o * (bh + 10));
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(x, y, bw, bh, 10); ctx.fill();
+  ctx.save(); ctx.translate(x + 26, y + (bh - ih) / 2); ctx.scale(ih / 180, ih / 180); ctx.translate(-118, -10); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore();
+  ctx.fillStyle = CREAM; ctx.textBaseline = 'middle'; ctx.fillText(str, x + 26 + iw + 22, y + bh / 2 + 2); ctx.restore();
+}
+function counter(t) {   // small, soft and quiet: n/5 on a little ink tile with five dots underneath
+  const n = B.arrive.reduce((m, a, i) => t >= a - 0.25 ? i + 1 : m, 1), on = 1 - io(prog(t, B.back - 0.2, B.back + 0.3)); if (on <= 0) return;
+  const x = 948, y = 236, w = 92, h = 64; ctx.save(); ctx.globalAlpha = 0.5 * on;
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, 16); ctx.fill();
+  ctx.globalAlpha = 0.86 * on; ctx.fillStyle = CREAM; ctx.font = '800 28px Nun, sans-serif'; ctx.textBaseline = 'alphabetic';
+  const cur = String(n), tick = snap(prog(t, B.arrive[n - 1] - 0.25, B.arrive[n - 1] + 0.2));
+  ctx.textAlign = 'right'; ctx.save(); ctx.beginPath(); ctx.rect(x - 40, y - 30, 40, 36); ctx.clip();
+  ctx.fillText(cur, x - 2, y + 4 + (n > 1 ? (1 - tick) * 30 : 0)); if (n > 1 && tick < 1) ctx.fillText(String(n - 1), x - 2, y + 4 - tick * 30); ctx.restore();
+  ctx.textAlign = 'left'; ctx.font = '700 20px Nun, sans-serif'; ctx.fillText('/5', x + 1, y + 4);
+  for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x - 22 + k * 11, y + 19, 3, 0, TAU); ctx.globalAlpha = 0.86 * on * (k < n ? 1 : 0.32); ctx.fill(); }
+  ctx.restore();
+}
+// ---------- the mark: the plate rim becomes the O, then the letters, rail and utensils ----------
+const MS = 1.62, MX = 540, MY = 860;             // mark scale and centre (viewBox 440x380)
+const markPt = (x, y, at) => [at.x + (x - 220) * at.s, at.y + (y - 190) * at.s];
+function markAt(t) { const k = io(prog(t, B.card, B.card + 0.9)); return { s: lerp(MS, MS * 0.62, k), x: MX, y: lerp(MY, 470, k) }; }
+function mark(t, at) {
+  const put = fn => { ctx.save(); ctx.translate(at.x, at.y); ctx.scale(at.s, at.s); ctx.translate(-220, -190); fn(); ctx.restore(); };
+  // letters: the O is already there (it was the plate); B I S U and the subline rise out of their baseline
+  PARTS.word.forEach((p, i) => { if (i === 3) { if (t >= B.ring[1]) put(() => { ctx.fillStyle = CREAM; ctx.fill(p); }); return; }
+    const e = snap(prog(t, B.letters + [0, 0.07, 0.14, 0, 0.21][i], B.letters + 0.5 + [0, 0.07, 0.14, 0, 0.21][i])); if (e <= 0) return;
+    put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 190, 440, 120); ctx.clip(); ctx.translate(0, (1 - e) * 125); ctx.fillStyle = CREAM; ctx.fill(p); ctx.restore(); }); });
+  const se = snap(prog(t, B.letters + 0.35, B.letters + 0.9)); if (se > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, 318, 440, 40); ctx.clip(); ctx.translate(0, (1 - se) * 40); ctx.fillStyle = CREAM; PARTS.sub.forEach(p => ctx.fill(p)); ctx.restore(); });
+  // rail draws in left to right
+  const re = io(prog(t, B.rail, B.rail + 0.5)); if (re > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(100, 0, 240 * re, G.railY + 4); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); });
+  // utensils drop onto their hooks and swing to rest
+  G.utensils.forEach((u, j) => { const t0 = B.drops[j], fall = prog(t, t0 - 0.32, t0); if (t < t0 - 0.32) return; const v = t - t0;
+    const dy = v < 0 ? -(1 - fall * fall) * 220 : 0, ang = v < 0 ? 0 : 0.42 * (j === 1 ? -1 : 1) * Math.exp(-2.6 * v) * Math.sin(7.2 * v);
+    put(() => { ctx.save(); ctx.translate(u.hook[0], u.hook[1] + dy); ctx.rotate(ang); ctx.translate(-u.hook[0], -u.hook[1]);
+      ctx.beginPath(); ctx.rect(u.x0, G.railY + 3, u.x1 - u.x0, 200); ctx.rect(u.hook[0] - 9, u.hook[1] - 5, 18, G.railY - u.hook[1] + 9); ctx.clip(); ctx.fillStyle = CREAM; ctx.fill(PARTS.utensils, 'evenodd'); ctx.restore(); }); });
+}
+function ring(c, t) {   // the empty plate's rim shrinks and slides into the O
+  const k = io(prog(t, B.ring[0] + 0.5, B.ring[1])); const [rx0, ry0] = toScreen(c, 540 + (G.rim[0] - G.dish.pancake.plate[0] - G.dish.pancake.off[0]) * ks(DISHES[4]), plateY(4) + (G.rim[1] - G.dish.pancake.plate[1] - G.dish.pancake.off[1]) * ks(DISHES[4]));
+  const r0 = G.rim[2] * 0.93 * ks(DISHES[4]) * c.z, at = markAt(t), [ox, oy] = markPt(G.O[0], G.O[1], at), on = io(prog(t, B.ring[0], B.ring[0] + 0.5)) * (1 - prog(t, B.ring[1] - 0.05, B.ring[1] + 0.05));
+  if (on <= 0) return; const x = lerp(rx0, ox, k), y = lerp(ry0, oy, k), rx = lerp(r0, (G.O[2] - 7) * at.s, k), ry = lerp(r0, (G.O[3] - 7) * at.s, k), lw = lerp(10, 14 * at.s, k);
+  ctx.save(); ctx.globalAlpha = on; ctx.strokeStyle = CREAM; ctx.lineWidth = lw; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU); ctx.stroke(); ctx.restore();
+}
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = '#0b0807'; ctx.fillRect(0, 0, W, H);
+  const c = cam(t), dark = io(prog(t, B.down[0], B.down[1]));
+  if (dark < 1) { table(c);
+    DISHES.forEach((d, i) => { if (i < 4) { plate(c, d, i, t); return; }
+      const fade = 1 - io(prog(t, B.ring[0], B.ring[0] + 0.7)); if (fade <= 0) return;
+      plate(c, d, i, t, t >= B.eat[1] ? 'pancake_eaten2_full' : t >= B.eat[0] ? 'pancake_eaten1_full' : null, fade); });
+    DISHES.forEach((d, i) => { if (d.steam) steam(c, d, t, B.arrive[i] - 0.3, B.push[i] + 0.4); if (d.sugar) sugar(c, d, i, t, B.arrive[i] - 0.2, B.push[i] + 0.5); });
+    const v = ctx.createRadialGradient(540, 960, 520, 540, 960, 1250); v.addColorStop(0, 'rgba(20,10,5,0)'); v.addColorStop(1, 'rgba(20,10,5,0.32)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    if (dark > 0) { ctx.fillStyle = `rgba(11,8,7,${dark})`; ctx.fillRect(0, 0, W, H); } }
+  if (dark > 0.6 && t >= B.down[1]) { /* fully dark: the plate lives on only as its rim */ }
+  DISHES.forEach((d, i) => nameLabel(d.name, t, B.arrive[i] + 0.35, B.push[i] - 0.15));
+  counter(t);
+  ring(c, t); if (t >= B.ring[1] - 0.05 || t >= B.letters) mark(t, markAt(t));
+  slideText('New on the breakfast menu', t, B.line, B.card, { y: 1250, size: 46, weight: 700 });
+  slideText('Which one first?', t, B.ask, null, { y: 1010, size: 76, weight: 800 });
+  DISHES.forEach((d, i) => { const e = snap(prog(t, B.plates + i * 0.09, B.plates + 0.5 + i * 0.09)); if (e <= 0) return; const g = G.dish[d.k], sz = 172, s = sz / (2 * g.plate[2]);
+    const x = 540 + (i - 2) * 190, y = 1215 + (1 - e) * 60 + Math.sin(t * 2.4 - i * 0.7) * 5 * e; ctx.save(); ctx.globalAlpha = e; ctx.translate(x, y); ctx.scale(s, s); ctx.translate(-g.plate[0], -g.plate[1]); ctx.drawImage(I[d.k + '_hero'], 0, 0); ctx.restore(); });
+  slideText('Tell us below', t, B.handle - 0.2, null, { y: 1410, size: 38, weight: 700, alpha: 0.85 });
+  slideText('@bisoutt', t, B.handle, null, { y: 1530, size: 44, weight: 800 });
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+const NAMES = ['benedict_hero', 'benedict_L2', 'shakshuka_hero', 'shakshuka_L2', 'shakshuka_L3', 'turkish_hero', 'turkish_L2', 'turkish_L3', 'chilli_hero', 'chilli_L2', 'pancake_hero', 'pancake_L2', 'pancake_L3', 'pancake_eaten1_full', 'pancake_eaten2_full'];
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('800 46px Nun'), document.fonts.load('700 46px Nun'), fetch('hi/geom.json').then(r => r.json()), fetch('hi/ladders.json').then(r => r.json()), fetch('hi/mark_parts.json').then(r => r.json()), img('sources/gemini/placemat.jpg'), ...NAMES.map(n => img(`hi/${n}.png`))]).then(([, , geom, lad, parts, mat, ...ims]) => {
+  NAMES.forEach((n, i) => I[n] = ims[i]); G = geom;
+  LADS = {}; DISHES.forEach(d => LADS[d.k] = Object.keys(lad[d.k]).sort().map(l => [`${d.k}_L${l}`, ...lad[d.k][l]]));
+  PARTS = { word: parts.word.map(p => new Path2D(p)), sub: parts.sub.map(p => new Path2D(p)), utensils: new Path2D(parts.utensils[0]) };
+  MATH = 1080 * mat.height / mat.width; MAT = document.createElement('canvas'); MAT.width = mat.width; MAT.height = mat.height; const mg = MAT.getContext('2d'); mg.filter = 'saturate(1.08) brightness(1.02)'; mg.drawImage(mat, 0, 0);
+  DISHES.forEach(d => { const im = I[d.k + '_hero'], pad = 80, c = document.createElement('canvas'); c.width = im.width + 2 * pad; c.height = im.height + 2 * pad; const g = c.getContext('2d');
+    g.filter = 'blur(28px) brightness(0)'; g.drawImage(im, pad, pad); SHADOW[d.k] = { c, pad }; });
+  PUFF = document.createElement('canvas'); PUFF.width = PUFF.height = 128; const pg = PUFF.getContext('2d'), gr = pg.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); pg.fillStyle = gr; pg.fillRect(0, 0, 128, 128);
+  buildCamera();
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>
