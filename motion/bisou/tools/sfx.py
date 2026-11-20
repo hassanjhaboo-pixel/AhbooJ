@@ -56,7 +56,7 @@ add(bell(880, 1.6, decay=2.4), B['ring'][1], .18)
 for j, d in enumerate(B['drops']): add(bell([1320, 1175, 1480][j], .9, ((1, 1), (2.4, .5), (4.1, .25)), 5), d, .13, [-.35, 0, .35][j])
 add(bell(1046, 2.4, decay=1.6) * .7 + bell(1568, 2.4, decay=2.0) * .3, B['handle'], .14)
 # master: soft-clip, normalise to -1 dBFS peak
-mix *= 10 ** (-9 / 20) / max(1e-9, np.abs(mix).max())   # quiet: effects sit under the in-app music
+mix *= 10 ** (-15 / 20) / max(1e-9, np.abs(mix).max())   # quiet: effects sit under the in-app music
 os.makedirs(R + '/out', exist_ok=True)
 with wave.open(R + '/out/bisou_sfx.wav', 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((mix[:int(SR * END)] * 32767).astype('<i2').tobytes())

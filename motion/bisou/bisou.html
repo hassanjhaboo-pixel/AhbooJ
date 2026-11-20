@@ -67,10 +67,8 @@ function plate(c, d, i, t, imgKey = null, alpha = 1) {
   const sh = SHADOW[d.k]; ctx.save(); ctx.globalAlpha = 0.5 * alpha; ctx.translate(px + 16 * c.z, py + 26 * c.z); ctx.scale(s, s); ctx.translate(-g.plate[0] - sh.pad, -g.plate[1] - sh.pad); ctx.drawImage(sh.c, 0, 0); ctx.restore();
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LT.width, LT.height);
   lctx.setTransform(SCALE * s, 0, 0, SCALE * s, SCALE * (px - g.plate[0] * s), SCALE * (py - g.plate[1] * s));
-  if (imgKey) lctx.drawImage(I[imgKey], -g.off[0], -g.off[1]); else lctx.drawImage(I[d.k + '_hero'], 0, 0);
-  if (!imgKey) { let prevK = 1; LADS[d.k].forEach(([im, A, Bb, tx, ty]) => { const a = io(prog(SCALE * s * prevK, 1.0, 1.16)); prevK = Math.hypot(A, Bb); if (a <= 0) return;
-      lctx.save(); lctx.globalAlpha = a; lctx.transform(A, Bb, -Bb, A, tx, ty); lctx.drawImage(I[im], 0, 0); lctx.restore(); });
-    lctx.globalCompositeOperation = 'destination-in'; lctx.drawImage(I[d.k + '_hero'], 0, 0); lctx.globalCompositeOperation = 'source-over'; }
+  // one baked still per dish (close-ups already blended in), so nothing swaps while the camera zooms
+  if (imgKey) lctx.drawImage(I[imgKey], -g.off[0], -g.off[1]); else lctx.drawImage(I[d.k + '_comp'], 0, 0, g.size[0], g.size[1]);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = alpha; ctx.drawImage(LT, 0, 0); ctx.restore();
 }
 // ---------- little life: steam off the hot dishes, sugar on the pancakes ----------
@@ -157,7 +155,7 @@ function frame(t) {
 function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
   for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
 const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
-const NAMES = ['benedict_hero', 'benedict_L2', 'shakshuka_hero', 'shakshuka_L2', 'shakshuka_L3', 'turkish_hero', 'turkish_L2', 'turkish_L3', 'chilli_hero', 'chilli_L2', 'pancake_hero', 'pancake_L2', 'pancake_L3', 'pancake_eaten1_full', 'pancake_eaten2_full'];
+const NAMES = ['benedict_hero', 'shakshuka_hero', 'turkish_hero', 'chilli_hero', 'pancake_hero', 'benedict_comp', 'shakshuka_comp', 'turkish_comp', 'chilli_comp', 'pancake_comp', 'pancake_eaten1_full', 'pancake_eaten2_full'];
 window.TOTAL = B.END; window.renderAt = t => render(t);
 window.ready = Promise.all([document.fonts.load('800 46px Nun'), document.fonts.load('700 46px Nun'), fetch('hi/geom.json').then(r => r.json()), fetch('hi/ladders.json').then(r => r.json()), fetch('hi/mark_parts.json').then(r => r.json()), img('sources/gemini/placemat.jpg'), ...NAMES.map(n => img(`hi/${n}.png`))]).then(([, , geom, lad, parts, mat, ...ims]) => {
   NAMES.forEach((n, i) => I[n] = ims[i]); G = geom;
