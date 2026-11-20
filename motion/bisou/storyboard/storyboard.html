@@ -16,24 +16,24 @@
   .mv { margin-top: 7px; font-size: 14px; color: #F5C95C; line-height: 1.4; } .sx { margin-top: 7px; font-size: 14px; color: #9DC7F5; line-height: 1.4; }
   .tr { margin-top: 7px; font-size: 14px; color: #7EDBA6; line-height: 1.4; }
 </style></head><body>
-<div class="board"><h1>Bisou <span>· new breakfast menu · 9:16 · about 42s</span></h1>
-  <div class="sub">One unbroken overhead take on their placemat. The star is a fork that keeps trying to steal a bite and the plates keep dodging it, until the pancakes, where it finally wins. Plates always travel upward, so the camera never reverses.
+<div class="board"><h1>Bisou <span>· new breakfast menu · 9:16 · about 42s · v2</span></h1>
+  <div class="sub">One unbroken overhead take on their placemat. Five new plates, counted 1/5 to 5/5, each landing on the beat and getting a slow push-in on its best detail. The pancakes get eaten, the lights go down, and the empty plate becomes the O of BISOU. Plates always travel upward, so the camera never reverses.
   Yellow = what moves. Blue = sound. Green = how this shot becomes the next.</div>
   <div class="grid" id="g"></div></div>
 <script>
 const S = [
- ['0.0–2.0s','Hook: the macro','Frame 1 is already food: glossy hollandaise and microgreens fill the screen.','Slow drift across the egg. The fork tip creeps in from the bottom edge.','Sizzle, a tiny metal tick.','The camera rises straight up off the egg.'],
- ['2.0–5.5s','Fried Chicken Eggs Benedict','The red plate lands centre on the placemat. Name slides up out of a mask.','Plate settles with a small wobble. Gentle push-in.','Ceramic clink on landing.','The fork lunges.'],
- ['5.5–6.5s','The dodge','The plate whips up and out of frame. The fork stabs empty placemat.','Fast whip with motion blur; the next plate rides in from below in the same move.','Whoosh, fork thunk on the mat.','The next plate is already in.'],
- ['6.5–11.5s','Shakshuka','Push deep into the bowl: yolk, feta, pickled onion.','Two-step zoom (full plate to bowl to macro). Steam drifts up.','Bubbling, soft clink.','Fork from the left, plate dodges again, faster.'],
- ['11.5–16.5s','Turkish Eggs & Bake','The bake lands. Herbs and chilli oil up close.','Fork lunges from the side and misses by a hair.','Swipe, miss.','Plate whips up.'],
- ['16.5–21.5s','Eggs & Chilli Oil','Push in on the chilli oil. The fork just waits.','"Patience." pops on the beat. The fork taps once, twice.','Two tiny taps.','Plate whips up.'],
- ['21.5–26.0s','Pancakes','Cream melting, sugar falling like snow.','Slowest push-in of the film. Sugar drifts down.','Soft chime.','The fork finally gets its turn.'],
- ['26.0–30.0s','Okay. One bite.','The fork wins. Stop-motion: full, half eaten, finished.','Three jumps on the beat, crumbs left behind, the fork drops onto the plate.','Bite, crunch, fork clatter.','The lights go down.'],
- ['30.0–32.0s','Lights down','The table dims around the empty plate.','Camera rises. The placemat fades to black.','Room tone drops away.','The white plate rim shrinks into the O of BISOU.'],
- ['32.0–34.5s','Plate becomes the logo','The rim lands as the O. The rest of the letters arrive.','The whisk, spatula and turner drop onto the rail and swing.','Three little hangs, ding.','Utensils swing to rest.'],
- ['34.5–37.5s','The mark','Their own mark, exactly as in their outro.','Utensils settle with a last small sway.','Quiet.','The mark slides up.'],
- ['37.5–42.0s','Which one first?','Same question as their post. All five plates in a row, @bisoutt.','Plates bob one after another. Held long enough to read and comment.','Last chime.','End.'],
+ ['0.0–2.0s','Hook: the macro','Frame 1 is already food: glossy hollandaise and microgreens fill the screen. "1/5" in the corner.','Slow drift across the egg.','Sizzle.','The camera rises straight up off the egg.'],
+ ['2.0–6.0s','Fried Chicken Eggs Benedict','The red plate lands centre on the placemat. Name slides up out of a mask.','Lands on the beat with a small settle, then a slow push-in.','Ceramic clink.','The plate whips up.'],
+ ['6.0–7.0s','The handover','The plate whips up and out; the next one rides in from below in the same move.','Fast whip with motion blur. Counter ticks to 2/5.','Whoosh, clink.','The next plate is already in.'],
+ ['7.0–12.0s','Shakshuka','Push deep into the bowl: yolk, feta, pickled onion.','Two-step zoom (plate, bowl, macro). Steam drifts up.','Soft bubbling.','Plate whips up, 3/5.'],
+ ['12.0–17.0s','Turkish Eggs & Bake','The bake lands. Herbs, yoghurt and chilli oil up close.','Push-in with a slow drift across the herbs.','Clink.','Plate whips up, 4/5.'],
+ ['17.0–22.0s','Eggs & Chilli Oil','Push in on the chilli oil and spring onion.','Push-in, a glint runs across the oil.','Clink.','Plate whips up, 5/5.'],
+ ['22.0–27.0s','Pancakes','Cream melting, sugar falling like snow.','The slowest push-in of the film. Sugar drifts down.','Soft chime.','The camera eases back to the whole plate.'],
+ ['27.0–31.0s','Gone','The pancakes get eaten: full, half eaten, finished, fork left on the plate.','Three stop-motion jumps on the beat, crumbs left behind.','Bite, bite, fork clatter.','The lights go down.'],
+ ['31.0–33.0s','Lights down','The table dims around the empty plate.','Camera rises. The placemat fades to black.','Room tone drops away.','The white plate rim shrinks into the O of BISOU.'],
+ ['33.0–35.5s','Plate becomes the logo','The rim lands as the O. The rest of the letters arrive.','The whisk, spatula and turner drop onto the rail and swing.','Three little hangs, ding.','Utensils swing to rest.'],
+ ['35.5–38.5s','The mark','Their own mark, exactly as in their outro. "New on the breakfast menu".','Utensils settle with a last small sway.','Quiet.','The mark slides up.'],
+ ['38.5–42.0s','Which one first?','Same question as their post. All five plates in a row, @bisoutt.','Plates bob one after another. Held long enough to read and comment.','Last chime.','End.'],
 ];
 document.getElementById('g').innerHTML = S.map(([t,b,d,mv,sx,tr],i)=>`<div><div class="frame"><div class="num">${i+1}</div><img src="frames/${i+1}.jpg"></div>
  <div class="t">${t}</div><div class="b">${b}</div><div class="d">${d}</div><div class="mv">${mv}</div><div class="sx">${sx}</div><div class="tr">→ ${tr}</div></div>`).join('');

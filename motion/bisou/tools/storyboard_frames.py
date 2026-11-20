@@ -46,30 +46,34 @@ def caption(base, text, y, size=40):
     d = ImageDraw.Draw(base); f = F800(size); tw = d.textlength(text, font=f)
     d.text(((W - tw) / 2 + 2, y + 3), text, font=f, fill=(0, 0, 0, 120)); d.text(((W - tw) / 2, y), text, font=f, fill=(255, 250, 242))
 
+def counter(base, n):
+    d = ImageDraw.Draw(base); f = F800(64); t = f'{n}/5'
+    x = W - 40 - d.textlength(t, font=f); d.text((x + 4, 58), t, font=f, fill=(0, 0, 0, 110)); d.text((x, 52), t, font=f, fill=(255, 250, 242))
+
 def save(im, n): im.convert('RGB').save(OUT + f'{n}.jpg', quality=90)
 
 # 1 hook: macro of the benedict, the fork sneaking in
-b = cover(Image.open(HI + 'benedict_L2.png').convert('RGB')).convert('RGBA'); fork(b, 470, 860, 0, .75); save(b, 1)
+b = cover(Image.open(HI + 'benedict_L2.png').convert('RGB')).convert('RGBA'); counter(b, 1); save(b, 1)
 # 2 reveal the plate + name
-b = mat(); put(b, plate('benedict', 470), W / 2, 430); label(b, 'Fried Chicken Eggs Benedict', 760); save(b, 2)
+b = mat(); put(b, plate('benedict', 470), W / 2, 430); label(b, 'Fried Chicken Eggs Benedict', 760); counter(b, 1); save(b, 2)
 # 3 plate whips up, next plate arrives from below, fork stabs empty mat
 b = mat(); p = plate('benedict', 470).filter(ImageFilter.GaussianBlur(3)); put(b, p, W / 2, -150)
-put(b, plate('shakshuka', 470), W / 2, 820); fork(b, 300, 330, 10, .6); save(b, 3)
+put(b, plate('shakshuka', 470), W / 2, 820); counter(b, 2); save(b, 3)
 # 4 shakshuka close-up + name
-b = cover(Image.open(HI + 'shakshuka_L3.png').convert('RGB')).convert('RGBA'); label(b, 'Shakshuka', 820); save(b, 4)
+b = cover(Image.open(HI + 'shakshuka_L3.png').convert('RGB')).convert('RGBA'); label(b, 'Shakshuka', 820); counter(b, 2); save(b, 4)
 # 5 turkish eggs, fork lunges in from the left and misses
-b = mat(); put(b, plate('turkish', 470), W / 2 + 40, 430); fork(b, 60, 470, -35, .6); label(b, 'Turkish Eggs & Bake', 760); save(b, 5)
+b = mat(); put(b, plate('turkish', 470), W / 2, 430); label(b, 'Turkish Eggs & Bake', 760); counter(b, 3); save(b, 5)
 # 6 chilli eggs close-up, fork waiting politely
-b = cover(Image.open(HI + 'chilli_L2.png').convert('RGB'), cx=.6).convert('RGBA'); fork(b, 430, 900, 15, .7); caption(b, 'Patience.', 120, 54); label(b, 'Eggs & Chilli Oil', 820); save(b, 6)
+b = cover(Image.open(HI + 'chilli_L2.png').convert('RGB'), cx=.6).convert('RGBA'); label(b, 'Eggs & Chilli Oil', 820); counter(b, 4); save(b, 6)
 # 7 pancakes, sugar falling
 b = cover(Image.open(HI + 'pancake_L3.png').convert('RGB')).convert('RGBA'); d = ImageDraw.Draw(b)
 rng = np.random.default_rng(3)
 for _ in range(160):
     x, y, r = rng.uniform(0, W), rng.uniform(0, H * .7), rng.uniform(1, 3.2); d.ellipse([x, y, x + r, y + r], fill=(255, 255, 255, 200))
-label(b, 'Pancakes', 820); save(b, 7)
+label(b, 'Pancakes', 820); counter(b, 5); save(b, 7)
 # 8 finally: the fork wins (half eaten)
 b = mat(); put(b, Image.open(HI + 'pancake_eaten1_full.png').resize((640, 640), Image.LANCZOS), W / 2, 450)
-caption(b, 'Okay. One bite.', 120, 46); save(b, 8)
+save(b, 8)
 # 9 finished plate, room dims
 b = mat(dim=.55); im = Image.open(HI + 'pancake_eaten2_full.png').resize((640, 640), Image.LANCZOS); r, g, bb, a = im.split(); im = Image.merge('RGBA', [*ImageEnhance.Brightness(Image.merge('RGB', (r, g, bb))).enhance(.7).split(), a]); put(b, im, W / 2, 450); save(b, 9)
 # 10 black: the plate rim becomes the O, utensils dropping onto the rail
