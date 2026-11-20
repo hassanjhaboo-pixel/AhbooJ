@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Kafneo iced coquito v3</title>
+<style>
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-500-normal.woff2"); font-weight: 500; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Kafneo iced coquito: one unbroken take. It opens inside the coquito latte (the espresso swirl, sharp in the middle
+// and soft at the edges like a macro lens) and pulls back in one move to reveal three cups on a real wooden lazy Susan,
+// on a table under palm trees and string lights. The camera keeps easing back for the rest of the film and never reverses.
+// The turntable brings each drink to the front; the rest dim and soften. Then it spins the cups into a stack and two
+// slide out left and right. The lights go down for the logo.
+const DRINKS = [
+  { img: 'latte_hero', lad: 'latte', name: 'Iced Coquito Latte', short: 'Latte', notes: ['Coconut coquito milk', 'Espresso and nutmeg'] },
+  { img: 'cb_hero', lad: 'cb', name: 'Coquito Cold Brew', short: 'Cold brew', notes: ['Slow-steeped cold brew', 'Coconut cream, toasted coconut'] },
+  { img: 'frappe_hero', lad: 'frappe', name: 'Coquito Frappé', short: 'Frappé', notes: ['Blended coquito', 'Whipped cream, cinnamon'] },
+];
+const B = { title: [1.5, 3.4], hero: [[3.8, 6.2], [7.8, 10.7], [12.6, 15.5]], spinIn: [15.6, 17.6], split: [17.9, 18.7], lineup: 18.6, night: [20.6, 21.6], logoA: 21.0, ask: 22.4, still: 23.9, END: 24.4 };
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d'); ctx.imageSmoothingQuality = 'high';
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a)), pr = (t, w) => prog(t, w[0], w[1]);
+const snap = k => 1 - Math.pow(1 - clamp01(k), 5), io = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const TAU = Math.PI * 2, CREAM = '#F6EFE3', GOLD = '#E3B25E', WARM = '#FFE2B8', NIGHT = '5,9,20';
+function mono(keys) {   // smooth curve through keys that never overshoots, so moves never kink or drift backwards
+  const T = keys.map(k => k[0]), V = keys.map(k => k[1]), d = T.slice(0, -1).map((_, i) => (V[i + 1] - V[i]) / (T[i + 1] - T[i]));
+  const m = [d[0], ...d.slice(1).map((di, i) => d[i] * di <= 0 ? 0 : 2 * d[i] * di / (d[i] + di)), d[d.length - 1]];
+  return t => { if (t <= T[0]) return V[0]; if (t >= T[T.length - 1]) return V[V.length - 1]; let i = 0; while (t > T[i + 1]) i++;
+    const h = T[i + 1] - T[i], u = (t - T[i]) / h; return (2 * u ** 3 - 3 * u ** 2 + 1) * V[i] + (u ** 3 - 2 * u ** 2 + u) * h * m[i] + (-2 * u ** 3 + 3 * u ** 2) * V[i + 1] + (u ** 3 - u ** 2) * h * m[i + 1]; };
+}
+let I = {}, BACK, TABLE, LADS = {}, BULBS, DROP;
+// ---------- one camera: out of the macro in one long pull, then it leans in on each drink as it arrives and eases back while the turntable turns ----------
+const camZ = mono([[0, 7.5], [1.2, 4.2], [3.6, 1.36], [6.0, 2.1], [6.9, 1.42], [10.5, 2.2], [11.6, 1.42], [15.3, 2.25], [16.6, 1.25], [24.4, 1.22]]), camY = mono([[0, 1368], [3.6, 1205], [6.0, 1300], [6.9, 1215], [10.5, 1300], [11.6, 1215], [15.3, 1300], [16.6, 1195], [24.4, 1190]]), camX = mono([[0, 1438], [3.6, 1440], [24.4, 1500]]);
+const cam = t => ({ cx: camX(t), cy: camY(t), z: camZ(t) });
+const toScreen = (c, x, y) => [(x - c.cx) * c.z + 540, (y - c.cy) * c.z + 960];
+const backT = c => { ctx.translate(540, 960); ctx.scale(c.z, c.z); ctx.translate(-c.cx * 0.55, -(0.45 * c.cy + 0.55 * 960)); };
+const bx = x => 792 - 1536 + x * 2, by = y => 186 + y * 2;
+const bulbOn = (i, x, t) => { const u = t - (1.0 + 1.5 * x / 1536 + 0.12 * Math.sin(i * 7.3)); if (u < 0) return 0;
+  const v = u < 0.05 ? u / 0.05 : u < 0.1 ? 0.3 : u < 0.3 ? lerp(0.55, 1, (u - 0.1) / 0.2) : 1; return v * (0.9 + 0.1 * Math.sin(t * (1.1 + (i % 4) * 0.3) + i)); };
+const litAll = t => io(prog(t, 1.0, 2.8));
+function world(c, t) { const L = litAll(t);
+  ctx.save(); backT(c); ctx.drawImage(BACK, bx(0), by(0), 3072, 2048);
+  ctx.globalCompositeOperation = 'lighter';
+  if (L > 0) { const g = ctx.createRadialGradient(bx(768), by(150), 0, bx(768), by(150), 1700); g.addColorStop(0, `rgba(120,70,25,${0.2 * L})`); g.addColorStop(1, 'rgba(120,70,25,0)'); ctx.fillStyle = g; ctx.fillRect(bx(0), by(0), 3072, 2048); }
+  BULBS.forEach(([x, y], i) => { const v = bulbOn(i, x, t); if (v <= 0) return; const X = bx(x), Y = by(y) + 6;
+    let g = ctx.createRadialGradient(X, Y, 0, X, Y, 90); g.addColorStop(0, `rgba(255,170,80,${0.45 * v})`); g.addColorStop(1, 'rgba(255,150,60,0)'); ctx.fillStyle = g; ctx.fillRect(X - 90, Y - 90, 180, 180);
+    g = ctx.createRadialGradient(X, Y, 0, X, Y, 22); g.addColorStop(0, `rgba(255,236,190,${v})`); g.addColorStop(0.5, `rgba(255,200,120,${0.8 * v})`); g.addColorStop(1, 'rgba(255,180,90,0)'); ctx.fillStyle = g; ctx.fillRect(X - 22, Y - 22, 44, 44); });
+  ctx.restore();
+  ctx.save(); ctx.translate(540, 960); ctx.scale(c.z, c.z); ctx.translate(-c.cx, -c.cy); ctx.drawImage(TABLE, -400, 1300, 3680, TABLE.height * 1.862);
+  if (L > 0) { ctx.globalCompositeOperation = 'lighter'; const p = ctx.createRadialGradient(1440, 1500, 30, 1440, 1500, 1100); p.addColorStop(0, `rgba(110,62,22,${0.6 * L})`); p.addColorStop(1, 'rgba(110,62,22,0)'); ctx.fillStyle = p; ctx.fillRect(-400, 1300, 3680, 600); ctx.globalCompositeOperation = 'source-over'; }
+  const g = ctx.createLinearGradient(0, 1770, 0, 2150); g.addColorStop(0, `rgba(${NIGHT},0)`); g.addColorStop(0.2, `rgba(${NIGHT},0.9)`); g.addColorStop(1, `rgb(${NIGHT})`); ctx.fillStyle = g; ctx.fillRect(-1400, 1770, 5600, 1800); ctx.restore();
+}
+// ---------- the lazy Susan (a real photographed board, relit for night) ----------
+const TT = { x: 1440, y: 1600, rx: 470, ry: 84 };
+const ANG0 = Math.PI / 2, STEP = TAU / 3;
+const spin = mono([[0, ANG0 + 0.1], [6.2, ANG0 - 0.05], [7.6, ANG0 - STEP + 0.07], [10.7, ANG0 - STEP - 0.05], [12.4, ANG0 - 2 * STEP + 0.07], [15.5, ANG0 - 2 * STEP - 0.05], [17.6, ANG0 - 2 * STEP - TAU * 1.15], [18.6, ANG0 - 2 * STEP - TAU * 1.2]]);
+const ringR = mono([[0, 1], [15.6, 1], [17.5, 0]]);
+let BOARD;
+function turntable(c, t) { const a = 1 - io(pr(t, [17.3, 18.2])); if (a <= 0) return; const [x, y] = toScreen(c, TT.x, TT.y), k = TT.rx * c.z / 377;
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = `rgba(${NIGHT},0.55)`; ctx.beginPath(); ctx.ellipse(x, y + 46 * k, 385 * k, 70 * k, 0, 0, TAU); ctx.fill();
+  ctx.drawImage(BOARD, x - (377 + 4) * k, y - (67 + 4) * k, BOARD.width * k, BOARD.height * k); ctx.restore(); }
+// ---------- cups: front one lit and sharp, the others dim and soft ----------
+const STACK = [[0, -64, 0.8], [0, -120, 0.7], [0, 0, 0.95]], ROW = [[225, 1415, 0.64], [855, 1415, 0.64], [540, 1440, 0.8]];
+function cupPose(c, t, k) {
+  const th = spin(t) + k * STEP, r = ringR(t), d = (Math.sin(th) + 1) / 2;
+  const wx = TT.x + Math.cos(th) * TT.rx * 0.62 * r, wy = TT.y + Math.sin(th) * TT.ry * 0.62 * r - 6;
+  let [x, y] = toScreen(c, wx, wy), s = lerp(0.56, 0.86, d) * c.z;
+  const st = io(pr(t, [16.6, 17.6])), sp = snap(pr(t, B.split)), order = [0, 1, 2].sort((a, b) => Math.sin(spin(17.6) + a * STEP) - Math.sin(spin(17.6) + b * STEP)), rank = order.indexOf(k);
+  const S = STACK[rank], [fx, fy] = toScreen(c, TT.x, TT.y);
+  x = lerp(x, fx + S[0], st); y = lerp(y, fy + S[1] * c.z, st); s = lerp(s, S[2] * c.z, st); const dd = lerp(d, rank / 2, st);
+  const R = ROW[rank]; x = lerp(x, R[0], sp); y = lerp(y, R[1], sp); s = lerp(s, R[2], sp);
+  const nt = io(pr(t, B.night)); y = lerp(y, 1440, nt); s *= lerp(1, 0.8, nt); x = lerp(x, [300, 780, 540][rank], nt);
+  return { k, x, y, s, d: lerp(dd, 1, sp) };
+}
+const TMP = document.createElement('canvas'), tctx = TMP.getContext('2d');
+function cupAt(k, x, y, s, soft, dim, drip, t) { const D = DRINKS[k], im = I[D.img], n = 568 / im.height, ss = s * n, w = im.width * ss, h = im.height * ss, L = litAll(t);
+  TMP.width = im.width; TMP.height = im.height; tctx.clearRect(0, 0, TMP.width, TMP.height); tctx.drawImage(im, 0, 0);
+  tctx.globalCompositeOperation = 'source-atop'; tctx.fillStyle = `rgba(${NIGHT},${0.1 + 0.25 * (1 - L) + dim})`; tctx.fillRect(0, 0, TMP.width, TMP.height);
+  const rim = tctx.createLinearGradient(0, 0, TMP.width, 0); rim.addColorStop(0, `rgba(255,180,100,${0.2 * L})`); rim.addColorStop(0.3, 'rgba(255,180,100,0)'); tctx.fillStyle = rim; tctx.fillRect(0, 0, TMP.width, TMP.height); tctx.globalCompositeOperation = 'source-over';
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; const g = ctx.createRadialGradient(x, y, 0, x, y, w * 0.7); g.addColorStop(0, 'rgba(8,10,20,0.85)'); g.addColorStop(1, 'rgba(8,10,20,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x, y, w * 0.7, 34 * s, 0, 0, TAU); ctx.fill(); ctx.restore();
+  ctx.save(); if (soft > 0.3) ctx.filter = `blur(${soft.toFixed(1)}px)`; ctx.drawImage(TMP, x - w / 2, y - h + 6 * s, w, h); ctx.restore();
+  if (dim < 0.05 && !q.has('nolad')) ladder(LADS[D.lad], x - w / 2, y - h + 6 * s, ss, 0.1 + 0.25 * (1 - L), im);
+}
+// closer, sharper photos of each drink, laid exactly over it, take over as the camera gets close
+const LT = document.createElement('canvas'), lctx = LT.getContext('2d');
+function ladder(levels, ox, oy, s, shade, cupImg) { const w = Math.ceil(cupImg.width * s), h = Math.ceil(cupImg.height * s); let prevK = 1, any = false;
+  LT.width = w; LT.height = h; lctx.clearRect(0, 0, w, h);
+  levels.forEach(([img, A, Bb, tx, ty]) => { const a = io(prog(s * prevK, 0.85, 1.15)); prevK = Math.hypot(A, Bb); if (a <= 0) return; any = true;
+    lctx.save(); lctx.globalAlpha = a; lctx.scale(s, s); lctx.transform(A, Bb, -Bb, A, tx, ty); lctx.drawImage(I[img], 0, 0); lctx.restore(); });
+  if (!any) return;
+  // keep the cup's own outline: the close-ups only replace what is inside it
+  lctx.globalCompositeOperation = 'destination-in'; lctx.drawImage(cupImg, 0, 0, w, h);
+  lctx.globalCompositeOperation = 'source-atop'; lctx.fillStyle = `rgba(${NIGHT},${shade})`; lctx.fillRect(0, 0, w, h); lctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(LT, ox, oy); }
+function cups(c, t) {
+  const sp = pr(t, B.split), poses = [0, 1, 2].map(k => cupPose(c, t, k)).sort((a, b) => a.d - b.d || a.s - b.s);
+  poses.forEach(p => { const back = 1 - p.d, soft = back * 6 * (1 - sp), dim = back * 0.55 * (1 - sp); cupAt(p.k, p.x, p.y, p.s, soft, dim, p.d > 0.95 && t > 3 && t < 15.6 ? 1 : 0, t); });
+  return poses[poses.length - 1];
+}
+// ---------- props lying on the table, shot from above and laid into perspective ----------
+const PROPS = [{ k: 'coconut_t', x: 1030, y: 1548, s: 1.0 }, { k: 'cinnamon_b', x: 1880, y: 1552, s: 0.95 }, { k: 'flakes_p', x: 1090, y: 1762, s: 0.95 }, { k: 'nutmeg_p', x: 1800, y: 1766, s: 1.0 }];
+function props(c, front) { PROPS.forEach(p => { if ((p.y > TT.y) !== front) return; const im = I[p.k], [x, y] = toScreen(c, p.x, p.y), s = p.s * c.z, w = im.width * s, h = im.height * s * 0.4;
+  ctx.drawImage(im, x - w / 2, y - h, w, h); }); }
+// ---------- light ----------
+function spotlight(x, y, amt) { if (amt <= 0) return; const g = ctx.createRadialGradient(x, y - 300, 220, x, y - 300, 900); g.addColorStop(0, `rgba(${NIGHT},0)`); g.addColorStop(1, `rgba(${NIGHT},${amt})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+function scrim(a = 1) { const g = ctx.createLinearGradient(0, 0, 0, 720); g.addColorStop(0, `rgba(${NIGHT},${0.6 * a})`); g.addColorStop(1, `rgba(${NIGHT},0)`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 720); }
+// ---------- text ----------
+function words(str, t, tin, tout, { x = 540, y, size = 72, col = CREAM, weight = 600, align = 'center' }) {
+  if (t < tin || (tout !== null && t > tout + 0.4)) return; const e = snap(prog(t, tin, tin + 0.55)), o = tout === null ? 0 : io(prog(t, tout, tout + 0.4));
+  ctx.save(); ctx.font = `${weight} ${size}px Pop, sans-serif`; ctx.letterSpacing = (-size * 0.02) + 'px'; ctx.textAlign = align; const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : x;
+  ctx.beginPath(); ctx.rect(x0 - 20, y - size, w + 40, size * 1.35); ctx.clip(); ctx.shadowColor = 'rgba(0,8,7,0.6)'; ctx.shadowBlur = 18; ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.3 - o * size * 1.3); ctx.restore();
+}
+function note(str, t, tin, tout, y) { if (t < tin || t > tout + 0.4) return; const e = snap(prog(t, tin, tin + 0.5)); ctx.save(); ctx.font = '500 40px Pop, sans-serif'; const w = ctx.measureText(str).width; ctx.restore();
+  const x0 = 540 - (w + 34) / 2; if (t <= tout) { ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(x0 + 10, y - 14, 10 * e, 0, TAU); ctx.fill(); } words(str, t, tin + 0.05, tout, { x: x0 + 34, y, size: 40, weight: 500, align: 'left' }); }
+// ---------- logo ----------
+function logo(t, t0, L, at) { const u = t - t0, put = fn => { ctx.save(); ctx.translate(...at); ctx.scale(L, L); ctx.translate(-800, -800); fn(); ctx.restore(); };
+  const ln = io(prog(u, 0, 0.9)); if (ln > 0) put(() => { ctx.save(); if (ln < 1) { ctx.beginPath(); ctx.moveTo(800, 700); ctx.arc(800, 700, 1200, Math.PI / 2, Math.PI / 2 + TAU * ln); ctx.closePath(); ctx.clip(); } ctx.drawImage(I.logo_line, 0, 0); ctx.restore(); });
+  const gl = snap(prog(u, 0.6, 1.0)); if (gl > 0) put(() => { ctx.save(); ctx.translate(795, 493); ctx.scale(gl, 1); ctx.translate(-795, -493); ctx.drawImage(I.logo_globe, 0, 0); ctx.restore(); });
+  const ray = snap(prog(u, 0.5, 1.1)); if (ray > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.arc(800, 720, 280 + 640 * ray, 0, TAU); ctx.clip(); ctx.drawImage(I.logo_rays, 0, 0); ctx.restore(); });
+  const sl = (img, k, y0, y1) => { if (k > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, 1600, y1 - y0); ctx.clip(); ctx.translate(0, (1 - k) * (y1 - y0) * 1.1); ctx.drawImage(img, 0, 0); ctx.restore(); }); };
+  sl(I.logo_word, snap(prog(u, 0.9, 1.3)), 1100, 1290); const c = snap(prog(u, 1.1, 1.5)); sl(I.logo_coffee, c, 1295, 1410); sl(I.logo_leaves, c, 1295, 1410); }
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = `rgb(${NIGHT})`; ctx.fillRect(0, 0, W, H);
+  const c = cam(t), nt = io(pr(t, B.night));
+  world(c, t); turntable(c, t); const front = cups(c, t);
+  const heroOn = B.hero.reduce((m, [a, b]) => Math.max(m, io(prog(t, a - 0.4, a + 0.4)) * (1 - io(prog(t, b, b + 0.6)))), 0);
+  spotlight(front.x, front.y - 200, 0.16 + 0.3 * heroOn + 0.25 * nt);
+
+  if (nt > 0) { ctx.save(); ctx.globalAlpha = nt * 0.55; ctx.fillStyle = 'rgb(2,9,8)'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  scrim(1 - nt);
+  words('Coquito.', t, B.title[0], B.title[1], { y: 400, size: 124 }); words('Three new iced drinks.', t, B.title[0] + 0.35, B.title[1], { y: 500, size: 52, col: WARM, weight: 500 });
+  B.hero.forEach(([a, b], k) => { const D = DRINKS[k]; words(D.name, t, a, b, { y: 330, size: 76 }); note(D.notes[0], t, a + 0.5, b, 430); note(D.notes[1], t, a + 0.8, b, 495); });
+  words('Coquito, iced three ways.', t, B.lineup, B.night[0], { y: 420, size: 62 });
+  if (t >= B.split[1] - 0.2) [0, 1, 2].forEach(r => { const k = [0, 1, 2].sort((a, b) => Math.sin(spin(17.6) + a * STEP) - Math.sin(spin(17.6) + b * STEP))[r]; words(DRINKS[k].short, t, B.lineup + 0.1 + r * 0.1, B.night[0], { x: ROW[r][0], y: 1500, size: 40, col: WARM }); });
+  if (t >= B.logoA) logo(Math.min(t, B.still), B.logoA, 0.28, [540, 500]);
+  words('Ask your barista.', t, B.ask, null, { y: 1510, size: 56, col: GOLD });
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+const NAMES = ['world_off', 'cup1', 'cb_hero', 'frappe_hero', 'ladder2', 'ladder3', 'ladder4', 'cb_L2', 'frappe_L2', 'latte_hero', 'latte_L2', 'latte_L4', 'turntable', 'coconut_t', 'cinnamon_b', 'flakes_p', 'nutmeg_p', 'logo_line', 'logo_globe', 'logo_rays', 'logo_word', 'logo_coffee', 'logo_leaves'];
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('600 80px Pop'), document.fonts.load('500 40px Pop'), fetch('hi/ladder.json').then(r => r.json()), fetch('hi/ladders2.json').then(r => r.json()), fetch('hi/ladders3.json').then(r => r.json()), img('src/drop_trail.jpg'), fetch('hi/bulbs_off.json').then(r => r.json()), ...NAMES.map(n => img(`hi/${n}.png`))]).then(([, , lad, lad2, lad3, trail, bulbs, ...ims]) => {
+  NAMES.forEach((n, i) => I[n] = ims[i]); BULBS = bulbs; I.world = I.world_off;
+  LADS.latte = [['latte_L2', ...lad3.latte[2]], ['latte_L4', ...lad3.latte[4]]]; LADS.cb = [['cb_L2', ...lad2.cb[2]]]; LADS.frappe = [['frappe_L2', ...lad2.frappe[2]]];
+  DROP = document.createElement('canvas'); DROP.width = 260; DROP.height = 700; DROP.getContext('2d').drawImage(trail, 430, 520, 260, 700, 0, 0, 260, 700);
+  BACK = document.createElement('canvas'); BACK.width = 1536; BACK.height = 1024; const g = BACK.getContext('2d'); g.filter = 'blur(3px)'; g.drawImage(I.world, 0, 0); g.filter = 'none';
+  TABLE = document.createElement('canvas'); TABLE.width = 1536; TABLE.height = 1024 - 731; const tg = TABLE.getContext('2d'); tg.drawImage(I.world, 0, 731, 1536, TABLE.height, 0, 0, 1536, TABLE.height);
+  tg.fillStyle = `rgba(${NIGHT},0.2)`; tg.fillRect(0, 0, 1536, TABLE.height); tg.globalCompositeOperation = 'lighter'; const pool = tg.createRadialGradient(560, 70, 20, 560, 70, 700); pool.addColorStop(0, 'rgba(90,55,20,0)'); pool.addColorStop(1, 'rgba(90,55,20,0)'); tg.fillStyle = pool; tg.fillRect(0, 0, 1536, TABLE.height); tg.globalCompositeOperation = 'source-over';
+  tg.globalCompositeOperation = 'destination-in'; const fg = tg.createLinearGradient(0, 0, 0, 30); fg.addColorStop(0, 'rgba(0,0,0,0)'); fg.addColorStop(1, '#000'); tg.fillStyle = fg; tg.fillRect(0, 0, 1536, TABLE.height);
+  // the board was shot in golden daylight: bring it down to the night, warm on the side the string lights hit
+  BOARD = document.createElement('canvas'); BOARD.width = I.turntable.width; BOARD.height = I.turntable.height; const bg = BOARD.getContext('2d'); bg.drawImage(I.turntable, 0, 0); bg.globalCompositeOperation = 'source-atop';
+  const bl = bg.createLinearGradient(0, 0, BOARD.width, 0); bl.addColorStop(0, `rgba(${NIGHT},0.38)`); bl.addColorStop(1, `rgba(${NIGHT},0.62)`); bg.fillStyle = bl; bg.fillRect(0, 0, BOARD.width, BOARD.height);
+  // props: dim them to the scene the same way
+  ['coconut_t', 'cinnamon_b', 'flakes_p', 'nutmeg_p'].forEach(n => { const c = document.createElement('canvas'); c.width = I[n].width; c.height = I[n].height; const x = c.getContext('2d'); x.drawImage(I[n], 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = `rgba(${NIGHT},0.45)`; x.fillRect(0, 0, c.width, c.height); I[n] = c; });
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

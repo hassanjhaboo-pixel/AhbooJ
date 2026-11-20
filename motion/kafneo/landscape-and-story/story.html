@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Kafneo story</title>
+<style>
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-500-normal.woff2"); font-weight: 500; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Kafneo Instagram story (9:16). Idea: the Pumpkin Spice Latte builds itself in a glass drawn in the logo's faceted line style,
+// layer by layer from its real recipe, then the drawing fills into the real photo, flips hot and iced, and folds into the logo.
+// Story safe zones: no text above y=270 or below y=1540 (Instagram's own UI sits there).
+const B = {
+  hook: [0.20, 6.30], glass: [0.30, 1.30],
+  esp: [1.50, 2.50], spice: [2.70, 3.50], milk: [3.80, 5.00], cinn: [5.20, 6.00], labelsOut: 6.30,
+  toPhoto: [6.50, 7.40], title: [7.00, 8.60], toggleIn: [8.70, 9.10], knob: [9.55, 9.95], swap: [9.55, 10.25], toggleOut: 10.40,
+  sizes: [10.50, 12.00], toLogo: [12.10, 12.90], logoA: 12.35, ask: [14.00, 14.50], place: [14.55, 15.05], END: 16.5,
+};
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d');
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a)), pr = (t, w) => prog(t, w[0], w[1]);
+const ease = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }, outC = k => 1 - Math.pow(1 - clamp01(k), 3), inC = k => Math.pow(clamp01(k), 3);
+const TAU = Math.PI * 2, BROWN = '#48270f', CARAMEL = '#c9933d', CREAM = '#faf6ed', GOLD = '#e2aa52';
+const ESP = '#3b1a0a', SPICE = '#b8652a', MILK = '#eadbc1', CINN = '#8a4b22';
+let LG = {}, jar, cup;
+// ---------- the glass, in the logo's faceted line style ----------
+const G = { x: 540, top: 600, bot: 1300, w: 380, wall: 12 }, IN = { l: G.x - G.w / 2 + G.wall, r: G.x + G.w / 2 - G.wall, t: G.top + 40, b: G.bot - G.wall };
+const level = f => lerp(IN.b, IN.t + 30, f);   // fraction of the glass filled -> y
+function glassPath() { ctx.beginPath(); ctx.roundRect(G.x - G.w / 2, G.top, G.w, G.bot - G.top, [16, 16, 56, 56]); }
+function glass(k, alpha = 1) {
+  if (k <= 0) return; ctx.save(); ctx.globalAlpha = alpha; ctx.lineWidth = 10; ctx.strokeStyle = CREAM; ctx.lineJoin = 'round';
+  const L = 2 * (G.w + (G.bot - G.top)); ctx.setLineDash([L * k, L]); glassPath(); ctx.stroke();
+  ctx.setLineDash([]); const r = outC(prog(k, 0.6, 1)); if (r > 0) { ctx.globalAlpha = alpha * r; ctx.beginPath(); ctx.moveTo(G.x - G.w / 2 - 12, G.top + 40); ctx.lineTo(G.x + G.w / 2 + 12, G.top + 40); ctx.lineWidth = 8; ctx.stroke();
+  }
+  ctx.restore();
+}
+function facets(alpha) {   // low-poly facets like the logo cup, faint over the drink
+  if (alpha <= 0) return; ctx.save(); glassPath(); ctx.clip(); ctx.globalAlpha = alpha; ctx.strokeStyle = CREAM; ctx.lineWidth = 4;
+  [[[-190, 300], [-40, 120], [190, 260]], [[-190, 520], [60, 360], [190, 600]], [[-60, 690], [60, 360]], [[-40, 120], [60, 360]]].forEach(ps => { ctx.beginPath(); ps.forEach(([x, y], i) => i ? ctx.lineTo(G.x + x, G.top + y) : ctx.moveTo(G.x + x, G.top + y)); ctx.stroke(); });
+  ctx.restore();
+}
+function surface(y, amp, t, seed) { ctx.lineTo(IN.r, y); for (let x = IN.r; x >= IN.l; x -= 8) ctx.lineTo(x, y + amp * Math.sin(x * 0.035 + t * 7 + seed) + amp * 0.5 * Math.sin(x * 0.07 - t * 5)); }
+function liquid(t) {
+  const fE = 0.3 * outC(pr(t, B.esp)), fS = 0.1 * outC(pr(t, B.spice)), fM = 0.45 * outC(pr(t, B.milk)), total = fE + fS + fM;
+  const slosh = k => 10 * (1 - k) * (k > 0 ? 1 : 0);
+  ctx.save(); glassPath(); ctx.clip();
+  const layer = (from, to, col, k) => { if (to - from < 0.002) return; ctx.beginPath(); ctx.moveTo(IN.l, level(from) + 2); ctx.lineTo(IN.r, level(from) + 2); surface(level(to), slosh(k), t, from * 9); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); };
+  layer(0, fE, ESP, pr(t, B.esp)); layer(fE, fE + fS, SPICE, pr(t, B.spice));
+  if (fM > 0) { const g = ctx.createLinearGradient(0, level(fE + fS), 0, level(total)); g.addColorStop(0, '#c9874a'); g.addColorStop(0.35, MILK); g.addColorStop(1, '#f4e9d6'); layer(fE + fS, total, g, pr(t, B.milk)); }
+  // cinnamon dusts the top
+  const c = pr(t, B.cinn); if (c > 0) { let s = 7; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 160; i++) { const x = lerp(IN.l + 10, IN.r - 10, r()), drop = r() * 0.6, fall = outC(prog(c, drop, drop + 0.4)), y = lerp(G.top - 60, level(total) - 2 + r() * 10, fall);
+      if (fall > 0) { ctx.fillStyle = CINN; ctx.beginPath(); ctx.arc(x, y, 2 + r() * 3, 0, TAU); ctx.fill(); } } }
+  ctx.restore();
+  // the pour: a stream from above while each liquid goes in
+  [[B.esp, ESP, fE], [B.spice, SPICE, fE + fS], [B.milk, MILK, total]].forEach(([w, col, f]) => { const k = pr(t, w); if (k <= 0 || k >= 1) return;
+    const head = outC(prog(k, 0, 0.25)), tail = inC(prog(k, 0.7, 1)), y0 = lerp(G.top - 140, level(f), tail), y1 = lerp(G.top - 140, level(f), head);
+    ctx.fillStyle = col; ctx.fillRect(G.x - 9, y0, 18, Math.max(0, y1 - y0)); });
+}
+function label(str, t, w, side, y) {   // label with a leader line to its layer, alternating sides to keep the glass centred
+  const k = outC(prog(t, w[0] + 0.3, w[0] + 0.7)), o = inC(prog(t, B.labelsOut, B.labelsOut + 0.3)); if (k <= 0 || o >= 1) return;
+  ctx.save(); ctx.globalAlpha = 1; const x0 = side > 0 ? G.x + G.w / 2 + 24 : G.x - G.w / 2 - 24, x1 = x0 + side * 48 * k;
+  ctx.strokeStyle = GOLD; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+  ctx.font = '600 32px Pop, sans-serif'; ctx.textAlign = side > 0 ? 'left' : 'right'; const tw = ctx.measureText(str).width, tx = x1 + side * 14;
+  ctx.beginPath(); ctx.rect(side > 0 ? tx - 4 : tx - tw - 4, y - 38, tw + 8, 52); ctx.clip(); ctx.fillStyle = CREAM; ctx.fillText(str, tx, y + 12 + (1 - k) * 50 - o * 50); ctx.restore();
+}
+function words(str, t, tin, tout, { y = 1460, size = 58, col = CREAM, weight = 600, track = -0.02, x = W / 2 } = {}) {
+  if (t < tin || t > tout + 0.45) return; ctx.save(); ctx.font = `${weight} ${size}px Pop, sans-serif`; ctx.letterSpacing = (size * track) + 'px';
+  const ws = str.split(' '), sp = ctx.measureText(' ').width, wd = ws.map(w => ctx.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let xx = x - tot / 2;
+  ws.forEach((w, i) => { const e = outC(prog(t, tin + i * 0.06, tin + i * 0.06 + 0.36)), o = inC(prog(t, tout + i * 0.035, tout + i * 0.035 + 0.3)), dy = (1 - e) * size * 1.3 - o * size * 1.3;
+    if (e > 0 && o < 1) { ctx.save(); ctx.beginPath(); ctx.rect(xx - 8, y - size * 1.1, wd[i] + 16, size * 1.5); ctx.clip(); ctx.fillStyle = col; ctx.fillText(w, xx, y + dy); ctx.restore(); } xx += wd[i] + sp; });
+  ctx.restore();
+}
+// ---------- hot / iced toggle ----------
+function toggle(t) {
+  const a = outC(pr(t, B.toggleIn)) * (1 - inC(prog(t, B.toggleOut, B.toggleOut + 0.3))); if (a <= 0) return;
+  const kx = ease(pr(t, B.knob)), cx = 540, cy = 1460, w = 360, h = 88; ctx.save(); ctx.globalAlpha = a; ctx.translate(0, (1 - a) * 40);
+  ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - h / 2, w, h, h / 2); ctx.fillStyle = '#5b3418'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lerp(cx, cx - w / 2, kx) + 6, cy - h / 2 + 6, w / 2 - 12, h - 12, (h - 12) / 2); ctx.fillStyle = CARAMEL; ctx.fill();
+  ctx.font = '600 34px Pop, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = kx > 0.5 ? BROWN : CREAM; ctx.fillText('Hot', cx - w / 4, cy + 12); ctx.fillStyle = kx > 0.5 ? CREAM : BROWN; ctx.fillText('Iced', cx + w / 4, cy + 12); ctx.restore();
+}
+// ---------- the real drinks ----------
+function soft(im) { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0); g.globalCompositeOperation = 'destination-in';
+  g.translate(c.width / 2, c.height / 2); g.scale(c.width / 2, c.height / 2); const r = g.createRadialGradient(0, 0, 0.62, 0, 0, 1); r.addColorStop(0, '#000'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(-1, -1, 2, 2); return c; }
+function photos(t) {
+  const ph = ease(pr(t, B.toPhoto)); if (ph <= 0) return; const sw = ease(pr(t, B.swap)), lg = ease(pr(t, B.toLogo));
+  // iced jar fills up inside the glass outline like the drink rising, then slides out as the hot cup slides in
+  const jh = 860, jw = jh * jar.width / jar.height, jx = 540 - sw * 1000, jy = 900;
+  if (sw < 1) { ctx.save(); if (ph < 1) { ctx.beginPath(); ctx.rect(0, lerp(G.bot + 40, G.top - 260, ph), W, H); ctx.clip(); } ctx.drawImage(jar, jx - jw / 2, jy - jh / 2, jw, jh); ctx.restore(); }
+  if (sw > 0) { const cw = lerp(760, 300, lg), ch = cw * cup.height / cup.width, cx = 540 + (1 - sw) * 1000, cy = lerp(940, 800, lg); ctx.save(); ctx.globalAlpha = 1 - prog(lg, 0.55, 1); ctx.drawImage(cup, cx - cw / 2, cy - ch / 2, cw, ch); ctx.restore(); }
+}
+// ---------- the logo builds itself (same parts as the landscape ad) ----------
+function drawLogo(t, t0, L = 0.5, at = [540, 820]) {
+  const u = t - t0, put = fn => { ctx.save(); ctx.translate(...at); ctx.scale(L, L); ctx.translate(-800, -800); fn(); ctx.restore(); };
+  const ray = outC(prog(u, 0, 0.8)); if (ray > 0) put(() => { ctx.save(); ctx.translate(800, 720); ctx.rotate(0.05 * u); ctx.translate(-800, -720); ctx.beginPath(); ctx.arc(800, 720, 900 * ray, 0, TAU); ctx.clip(); ctx.drawImage(LG.rays, 0, 0); ctx.restore(); });
+  const ln = ease(prog(u, 0.0, 0.9)); if (ln > 0) put(() => { ctx.save(); if (ln < 1) { ctx.beginPath(); ctx.moveTo(800, 700); ctx.arc(800, 700, 1200, Math.PI / 2, Math.PI / 2 + TAU * ln); ctx.closePath(); ctx.clip(); } ctx.drawImage(LG.line, 0, 0); ctx.restore(); });
+  const gl = outC(prog(u, 0.6, 1.1)); if (gl > 0) put(() => { ctx.save(); ctx.translate(795, 493); ctx.scale(gl, 1); ctx.translate(-795, -493); ctx.drawImage(LG.globe, 0, 0); ctx.restore(); });
+  const slide = (img, k, y0, y1) => { if (k > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, 1600, y1 - y0); ctx.clip(); ctx.translate(0, (1 - k) * (y1 - y0) * 1.1); ctx.drawImage(img, 0, 0); ctx.restore(); }); };
+  slide(LG.word, outC(prog(u, 0.9, 1.35)), 1100, 1290); const c = outC(prog(u, 1.15, 1.6)); slide(LG.coffee, c, 1295, 1410); slide(LG.leaves, c, 1295, 1410);
+}
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = BROWN; ctx.fillRect(0, 0, W, H);
+  const Z = 1 + 0.004 * t; ctx.translate(540, 960); ctx.scale(Z, Z); ctx.translate(-540, -960);
+  const ph = ease(pr(t, B.toPhoto));
+  if (ph < 1) { ctx.save(); if (ph > 0) { ctx.beginPath(); ctx.rect(0, 0, W, lerp(G.bot + 40, G.top - 260, ph)); ctx.clip(); } liquid(t); facets(0.22 * outC(pr(t, B.glass))); glass(ease(pr(t, B.glass))); ctx.restore(); }
+  photos(t);
+  label('Espresso', t, B.esp, 1, level(0.15)); label('Pumpkin spice', t, B.spice, -1, level(0.35)); label('Steamed milk', t, B.milk, 1, level(0.62)); label('Cinnamon', t, B.cinn, -1, level(0.85) - 20);
+  words('Fall favourite.', t, B.hook[0], B.hook[1], { y: 420, size: 72, col: CARAMEL });
+  words('The Pumpkin Spice Latte.', t, B.title[0], B.title[1], { size: 60 });
+  toggle(t);
+  words('8oz or 12oz.', t, B.sizes[0], B.sizes[1], { y: 1430, size: 60 }); words('Hot or iced, all day.', t, B.sizes[0] + 0.3, B.sizes[1], { y: 1510, size: 40, col: CARAMEL, weight: 500 });
+  if (t >= B.logoA) drawLogo(t, B.logoA);
+  words('Ask your barista.', t, B.ask[0], 99, { y: 1380, size: 56, col: CARAMEL });
+  words('KAFNEO OFFICE CENTER & LOUNGE', t, B.place[0], 99, { y: 1460, size: 24, col: CREAM, weight: 500, track: 0.3 });
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(t + (i / (MB - 1) - 0.5) * 0.02); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('600 50px Pop'), document.fonts.load('500 30px Pop'), img('hi/jar.png'), img('hi/hotcup.png'), ...['rays', 'line', 'globe', 'word', 'coffee', 'leaves'].map(k => img(`hi/logo_${k}.png`))]).then(([, , j, c, ...ls]) => {
+  jar = soft(j); cup = soft(c); ['rays', 'line', 'globe', 'word', 'coffee', 'leaves'].forEach((k, i) => LG[k] = ls[i]);
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

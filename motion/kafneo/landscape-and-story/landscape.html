@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Kafneo ad</title>
+<style>
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-500-normal.woff2"); font-weight: 500; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Kafneo Coffee ad. One idea: the steam from the logo becomes a ring of milk, and we dive through each cup's surface
+// into the next drink, landing on the seasonal Pumpkin Spice Latte; then the steam rises back into the logo.
+// Page contract: renderAt(t), TOTAL, ready, ?t=, ?scale=, ?mb=.
+const B = {
+  steamDraw: [0.30, 1.30], logoIn: [1.00, 1.60], logoOut: [2.40, 2.80], toRing: [2.45, 3.00], ringFlood: [2.95, 3.55],
+  cups: [   // approach window, portal window (dive through the surface), caption
+    { k: 'latte', in: [3.30, 4.15], out: [5.60, 6.20] },
+    { k: 'matcha', in: [6.00, 6.80], out: [7.85, 8.35] },
+    { k: 'cocoa', in: [8.25, 8.80], out: [9.00, 9.40] },
+    { k: 'gold', in: [9.30, 9.80], out: [10.00, 10.40] },
+    { k: 'heart', in: [10.30, 10.80], out: [11.00, 11.40] },
+    { k: 'cinn', in: [11.30, 11.85], out: [12.20, 12.90], brown: true },
+  ],
+  cap1: [3.80, 5.55], cap2: [6.40, 7.85], cap3: [8.55, 11.75],
+  psl: [12.72, 13.65], pslTitle: [13.55, 17.70], pslDesc: [14.40, 17.70], hotIced: [17.95, 19.70],
+  sink: [19.70, 20.90], steamUp: [19.80, 20.80], logoEnd: [20.55, 21.15], place: [21.85, 22.35], ask: [22.55, 23.05], END: 25.0,
+};
+// the full logo now opens the film: shift everything after it by 0.25s, and add the logo beats
+{ const sh = v => v >= 3.3 ? v + 0.25 : v; for (const k in B) { if (k === 'cups') B.cups.forEach(c => { c.in = c.in.map(sh); c.out = c.out.map(sh); }); else B[k] = Array.isArray(B[k]) ? B[k].map(sh) : sh(B[k]); } }
+B.logoA = 0.2; B.logoExit = [2.50, 2.95]; B.dive = [2.75, 3.60];
+const W = 1920, H = 1080, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d');
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a)), pr = (t, w) => prog(t, w[0], w[1]);
+const ease = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }, outC = k => 1 - Math.pow(1 - clamp01(k), 3), inC = k => Math.pow(clamp01(k), 3), inQ = k => Math.pow(clamp01(k), 2);
+const BROWN = '#48270f', CARAMEL = '#c9933d', CREAM = '#faf6ed', MILK = '#ffffff';
+// surface ellipse of each cup, in its crop's pixels: centre x, y, radius x, y
+const SURF = { latte: [205, 145, 148, 72], matcha: [205, 150, 148, 72], cocoa: [195, 118, 150, 82], gold: [230, 105, 140, 68], heart: [195, 98, 148, 72], cinn: [208, 95, 148, 72] };
+const FOCUS = [960, 372], RX = 205;   // where the surface sits on screen, and how wide it is at rest
+let IM = {}, FOAM = {}, pslSoft, logoW, LG = {};
+// ---------- steam: one tapered line, the thread that carries the whole film ----------
+const N = 80, S = Array.from({ length: N }, (_, j) => j / (N - 1));
+const steamPts = (y0, y1) => S.map(s => [960 + 46 * Math.sin(s * Math.PI * 2.4 + 0.6) * (1 - 0.35 * s), lerp(y0, y1, s)]);
+const ringPts = () => S.map(s => { const a = Math.PI / 2 + s * Math.PI * 2; return [FOCUS[0] + RX * Math.cos(a), FOCUS[1] + RX * 0.47 * Math.sin(a)]; });
+function line(pts, upto, wMax, col, alpha = 1) {
+  const n = Math.max(2, Math.floor(upto * (N - 1)) + 1); ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineCap = 'round';
+  for (let j = 0; j < n - 1; j++) { const s = j / (N - 1); ctx.lineWidth = wMax * (0.25 + 0.75 * Math.sin(Math.PI * Math.min(1, s * 0.9 + 0.1))); ctx.beginPath(); ctx.moveTo(...pts[j]); ctx.lineTo(...pts[j + 1]); ctx.stroke(); }
+  ctx.restore();
+}
+function logo(k, y = 470, hgt = 300) { if (k <= 0) return; const w = hgt * logoW.width / logoW.height, x = 960 - w / 2, top = y - hgt / 2;
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 20, top - 20, w + 40, hgt + 40); ctx.clip(); ctx.drawImage(logoW, x, top + (1 - k) * (hgt + 40), w, hgt); ctx.restore(); }
+// ---------- the logo builds itself from its parts: rays shoot out, the cup draws round, the globe turns to face us, the name slides up ----------
+const LC = [800, 720];   // centre of the rays, in logo pixels
+function drawLogo(t, t0, { L = 0.56, at = [960, 540], exit = null, dive = 0 } = {}) {
+  const u = t - t0, ex = exit ? inC(pr(t, exit)) : 0, SURFL = [790, 640], S0 = [at[0] + (SURFL[0] - 800) * L, at[1] + (SURFL[1] - 800) * L];
+  const G = Math.exp(Math.log(40) * dive), P = [lerp(S0[0], FOCUS[0], ease(dive)), lerp(S0[1], FOCUS[1], ease(dive))];
+  const put = fn => { ctx.save(); ctx.translate(P[0], P[1]); ctx.scale(L * G, L * G); ctx.translate(-SURFL[0], -SURFL[1]); fn(); ctx.restore(); };
+  const ray = outC(prog(u, 0, 0.8)), rot = 0.05 * u; if (ray > 0) put(() => { ctx.save(); ctx.translate(...LC); ctx.rotate(rot); ctx.scale(1 + ex * 0.5, 1 + ex * 0.5); ctx.translate(-LC[0], -LC[1]);
+    ctx.beginPath(); ctx.arc(LC[0], LC[1], 900 * ray, 0, TAU); ctx.clip(); ctx.globalAlpha = 1 - ex; ctx.drawImage(LG.rays, 0, 0); ctx.restore(); });
+  const ln = ease(prog(u, 0.15, 1.15)); if (ln > 0) put(() => { ctx.save(); if (ln < 1) { ctx.beginPath(); ctx.moveTo(800, 700); ctx.arc(800, 700, 1200, Math.PI / 2, Math.PI / 2 + TAU * ln); ctx.closePath(); ctx.clip(); } ctx.drawImage(LG.line, 0, 0); ctx.restore(); });
+  const gl = outC(prog(u, 0.7, 1.2)); if (gl > 0) put(() => { ctx.save(); ctx.translate(795, 493); ctx.scale(gl, 1); ctx.translate(-795, -493); ctx.drawImage(LG.globe, 0, 0); ctx.restore(); });
+  const slide = (img, k, y0, y1) => { if (k <= 0) return; put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, 1600, y1 - y0); ctx.clip(); ctx.translate(0, ((1 - k) + ex) * (y1 - y0) * 1.1); ctx.drawImage(img, 0, 0); ctx.restore(); }); };
+  slide(LG.word, outC(prog(u, 1.0, 1.45)), 1100, 1290); const c = outC(prog(u, 1.25, 1.7)); slide(LG.coffee, c, 1295, 1410); slide(LG.leaves, c, 1295, 1410);
+  if (dive > 0) { const f = outC(prog(dive, 0.3, 0.72)); ctx.save(); ctx.beginPath(); if (f > 0) ctx.ellipse(P[0], P[1], 285 * L * G * 1.02 * f, 58 * L * G * 1.15 * f, 0, 0, TAU); ctx.fillStyle = MILK; ctx.fill(); ctx.restore();
+    if (dive > 0.75) { ctx.fillStyle = MILK; ctx.fillRect(-100, -100, W + 200, H + 200); } }
+}
+function words(str, t, tin, tout, { y = 1012, size = 48, col = CREAM, weight = 600, track = -0.02 } = {}) {
+  if (t < tin || t > tout + 0.45) return; ctx.save(); ctx.font = `${weight} ${size}px Pop, sans-serif`; ctx.letterSpacing = (size * track) + 'px';
+  const ws = str.split(' '), sp = ctx.measureText(' ').width, wd = ws.map(w => ctx.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let x = W / 2 - tot / 2;
+  ws.forEach((w, i) => { const e = outC(prog(t, tin + i * 0.06, tin + i * 0.06 + 0.36)), o = inC(prog(t, tout + i * 0.035, tout + i * 0.035 + 0.3)), dy = (1 - e) * size * 1.3 - o * size * 1.3;
+    if (e > 0 && o < 1) { ctx.save(); ctx.beginPath(); ctx.rect(x - 8, y - size * 1.1, wd[i] + 16, size * 1.5); ctx.clip(); ctx.fillStyle = col; ctx.fillText(w, x, y + dy); ctx.restore(); } x += wd[i] + sp; });
+  ctx.restore();
+}
+// ---------- cups: approach, slow push, then dive through the surface ----------
+function cupScale(c, t) { const [, , rx] = SURF[c.k], base = RX / rx, a = outC(pr(t, c.in)), hold = 1 + 0.035 * Math.max(0, t - c.in[1]);
+  const dive = Math.exp(Math.log(34) * inQ(pr(t, c.out))); return base * lerp(0.32, 1, a) * hold * dive; }
+function drawCup(c, t) {
+  const im = IM[c.k], [cx, cy, rx, ry] = SURF[c.k], s = cupScale(c, t), d = pr(t, c.out);
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(im, FOCUS[0] - cx * s, FOCUS[1] - cy * s, im.width * s, im.height * s); ctx.restore();
+  if (d > 0) {   // inside the cup the foam floods the frame, then turns to milk (or espresso brown before the seasonal drink)
+    const f = prog(d, 0.45, 0.8); ctx.save(); ctx.beginPath(); ctx.ellipse(FOCUS[0], FOCUS[1], rx * s * 1.04, ry * s * 1.08, 0, 0, TAU); ctx.globalAlpha = f; ctx.fillStyle = c.brown ? mixHex(FOAM[c.k], BROWN, prog(d, 0.55, 1)) : mixHex(FOAM[c.k], MILK, prog(d, 0.55, 1)); ctx.fill(); ctx.restore();
+  }
+}
+const TAU = Math.PI * 2;
+const hex = h => h.startsWith('#') ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : h.match(/\d+/g).map(Number);
+const mixHex = (a, b, k) => { const A = hex(a), C = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, C[i], clamp01(k)))).join(',')})`; };
+function cupsScene(t) {
+  const cs = B.cups; let i = -1; cs.forEach((c, j) => { if (t >= c.in[0]) i = j; }); if (i < 0) return;
+  const prev = cs[i - 1];
+  if (prev && t < prev.out[1]) { drawCup(prev, t); const pd = pr(t, prev.out); if (pd > 0.7) { ctx.fillStyle = prev.brown ? BROWN : MILK; ctx.fillRect(-100, -100, W + 200, H + 200); } if (t >= cs[i].in[0] && pd > 0.7) drawCup(cs[i], t); }
+  else drawCup(cs[i], t);
+  if (cs[i].brown && pr(t, cs[i].out) > 0.7) { ctx.fillStyle = BROWN; ctx.fillRect(-100, -100, W + 200, H + 200); }
+}
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  const Z = 1 + 0.003 * t; ctx.translate(960, 540); ctx.scale(Z, Z); ctx.translate(-960, -540);   // one slow push, never reverses
+  const white = t >= B.dive[1] && t < B.cups[5].out[1];
+  ctx.fillStyle = white ? MILK : BROWN; ctx.fillRect(-100, -100, W + 200, H + 200);
+  if (t < B.dive[1] + 0.01) drawLogo(t, B.logoA, { exit: B.logoExit, dive: inQ(pr(t, B.dive)) });   // opening: the logo builds, then we dive into its cup
+  if (t >= B.cups[0].in[0] && t < B.cups[5].out[1] + 0.05) cupsScene(t);
+  if (t >= B.psl[0] && pr(t, B.cups[5].out) > 0.7) {   // the seasonal drink arrives out of the espresso
+    const a = outC(pr(t, B.psl)), hold = 1 + 0.03 * Math.max(0, t - B.psl[1]), sink = inC(pr(t, B.sink)), s = lerp(0.35, 1, a) * hold, w = 920 * s, h = w * pslSoft.height / pslSoft.width;
+    ctx.drawImage(pslSoft, 960 - w / 2, 430 - h / 2 + sink * 1500, w, h);
+    words('The Pumpkin Spice Latte.', t, B.pslTitle[0], B.pslTitle[1], { y: 900, size: 62, col: CARAMEL });
+    words('Espresso, steamed milk, pumpkin spice and cinnamon.', t, B.pslDesc[0], B.pslDesc[1], { y: 972, size: 30, col: CREAM, weight: 500 });
+    words('Hot or iced, all day.', t, B.hotIced[0], B.hotIced[1], { y: 940, size: 58, col: CREAM });
+    if (t >= B.steamUp[0]) { line(steamPts(1000, 640), outC(pr(t, B.steamUp)), 9, CREAM, 0.9 * (1 - prog(t, B.logoEnd[0] + 0.3, B.logoEnd[0] + 0.9))); drawLogo(t, B.logoEnd[0], { L: 0.42, at: [960, 400] }); }
+    words('KAFNEO OFFICE CENTER & LOUNGE', t, B.place[0], 99, { y: 730, size: 26, col: CREAM, weight: 500, track: 0.32 });
+    words('Ask your barista.', t, B.ask[0], 99, { y: 812, size: 44, col: CARAMEL });
+  }
+  words('Latte art is the standard.', t, B.cap1[0], B.cap1[1], { col: '#3a2414' });
+  words('Or make it matcha.', t, B.cap2[0], B.cap2[1], { col: '#3a2414' });
+  words('Something new every season.', t, B.cap3[0], B.cap3[1], { col: '#3a2414' });
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(t + (i / (MB - 1) - 0.5) * 0.02); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('600 50px Pop'), document.fonts.load('500 30px Pop'), img('hi/logo.png'), img('hi/psl.png'), ...['rays', 'line', 'globe', 'word', 'coffee', 'leaves'].map(k => img(`hi/logo_${k}.png`)), ...Object.keys(SURF).map(k => img(`hi/${k}.png`))]).then(([, , lg, psl, ...rest]) => { ['rays', 'line', 'globe', 'word', 'coffee', 'leaves'].forEach((k, i) => LG[k] = rest[i]); const cups = rest.slice(6);
+  Object.keys(SURF).forEach((k, i) => { IM[k] = cups[i]; const c = document.createElement('canvas'); c.width = c.height = 1; const g = c.getContext('2d'); const [cx, cy, rx, ry] = SURF[k];
+    g.drawImage(cups[i], cx - rx * 0.6, cy - ry * 0.5, rx * 1.2, ry, 0, 0, 1, 1); const p = g.getImageData(0, 0, 1, 1).data; FOAM[k] = `rgb(${p[0]},${p[1]},${p[2]})`; });
+  // logo: keep the light marks, drop the brown backing, so it sits cleanly on any brown
+  { const c = document.createElement('canvas'); c.width = lg.width; c.height = lg.height; const g = c.getContext('2d'); g.drawImage(lg, 0, 0); const d = g.getImageData(0, 0, c.width, c.height);
+    for (let i = 0; i < d.data.length; i += 4) { const L = 0.3 * d.data[i] + 0.59 * d.data[i + 1] + 0.11 * d.data[i + 2]; d.data[i + 3] = clamp01((L - 70) / 120) * 255; d.data[i] = 250; d.data[i + 1] = 246; d.data[i + 2] = 237; }
+    g.putImageData(d, 0, 0); logoW = c; }
+  // the seasonal hero with soft edges, so it melts into the brown
+  { const c = document.createElement('canvas'); c.width = psl.width; c.height = psl.height; const g = c.getContext('2d'); g.drawImage(psl, 0, 0); g.globalCompositeOperation = 'destination-in';
+    const r = g.createRadialGradient(c.width / 2, c.height / 2, Math.min(c.width, c.height) * 0.36, c.width / 2, c.height / 2, Math.max(c.width, c.height) * 0.56); r.addColorStop(0, 'rgba(0,0,0,1)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, c.width, c.height); pslSoft = c; }
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

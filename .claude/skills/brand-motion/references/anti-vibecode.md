@@ -26,6 +26,7 @@ If a brand really needs one of these, write the reason next to it in the project
 | 18 | Serif italic accents | One italic serif word in a sans headline | Italic serif "accent" words | One type system. Emphasis by colour or weight inside the same family |
 | 19 | Space Grotesk + Instrument Serif | The default "tasteful" pair | Same pair in titles | Choose faces for the brand's personality, not the trend |
 | 20 | Grain over a gradient | Noise overlay on a gradient bg | `grade.grain` on every scene + gradient beams | Grain only on photographic/film looks where it means something. Clean flat stages otherwise |
+| 21 | Outlined pill chips around words | Tags and labels in thin-bordered capsules | Every label, feature or menu name in a gold/white outlined pill | Use the brand's own mark as the bullet (Kafneo: a gold dot-node from the logo rays), plain text on a solid colour block, or a strike/underline that carries meaning. Words stand on their own |
 
 ## Engine defaults this changes
 - `grade.grain`: off by default. Turn it on only for a film/photo treatment, and say why.
