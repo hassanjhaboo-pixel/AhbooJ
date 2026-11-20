@@ -15,11 +15,11 @@
 // name lands on the wooden slats of the counter front. Then the domes come back down, fog over, the light turns from
 // evening to golden afternoon, and the next line is waiting underneath. The last frame flows straight into the first.
 const SETS = [
-  { title: 'Coquito season', sub: 'Three new iced drinks, here until the holidays.', end: 'Coquito, three ways.', cups: [
-    { img: 'coq1', name: ['Iced Coquito', 'Latte'], desc: 'Our house coquito, coconut milk warmed with cinnamon, nutmeg and vanilla, poured over ice with a double shot of espresso.', notes: ['Coquito', 'Espresso', 'Nutmeg'] },
+  { pal: { name: '#F4EBDC', desc: '#E6D3B9', accent: '#D9A57A', dim: '#A98B6C', panel: '#2E1A10' }, title: 'Coquito season', sub: 'Three new iced drinks, here until the holidays.', end: 'Coquito, three ways.', cups: [
+    { img: 'coq1', name: ['Iced Coquito', 'Latte'], desc: 'Our house coquito, coconut milk spiced with cinnamon, nutmeg and vanilla, shaken cold and poured over ice with a double shot of espresso.', notes: ['House coquito', 'Espresso', 'Nutmeg'] },
     { img: 'coq2', name: ['Coquito', 'Cold Brew'], desc: 'Cold brew steeped slowly overnight, finished with a thick layer of whipped coconut cream and toasted coconut.', notes: ['Cold brew', 'Coconut cream', 'Toasted coconut'] },
     { img: 'coq3', name: ['Coquito', 'Frappé'], desc: 'Coquito blended with ice until thick and frosty, crowned with whipped cream and a dusting of cinnamon.', notes: ['Coquito', 'Whipped cream', 'Cinnamon'] }] },
-  { title: 'Pumpkin season', sub: 'Three new iced drinks, all autumn long.', end: 'Pumpkin spice, three ways.', cups: [
+  { pal: { name: '#F59A4A', desc: '#F5E1C6', accent: '#F2B56A', dim: '#C58A55', panel: '#3A1808' }, title: 'Pumpkin season', sub: 'Three new iced drinks, all autumn long.', end: 'Pumpkin spice, three ways.', cups: [
     { img: 'pmk1', name: ['Iced Pumpkin', 'Spice Latte'], desc: 'Pumpkin, cinnamon and clove stirred into cold milk, with espresso poured over the top so it swirls down through the ice.', notes: ['Pumpkin spice', 'Espresso', 'Milk'] },
     { img: 'pmk2', name: ['Pumpkin Cream', 'Cold Brew'], desc: 'Smooth cold brew over ice under a velvety pumpkin cold foam that slowly sinks into the coffee as you drink.', notes: ['Cold brew', 'Pumpkin foam', 'Spice'] },
     { img: 'pmk3', name: ['Iced Pumpkin', 'Chai'], desc: 'Spiced chai and milk over ice with a ribbon of pumpkin at the bottom, topped with whipped cream and a cinnamon stick.', notes: ['Chai', 'Pumpkin', 'Cinnamon'] }] },
@@ -41,7 +41,7 @@ let I = {};
 // ---------- world: the counter photo scaled to 1080 high (2545 wide). Cups stand on the countertop at y 712 ----------
 const BGW = 2576 * 1080 / 1093, FEET = 712, DOMES = [872, 1272, 1672], CUPH = 360;
 // ---------- timing inside each 20s half: wide, then lean in on each dome in turn, then wide again ----------
-const OFF = 250, LIFT = [3.4, 11.4, 19.4], NAME = [[4.0, 10.3], [12.0, 18.3], [20.0, 26.0]], TITLE = [0.35, 2.5], END = [26.4, 27.7], DROP = 27.0;
+const STYLE = (new URLSearchParams(location.search).get('style') || 'A').toUpperCase(), OFF = STYLE === 'C' ? 0 : STYLE === 'B' ? 300 : 250, LIFT = [3.4, 11.4, 19.4], NAME = [[4.0, 10.3], [12.0, 18.3], [20.0, 26.0]], TITLE = [0.35, 2.5], END = [26.4, 27.7], DROP = 27.0;
 const camX = mono([[0, 1272], [2.3, 1272], [3.5, DOMES[0] - OFF], [10.4, DOMES[0] - OFF], [11.6, DOMES[1] - OFF], [18.4, DOMES[1] - OFF], [19.6, DOMES[2] - OFF], [26.0, DOMES[2] - OFF], [27.2, 1272], [HALF, 1272]]);
 const camZ = mono([[0, 1.0], [2.3, 1.0], [3.5, 1.45], [26.0, 1.45], [27.2, 1.0], [HALF, 1.0]]);
 const camY = mono([[0, 540], [2.3, 540], [3.5, 560], [26.0, 560], [27.2, 540], [HALF, 540]]);
@@ -84,31 +84,50 @@ const F = (w, fam) => `${w} SIZE ${fam}`, fnt = (w, fam, size) => `${w} ${size}p
 function txt(str, t, tin, tout, x, y, size, weight, fam, opts = {}) {
   if (t < tin || t > tout + 0.5) return; const e = snap(prog(t, tin, tin + 0.7)), o = io(prog(t, tout, tout + 0.45));
   ctx.save(); ctx.font = fnt(weight, fam, size); ctx.letterSpacing = (opts.ls || 0) + 'px'; ctx.textAlign = opts.align || 'left';
-  const w = ctx.measureText(str).width, x0 = ctx.textAlign === 'center' ? x - w / 2 : x;
+  const w = ctx.measureText(str).width, x0 = ctx.textAlign === 'center' ? x - w / 2 : ctx.textAlign === 'right' ? x - w : x;
   ctx.beginPath(); ctx.rect(x0 - 40, y - size * 1.1, w + 80, size * 1.45); ctx.clip(); ctx.globalAlpha = opts.alpha || 1; ctx.fillStyle = opts.col || CREAM;
   ctx.fillText(str, x, y + (1 - e) * size * 1.25 - o * size * 1.25); ctx.restore(); }
 // the drink card: big two-line name, a gold rule that draws on, a short paragraph, then the ingredients with gold marks
-function card(d, t, a, b, k) { const X = 120, nameS = 116;
-  d.name.forEach((ln, i) => txt(ln, t, a + i * 0.09, b - 0.06 * (1 - i), X, 330 + i * nameS * 0.98, nameS, 800, 'Brico', { ls: -nameS * 0.025 }));
+function cardOn(t, a, b) { return io(prog(t, a - 0.6, a)) * (1 - io(prog(t, b + 0.2, b + 0.8))); }
+// B: a solid menu panel slides in from the left edge, like a printed card held up beside the drink
+function cardB(d, t, a, b, k, P, setName) { const on = cardOn(t, a, b); if (on <= 0) return; const PW = 960 * snap(on);
+  ctx.fillStyle = P.panel; ctx.fillRect(0, 0, PW, H); ctx.fillStyle = P.accent; ctx.fillRect(PW - 6, 0, 6, H);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, PW, H); ctx.clip(); const X = 110;
+  d.name.forEach((ln, i) => txt(ln, t, a + 0.08 + i * 0.09, b, X, 300 + i * 112, 112, 800, 'Brico', { ls: -3, col: P.name }));
+  const lines = wrap(d.desc, F(400, 'Arch'), 38, 700); lines.forEach((ln, i) => txt(ln, t, a + 0.45 + i * 0.07, b, X, 490 + i * 54, 38, 400, 'Arch', { col: P.desc }));
+  const iy = 490 + lines.length * 54 + 70;   // ingredients as a ruled row, like the columns of a printed menu
+  const rl = 740 * snap(prog(t, a + 0.7, a + 1.3)); ctx.fillStyle = P.accent; ctx.globalAlpha = 0.6; ctx.fillRect(X, iy - 48, rl, 2); ctx.globalAlpha = 1;
+  let nx = X; d.notes.forEach((n, i) => { ctx.save(); ctx.font = fnt(600, 'Arch', 24); ctx.letterSpacing = '3px'; const w = ctx.measureText(n.toUpperCase()).width; ctx.restore();
+    if (i > 0) { ctx.fillStyle = P.accent; ctx.globalAlpha = 0.6 * snap(prog(t, a + 0.8 + i * 0.08, a + 1.2)); ctx.fillRect(nx - 26, iy - 30, 2, 40); ctx.globalAlpha = 1; }
+    txt(n.toUpperCase(), t, a + 0.8 + i * 0.08, b, nx, iy, 24, 600, 'Arch', { ls: 3, col: P.name }); nx += w + 52; });
+  txt(`0${k + 1}`, t, a + 0.2, b, X, 990, 30, 600, 'Brico', { col: P.accent }); txt('/ 03', t, a + 0.25, b, X + 42, 990, 30, 600, 'Brico', { col: P.dim });
+  txt(setName, t, a + 0.3, b, X + 150, 990, 30, 600, 'Brico', { col: P.dim });
+  ctx.restore(); }
+// C: cinematic lower third. The drink sits dead centre; the type runs wide along the counter front like a film title
+function cardC(d, t, a, b, k, P) { const X = 120, R = 1640;
+  const rl = (R - X) * snap(prog(t, a + 0.1, a + 0.9)) * (1 - io(prog(t, b, b + 0.4))); if (t > a + 0.1 && rl > 1) { ctx.fillStyle = P.accent; ctx.fillRect(X, 828, rl, 3); }
+  txt(`0${k + 1} / 03`, t, a + 0.25, b, X, 806, 26, 600, 'Brico', { col: P.accent });
+  const list = d.notes.map(n => n.toLowerCase()), made = 'Made with ' + list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+  txt(made, t, a + 0.35, b, R, 806, 26, 600, 'Arch', { col: P.accent, align: 'right' });
+  txt(d.name.join(' '), t, a + 0.2, b, X, 940, 104, 800, 'Brico', { ls: -3, col: P.name });
+  const lines = wrap(d.desc, F(400, 'Arch'), 32, 1380); lines.forEach((ln, i) => txt(ln, t, a + 0.5 + i * 0.07, b, X, 1000 + i * 44, 32, 400, 'Arch', { col: P.desc })); }
+function card(d, t, a, b, k, P) { const X = 120, nameS = 116;
+  d.name.forEach((ln, i) => txt(ln, t, a + i * 0.09, b - 0.06 * (1 - i), X, 330 + i * nameS * 0.98, nameS, 800, 'Brico', { ls: -nameS * 0.025, col: P.name }));
   const ry = 330 + nameS * 0.98 + SP * 2.2, rw = 120 * snap(prog(t, a + 0.35, a + 0.95)) * (1 - io(prog(t, b, b + 0.4)));
-  if (t > a + 0.35 && rw > 0.5) { ctx.fillStyle = GOLD; ctx.fillRect(X, ry, rw, 4); }
-  const lines = wrap(d.desc, F(400, 'Arch'), 38, 660); lines.forEach((ln, i) => txt(ln, t, a + 0.5 + i * 0.07, b, X, ry + SP * 2.6 + i * 38 * 1.42, 38, 400, 'Arch', { col: '#F2E6D6', alpha: 0.94 }));
-  let nx = X; const ny = ry + SP * 2.6 + lines.length * 38 * 1.42 + SP * 1.6;
-  d.notes.forEach((n, i) => { const tin = a + 0.85 + i * 0.08; if (t < tin || t > b + 0.5) return; const e = snap(prog(t, tin, tin + 0.5)) * (1 - io(prog(t, b, b + 0.35)));
-    ctx.save(); ctx.font = fnt(600, 'Arch', 26); ctx.letterSpacing = '2.5px'; const w = ctx.measureText(n.toUpperCase()).width; ctx.restore();
-    ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(nx + 7, ny - 9, 7 * e, 0, TAU); ctx.fill();
-    txt(n.toUpperCase(), t, tin + 0.04, b, nx + 26, ny, 26, 600, 'Arch', { ls: 2.5, col: '#E9D9C2' }); nx += w + 26 + SP * 1.6; });
-  // counter of where we are in the set, quiet, bottom left
-  txt(`0${k + 1}`, t, a + 0.2, b, X, 960, 30, 600, 'Brico', { col: GOLD }); txt('/ 03', t, a + 0.25, b, X + 46, 960, 30, 600, 'Brico', { col: '#B8A58C' }); }
+  if (t > a + 0.35 && rw > 0.5) { ctx.fillStyle = P.accent; ctx.fillRect(X, ry, rw, 4); }
+  const lines = wrap(d.desc, F(400, 'Arch'), 38, 660); lines.forEach((ln, i) => txt(ln, t, a + 0.5 + i * 0.07, b, X, ry + SP * 2.6 + i * 38 * 1.42, 38, 400, 'Arch', { col: P.desc }));
+  const ny = ry + SP * 2.6 + lines.length * 38 * 1.42 + SP * 1.4, list = d.notes.map(n => n.toLowerCase()), made = 'Made with ' + list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1];
+  txt(`0${k + 1}`, t, a + 0.2, b, X, 960, 30, 600, 'Brico', { col: P.accent }); txt('/ 03', t, a + 0.25, b, X + 42, 960, 30, 600, 'Brico', { col: P.dim }); }
 // the left side darkens behind the card so it always reads, like a light falling off
-function cardShade(t) { const u = t % HALF; const on = Math.max(...NAME.map(([a, b]) => io(prog(u, a - 0.6, a)) * (1 - io(prog(u, b + 0.2, b + 0.8)))));
+function cardShade(t) { if (STYLE === 'B') return; const u = t % HALF;
+  if (STYLE === 'C') { const on = Math.max(...NAME.map(([a, b]) => cardOn(u, a, b))); if (on <= 0) return; const g = ctx.createLinearGradient(0, 700, 0, 1080); g.addColorStop(0, 'rgba(12,6,3,0)'); g.addColorStop(0.35, `rgba(12,6,3,${0.75 * on})`); g.addColorStop(1, `rgba(12,6,3,${0.9 * on})`); ctx.fillStyle = g; ctx.fillRect(0, 700, W, 380); return; } const on = Math.max(...NAME.map(([a, b]) => io(prog(u, a - 0.6, a)) * (1 - io(prog(u, b + 0.2, b + 0.8)))));
   if (on <= 0) return; const g = ctx.createLinearGradient(0, 0, 1150, 0); g.addColorStop(0, `rgba(14,8,5,${0.88 * on})`); g.addColorStop(0.6, `rgba(14,8,5,${0.66 * on})`); g.addColorStop(1, 'rgba(14,8,5,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 1150, H); }
 function text(t) { const half = Math.floor(t / HALF) % 2, u = t % HALF, set = SETS[half];
   // opening and closing lines sit big on the counter front
-  txt(set.title, u, TITLE[0], TITLE[1], 960, 905, 128, 800, 'Brico', { align: 'center', ls: -3 });
-  txt(set.sub, u, TITLE[0] + 0.3, TITLE[1], 960, 990, 34, 500, 'Arch', { align: 'center', col: '#F2E6D6' });
-  set.cups.forEach((d, k) => card(d, u, NAME[k][0], NAME[k][1], k));
-  txt(set.end, u, END[0], END[1], 960, 925, 96, 800, 'Brico', { align: 'center', ls: -2 }); }
+  txt(set.title, u, TITLE[0], TITLE[1], 960, 905, 128, 800, 'Brico', { align: 'center', ls: -3, col: set.pal.name });
+  txt(set.sub, u, TITLE[0] + 0.3, TITLE[1], 960, 990, 34, 500, 'Arch', { align: 'center', col: set.pal.desc });
+  set.cups.forEach((d, k) => STYLE === 'B' ? cardB(d, u, NAME[k][0], NAME[k][1], k, set.pal, set.title) : STYLE === 'C' ? cardC(d, u, NAME[k][0], NAME[k][1], k, set.pal) : card(d, u, NAME[k][0], NAME[k][1], k, set.pal));
+  txt(set.end, u, END[0], END[1], 960, 925, 96, 800, 'Brico', { align: 'center', ls: -2, col: set.pal.name }); }
 // ---------- the Kafneo logo, small and steady in the corner of the counter front ----------
 function logo() { ctx.save(); ctx.translate(1790, 945); ctx.scale(0.11, 0.11); ctx.translate(-800, -800); ['logo_rays', 'logo_line', 'logo_globe', 'logo_word', 'logo_coffee', 'logo_leaves'].forEach(n => ctx.drawImage(I[n], 0, 0)); ctx.restore(); }
 function frame(t) {
