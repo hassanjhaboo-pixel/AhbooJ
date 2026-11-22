@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Kafneo Your Spot</title>
+<style>
+  @font-face { font-family: Pop; src: url("fonts/poppins-latin-800-normal.woff2"); font-weight: 800; }
+  @font-face { font-family: Int; src: url("fonts/inter-latin-600-normal.woff2"); font-weight: 600; }
+  @font-face { font-family: Int; src: url("fonts/inter-latin-400-normal.woff2"); font-weight: 400; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Kafneo "Your Spot" 30s reel, built from KAFNEO_AD_BRIEF.md. 1080x1920, 30fps, 900 frames.
+// Motif: gold lines that draw out and connect at dot-nodes; triangle facets as the one transition.
+// Page contract: renderAt(t), TOTAL, ready, ?t=, ?scale=, ?mb=.
+const F = f => f / 30;   // brief timings are in frames
+const B = {
+  hook: [F(0), F(60)], hookOut: [F(56), F(66)],
+  chips: [F(60), F(78), F(96)], wipe1: F(132),
+  logoA: F(150), place: F(200), wipe2: F(252),
+  podA: F(270), led: F(330), door: [F(360), F(375)], podChips: [F(378), F(396), F(414)], wipe3: F(432),
+  menuA: F(450), snaps: [F(486), F(522), F(558), F(594), F(630)], heroPush: [F(630), F(720)], toDot: [F(708), F(726)],
+  words: [F(720), F(738), F(756)], wordsOut: [F(798), F(808)], toLogo: [F(802), F(822)],
+  cta: F(810), ctaChips: [F(828), F(846), F(864)], addr: F(864), still: F(885), END: F(900),
+};
+const C = { espresso: '#3E2210', roast: '#24140A', logoBrown: '#6B2A00', gold: '#D9A24A', cream: '#F6EFE3', white: '#FFFDF8', sage: '#8E9466' };
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d');
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const inQ = k => 1 - Math.pow(1 - clamp01(k), 5);   // entrances: easeOutQuint
+const outE = k => Math.pow(clamp01(k), 3);           // exits: easeInCubic
+const draw = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };   // line draws: easeInOutCubic
+const TAU = Math.PI * 2, ent = (t, t0, f = 13) => inQ(prog(t, t0, t0 + F(f))), ext = (t, t0, f = 9) => outE(prog(t, t0, t0 + F(f)));
+let IMG = {}, LG = {};
+// ---------- shared primitives ----------
+function bg() { ctx.fillStyle = C.espresso; ctx.fillRect(-200, -200, W + 400, H + 400); }
+function glow(x, y, r, a = 0.5) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(122,70,30,${a})`); g.addColorStop(1, 'rgba(122,70,30,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r); }
+function vignette() { const g = ctx.createRadialGradient(540, 960, 500, 540, 960, 1250); g.addColorStop(0, 'rgba(36,20,10,0)'); g.addColorStop(1, 'rgba(36,20,10,0.85)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+// a line of type that slides up through a mask (house rule: no fades on letters), and leaves the same way
+function line(str, t, tin, tout, { x = 540, y, size = 120, col = C.white, font = 'Pop', weight = 800, track = -0.01, align = 'center' }) {
+  if (t < tin || (tout !== null && t > tout + F(10))) return;
+  const e = ent(t, tin), o = tout === null ? 0 : ext(t, tout); ctx.save(); ctx.font = `${weight} ${size}px ${font}, sans-serif`; ctx.letterSpacing = (size * track) + 'px'; ctx.textAlign = align;
+  const w = ctx.measureText(str).width, x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+  ctx.beginPath(); ctx.rect(x0 - 20, y - size * 1.0, w + 40, size * 1.32); ctx.clip(); ctx.fillStyle = col; ctx.fillText(str, x, y + (1 - e) * size * 1.2 - o * size * 1.3); ctx.restore();
+}
+function chip(str, x, y, { size = 30, col = C.white, fill = null, k = 1, align = 'left', strike = 0 } = {}) {
+  ctx.save(); ctx.font = `600 ${size}px Int, sans-serif`; ctx.letterSpacing = (size * 0.18) + 'px'; const tw = ctx.measureText(str).width, h = size * 2.3, w = tw + size * 1.6;
+  const x0 = align === 'left' ? x : align === 'center' ? x - w / 2 : x - w;
+  if (!strike) { ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(x0 + size * 0.35, y, size * 0.2, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = col; ctx.textBaseline = 'middle'; ctx.fillText(str, x0 + size * 0.8, y + 2);
+  if (strike > 0) { ctx.beginPath(); ctx.moveTo(x0 + size * 0.5, y); ctx.lineTo(x0 + size * 0.5 + (w - size) * strike, y); ctx.lineWidth = 4; ctx.strokeStyle = C.gold; ctx.stroke(); }
+  ctx.restore(); return w;
+}
+function ray(x0, y0, x1, y1, k, dotR = 9) { if (k <= 0) return; const x = lerp(x0, x1, k), y = lerp(y0, y1, k); ctx.save(); ctx.strokeStyle = C.gold; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x, y); ctx.stroke();
+  if (k >= 1) { ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(x1, y1, dotR, 0, TAU); ctx.fill(); } ctx.restore(); }
+function card(img, cx, cy, w, h, { name = null, rot = 0, s = 1, alpha = 1, glowA = 0 } = {}) {
+  ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(s, s);
+  if (glowA > 0) { glow(0, 0, 620, 0.55 * glowA); }
+  ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 30; ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 36); ctx.fillStyle = C.cream; ctx.fill(); ctx.shadowColor = 'transparent';
+  ctx.save(); ctx.clip(); const ph = name ? h - 130 : h - 40, sc = Math.min((w - 60) / img.width, ph / img.height); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, -img.width * sc / 2, -h / 2 + 20 + (ph - img.height * sc) / 2, img.width * sc, img.height * sc); ctx.restore();
+  if (name) { ctx.font = '600 28px Int, sans-serif'; ctx.letterSpacing = '6px';
+    ctx.fillStyle = C.logoBrown; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(name, 0, h / 2 - 64); }
+  ctx.restore();
+}
+// ---------- facet wipe: dark triangles flip in from bottom-left, then out the same way ----------
+const TRIS = (() => { const T = [], cw = 540, ch = 480; for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) { const x = c * cw, y = r * ch, a = [x, y], b = [x + cw, y], d = [x, y + ch], e = [x + cw, y + ch];
+  (r + c) % 2 ? T.push([a, b, e], [a, e, d]) : T.push([a, b, d], [b, e, d]); }
+  return T.map(p => ({ p, c: [(p[0][0] + p[1][0] + p[2][0]) / 3, (p[0][1] + p[1][1] + p[2][1]) / 3] })).sort((A, Bb) => (Bb.c[1] - Bb.c[0]) - (A.c[1] - A.c[0])); })();
+function facetWipe(t, t0) {   // covers by t0+12f, uncovers by t0+24f
+  const u = (t - t0) * 30; if (u < 0 || u > 26) return;
+  TRIS.forEach((tr, i) => { const kin = inQ(prog(u, i * 0.7, i * 0.7 + 6)), kout = outE(prog(u, 12 + i * 0.7, 12 + i * 0.7 + 6)), k = kin * (1 - kout); if (k <= 0) return;
+    ctx.save(); ctx.translate(...tr.c); ctx.rotate((1 - kin) * -0.35 + kout * 0.35); ctx.scale(k * 1.03, k * 1.03); ctx.translate(-tr.c[0], -tr.c[1]);
+    ctx.beginPath(); tr.p.forEach(([x, y], j) => j ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fillStyle = C.roast; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(217,162,74,0.4)'; ctx.stroke(); ctx.restore(); });
+}
+// ---------- logo builds from its parts ----------
+function logo(t, t0, L, at, speed = 1) {
+  const u = (t - t0) * speed, put = fn => { ctx.save(); ctx.translate(...at); ctx.scale(L, L); ctx.translate(-800, -800); fn(); ctx.restore(); };
+  const ln = draw(prog(u, 0, 1.0)); if (ln > 0) put(() => { ctx.save(); if (ln < 1) { ctx.beginPath(); ctx.moveTo(800, 700); ctx.arc(800, 700, 1200, Math.PI / 2, Math.PI / 2 + TAU * ln); ctx.closePath(); ctx.clip(); } ctx.drawImage(LG.line, 0, 0); ctx.restore(); });
+  const gl = inQ(prog(u, 0.75, 1.15)); if (gl > 0) put(() => { ctx.save(); ctx.translate(795, 493); ctx.scale(gl, 1); ctx.translate(-795, -493); ctx.drawImage(LG.globe, 0, 0); ctx.restore(); });
+  const ray = inQ(prog(u, 1.0, 1.6)); if (ray > 0) put(() => { ctx.save(); ctx.translate(800, 720); ctx.rotate(0.03 * Math.max(0, u - 1)); ctx.translate(-800, -720); ctx.beginPath(); ctx.arc(800, 720, 280 + 640 * ray, 0, TAU); ctx.clip(); ctx.drawImage(LG.rays, 0, 0); ctx.restore(); });
+  const slide = (img, k, y0, y1) => { if (k > 0) put(() => { ctx.save(); ctx.beginPath(); ctx.rect(0, y0, 1600, y1 - y0); ctx.clip(); ctx.translate(0, (1 - k) * (y1 - y0) * 1.1); ctx.drawImage(img, 0, 0); ctx.restore(); }); };
+  slide(LG.word, inQ(prog(u, 1.2, 1.65)), 1100, 1290); const c = inQ(prog(u, 1.4, 1.85)); slide(LG.coffee, c, 1295, 1410); slide(LG.leaves, c, 1295, 1410);
+}
+// ---------- scene 1: hook ----------
+const HOOK = { x: 540, y: 1060, w: 600, h: 670 };
+function sHook(t) {
+  const e = ent(t, 0, 14), x = ext(t, B.hookOut[0], 10), y = HOOK.y + (1 - e) * 400 + x * 1300, s = lerp(0.9, 1, e), rot = (1 - inQ(prog(t, 0, F(20)))) * 3 * Math.PI / 180;
+  glow(540, y, 700, 0.6);
+  const rk = draw(prog(t, F(6), F(18))); [[-1, -1], [1, -1]].forEach(([sx]) => { const cx = HOOK.x + sx * HOOK.w / 2 * s, cy = y - HOOK.h / 2 * s; ray(cx, cy, cx + sx * 110, cy - 110, rk); });
+  card(IMG['01-latte-heart'], HOOK.x, y, HOOK.w, HOOK.h, { rot, s });
+  line('POV:', t, F(0), B.hookOut[0], { y: 330, size: 30, col: C.gold, font: 'Int', weight: 600, track: 0.32 });
+  line('YOU FOUND YOUR', t, F(4), B.hookOut[0], { y: 460, size: 92, col: C.white });
+  line('WORK SPOT.', t, F(8), B.hookOut[0] + F(2), { y: 590, size: 124, col: C.gold });
+}
+// ---------- scene 2: tension ----------
+const NOPE = ['HOME · DISTRACTIONS', 'CAR · NO WI-FI', 'BUSY CAFÉ · NO OUTLET'];
+function sTension(t) {
+  NOPE.forEach((s, i) => { const t0 = B.chips[i], e = ent(t, t0, 13); if (e <= 0) return; const st = draw(prog(t, t0 + F(8), t0 + F(16)));
+    ctx.save(); ctx.globalAlpha = Math.min(1, e * 1.4); chip(s, 90 - (1 - e) * 300, 800 + i * 170, { size: 40, strike: st }); ctx.restore(); });
+}
+// ---------- scene 3: logo reveal ----------
+function sLogo(t) { glow(540, 820, 700, 0.55); logo(t, B.logoA, 0.5, [540, 860]); line('OFFICE CENTER & LOUNGE', t, B.place, null, { y: 1290, size: 30, col: C.cream, font: 'Int', weight: 600, track: 0.32 }); }
+// ---------- scene 4: the private pod, built in code (one-point perspective, vanishing point inside the pod) ----------
+const POD = { x0: 350, x1: 730, y0: 610, y1: 1240, vp: [620, 960], d: 0.26 };
+const P = (x, y, z) => [x + (POD.vp[0] - x) * POD.d * z, y + (POD.vp[1] - y) * POD.d * z];
+function poly(pts, fill, stroke = null, lw = 0) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath(); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.lineWidth = lw; ctx.strokeStyle = stroke; ctx.stroke(); } }
+function part(t, i, fn) { const t0 = B.podA + F(6) + i * F(4), e = ent(t, t0, 10); if (e <= 0) return; ctx.save(); ctx.globalAlpha = e; ctx.translate(0, (1 - e) * 50); fn(); ctx.restore(); }
+function sPod(t) {
+  const { x0, x1, y0, y1 } = POD, push = lerp(1, 1.12, prog(t, B.podA, B.wipe3 + F(12)));
+  ctx.save(); ctx.translate(540, 925); ctx.scale(push, push); ctx.translate(-540, -925);
+  glow(540, 930, 650, 0.5);
+  // the room around it: exposed ceiling string lights, a vine, warm tile floor
+  part(t, 0, () => { const lights = [[150, 560], [260, 540], [380, 528], [500, 522], [620, 524], [740, 532], [860, 546], [960, 566]];
+    ctx.strokeStyle = 'rgba(217,162,74,0.35)'; ctx.lineWidth = 2; ctx.beginPath(); lights.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.stroke();
+    lights.forEach(([x, y]) => { glow(x, y, 26, 0.9); ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(x, y, 5, 0, TAU); ctx.fill(); });
+    const rk = draw(prog(t, B.podA + F(30), B.podA + F(45))); ray(260, 540, 380, 528, rk, 7); ray(740, 532, 860, 546, rk, 7);
+    ctx.fillStyle = C.sage; [[900, 560, 0.4], [915, 585, -0.5], [905, 612, 0.6], [922, 638, -0.4]].forEach(([x, y, a]) => { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.beginPath(); ctx.ellipse(0, 0, 16, 7, 0, 0, TAU); ctx.fill(); ctx.restore(); });
+    poly([[0, 1240], [1080, 1240], [1080, 1440], [0, 1440]], '#D9CBB4'); ctx.strokeStyle = 'rgba(120,100,70,0.25)'; ctx.lineWidth = 2;
+    for (let i = -6; i <= 14; i++) { ctx.beginPath(); ctx.moveTo(POD.vp[0] + (i * 90 - POD.vp[0]) * 3, 1440); ctx.lineTo(lerp(POD.vp[0], i * 90, 0.66), 1240); ctx.stroke(); }
+    [1290, 1350, 1420].forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); });
+    const g = ctx.createLinearGradient(0, 1240, 0, 1440); g.addColorStop(0, 'rgba(62,34,16,0)'); g.addColorStop(1, 'rgba(62,34,16,1)'); ctx.fillStyle = g; ctx.fillRect(0, 1240, 1080, 210);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(540, 1248, 250, 20, 0, 0, TAU); ctx.fill(); });
+  // interior: back wall, right wall, ceiling, carpet
+  part(t, 1, () => { const bl = P(x0, y0, 1), br = P(x1, y0, 1), bb = P(x1, y1, 1), ba = P(x0, y1, 1);
+    poly([bl, br, bb, ba], '#4A5058'); poly([[x1, y0], br, bb, [x1, y1]], '#434950'); poly([[x0, y0], [x1, y0], br, bl], '#2B2D31'); poly([[x0, y1], [x1, y1], bb, ba], '#5C6066');
+    ctx.save(); ctx.globalAlpha *= 0.06; ctx.strokeStyle = '#fff'; for (let x = bl[0]; x < br[0]; x += 10) { ctx.beginPath(); ctx.moveTo(x, bl[1]); ctx.lineTo(x, ba[1]); ctx.stroke(); } ctx.restore(); });
+  // furniture: monitor on a rolling stand, mic on a boom, round table, two tan shell chairs
+  part(t, 2, () => { const ps = (x, y, z) => P(x, y, z);
+    let a = ps(690, y1, 0.85), b = ps(690, 980, 0.85); ctx.strokeStyle = '#111'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+    poly([ps(625, 900, 0.85), ps(755, 900, 0.85), ps(755, 985, 0.85), ps(625, 985, 0.85)], '#15171a', '#000', 3);
+    a = ps(470, y1, 0.7); b = ps(470, 1010, 0.7); const m = ps(560, 990, 0.62); ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.lineTo(...m); ctx.stroke(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(m[0], m[1] + 8, 9, 15, 0.3, 0, TAU); ctx.fill();
+    const tb = ps(560, 1110, 0.45); ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(tb[0], tb[1]); ctx.lineTo(tb[0], ps(560, y1, 0.45)[1]); ctx.stroke(); ctx.fillStyle = '#1e1e20'; ctx.beginPath(); ctx.ellipse(tb[0], tb[1], 62, 15, 0, 0, TAU); ctx.fill();
+    [[430, 0.4], [665, 0.35]].forEach(([x, z]) => { const s = 1 - POD.d * z, c = ps(x, 1150, z); ctx.save(); ctx.translate(...c); ctx.scale(s, s);
+      ctx.strokeStyle = '#151515'; ctx.lineWidth = 4; [[-34, 60], [34, 60], [-20, 66], [20, 66]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.moveTo(dx * 0.5, 10); ctx.lineTo(dx, dy + 30); ctx.stroke(); });
+      ctx.fillStyle = '#A86C3E'; ctx.beginPath(); ctx.ellipse(0, 12, 50, 16, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#C98A55'; ctx.beginPath(); ctx.roundRect(-46, -70, 92, 78, [40, 40, 14, 14]); ctx.fill(); ctx.restore(); }); });
+  // ceiling LED bar: the pod's signature, switches on
+  part(t, 3, () => { const on = prog(t, B.led, B.led + F(3)), a = P(x0 + 30, y0, 0.1), b = P(x1 - 20, y0, 0.95), c2 = [lerp(a[0], b[0], 0) , a[1] + 14], d2 = [b[0], b[1] + 6];
+    ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = on > 0 ? '#ffffff' : '#7d8188'; ctx.lineWidth = 7; if (on > 0) { ctx.shadowColor = `rgba(255,255,255,${on})`; ctx.shadowBlur = 20; } ctx.beginPath(); ctx.moveTo(...c2); ctx.lineTo(...d2); ctx.stroke(); ctx.restore();
+    if (on > 0) { ctx.save(); ctx.globalAlpha *= 0.18 * on; const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)'); poly([P(x0, y0, 1), P(x1, y0, 1), P(x1, y1, 1), P(x0, y1, 1)], g); ctx.restore(); } });
+  // glass, frames and the door (hinged on the left, swings out towards us)
+  part(t, 4, () => { const lb = P(x0, y0, 1), lbb = P(x0, y1, 1);
+    poly([[x0, y0], lb, lbb, [x0, y1]], 'rgba(255,255,255,0.08)', '#111', 10);
+    const th = draw(prog(t, B.door[0], B.door[1])) * 35 * Math.PI / 180, ix0 = x0 + 18, ix1 = x1 - 18, iy0 = y0 + 18, iy1 = y1 - 18, wd = ix1 - ix0, rx = ix0 + wd * Math.cos(th), grow = 1 + 0.2 * Math.sin(th), cy = (iy0 + iy1) / 2, ry0 = cy - (cy - iy0) * grow, ry1 = cy + (iy1 - cy) * grow;
+    ctx.lineJoin = 'round'; poly([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], null, '#111', 14);
+    const door = [[ix0, iy0], [rx, ry0], [rx, ry1], [ix0, iy1]]; poly(door, 'rgba(255,255,255,0.08)');
+    ctx.save(); poly(door, null); ctx.clip(); ctx.globalAlpha *= 0.2; ctx.strokeStyle = '#fff'; ctx.lineWidth = 26; [[ix0 + 40, iy1 - 120, ix0 + 260, iy0 + 60], [ix0 + 140, iy1 - 60, ix0 + 330, iy0 + 210]].forEach(([a, b, c, d]) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); }); ctx.restore();
+    ctx.lineWidth = 12; ctx.strokeStyle = '#F4F4F2'; ctx.beginPath(); ctx.moveTo(ix0 + 26, iy0); ctx.lineTo(rx - 26 * Math.cos(th), ry0); ctx.quadraticCurveTo(rx, ry0, rx, ry0 + 26); ctx.lineTo(rx, ry1 - 26); ctx.quadraticCurveTo(rx, ry1, rx - 26 * Math.cos(th), ry1); ctx.lineTo(ix0 + 26, iy1); ctx.quadraticCurveTo(ix0, iy1, ix0, iy1 - 26); ctx.lineTo(ix0, iy0 + 26); ctx.quadraticCurveTo(ix0, iy0, ix0 + 26, iy0); ctx.stroke();
+    ctx.fillStyle = '#111'; ctx.fillRect(rx - 16, cy - 40 * grow, 8, 80 * grow); });
+  ctx.restore();
+  line('PRIVATE', t, B.podA + F(4), null, { y: 340, size: 124, col: C.gold }); line('POD', t, B.podA + F(8), null, { y: 470, size: 124, col: C.white });
+  ['WORK · MEET · RECORD', 'SCREEN + MIC READY', 'QUIET FOCUS'].forEach((s, i) => { const e = ent(t, B.podChips[i], 13); if (e <= 0) return; ctx.save(); ctx.globalAlpha = Math.min(1, e * 1.4); chip(s, 540, 1330 + i * 84 + (1 - e) * 40, { size: 28, align: 'center', fill: 'rgba(36,20,10,0.92)' }); ctx.restore(); });
+}
+// ---------- scene 5: the coffee menu carousel ----------
+const MENU = [['01-latte-heart', 'CAFÉ LATTE'], ['02-matcha-latte', 'MATCHA LATTE'], ['03-mocha-cocoa', 'MOCHA'], ['06-cinnamon-cappuccino', 'CINNAMON CAPPUCCINO'], ['05-latte-heart-gold-spoon', 'SIGNATURE LATTE'], ['04-gold-leaf-latte-biscotti', 'KAFNEO GOLD SPECIAL']];
+const CW = 640, CH = 720, CY = 950, GAP = 600;
+function idx(t) { let v = 0; B.snaps.forEach((s, i) => { v += inQ(prog(t, s, s + F(14))); }); return v; }
+function sMenu(t) {
+  const v = idx(t), push = 1 + 0.15 * draw(prog(t, B.heroPush[0], B.heroPush[1])), dk = draw(prog(t, B.toDot[0], B.toDot[1]));
+  const intro = ent(t, B.menuA, 14);
+  if (dk < 1) MENU.forEach(([k, name], i) => { const d = i - v, ad = Math.abs(d); if (ad > 1.6) return; const near = clamp01(1 - ad), s = lerp(0.82, 1, near) * (i === 5 ? push : 1) * lerp(0.9, 1, intro), x = 540 + d * GAP - (i !== 5 ? outE(dk) * 700 : 0);
+    if (i === 5 && dk > 0) { // the hero card shrinks into the first gold dot of the brand line
+      const cx = lerp(x, 150, dk), cy = lerp(CY, 777, dk), sk = lerp(1, 28 / CW, dk);
+      if (dk < 0.6) { card(IMG[k], cx, cy, CW, CH, { name, s: s * sk }); return; }   // photo stays on the card while it shrinks
+      const m = prog(dk, 0.6, 1), w = lerp(CW * s * sk, 28, m), h = lerp(CH * s * sk, 28, m); ctx.save(); ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - h / 2, w, h, lerp(12, 14, m)); ctx.fillStyle = m > 0.3 ? C.gold : C.cream; ctx.fill(); ctx.restore(); return; }
+    card(IMG[k], x, CY + (1 - intro) * 200, CW, CH, { name, s, alpha: lerp(0.6, 1, near), glowA: i === 5 ? draw(prog(t, B.heroPush[0], B.heroPush[0] + F(30))) : 0 });
+    if (near > 0.85 && dk === 0) { // steam: thin cream strokes rising from the centre cup only
+      ctx.save(); ctx.strokeStyle = 'rgba(246,239,227,0.55)'; ctx.lineWidth = 3; ctx.lineCap = 'round'; for (let j = 0; j < 3; j++) { const ph = (t * 0.6 + j / 3) % 1, x0 = x - 40 + j * 40, yb = CY - CH * s / 2 - 10;
+        ctx.globalAlpha = Math.sin(Math.PI * ph) * (near - 0.85) / 0.15; ctx.beginPath(); for (let k2 = 0; k2 <= 20; k2++) { const yy = yb - k2 * 5 - ph * 60, xx = x0 + 10 * Math.sin(k2 * 0.35 + t * 2 + j); k2 ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); } ctx.stroke(); } ctx.restore(); } });
+  const hk = prog(t, B.toDot[0], B.toDot[0]);
+  line('CRAFTED', t, B.menuA + F(4), B.toDot[0], { y: 330, size: 120, col: C.gold }); line('BY OUR BARISTAS', t, B.menuA + F(8), B.toDot[0], { y: 440, size: 84, col: C.white });
+  line('Double-shot maple latte · 24k gold leaf · biscotti', t, B.snaps[4] + F(18), B.toDot[0], { y: 1420, size: 30, col: C.cream, font: 'Int', weight: 400, track: 0 });
+}
+// ---------- scene 6: brand line, words connected dot to dot ----------
+const WORDS = [['WORK.', 820], ['UNWIND.', 1040], ['CONNECT.', 1260]];
+function sWords(t) {
+  const out = ext(t, B.wordsOut[0], 10), fly = draw(prog(t, B.toLogo[0], B.toLogo[1]));
+  const dots = WORDS.map(([, y]) => [150, y - 43]), dst = [[443, 340], [414, 391], [408, 451]];
+  WORDS.forEach(([w, y], i) => { line(w, t, B.words[i], B.wordsOut[0], { x: 210, y, size: 128, col: i === 1 ? C.gold : C.white, align: 'left' }); });
+  if (fly < 1) { ctx.save(); ctx.globalAlpha = 1 - fly; for (let i = 0; i < 2; i++) { const k = draw(prog(t, B.words[i] + F(6), B.words[i] + F(16))); const [a, b] = [dots[i], dots[i + 1]]; ray(a[0], a[1], b[0], b[1], k, 0); } ctx.restore(); }
+  dots.forEach((d, i) => { const on = i === 0 ? (t >= B.toDot[1] ? 1 : 0) : inQ(prog(t, B.words[i] - F(2), B.words[i] + F(6))); if (on <= 0) return; const p = [lerp(d[0], dst[i][0], fly), lerp(d[1], dst[i][1], fly)]; ctx.fillStyle = C.gold; ctx.beginPath(); ctx.arc(p[0], p[1], lerp(14, 9, fly) * on, 0, TAU); ctx.fill(); });
+}
+// ---------- scene 7: CTA ----------
+function sCTA(t) {
+  logo(Math.min(t, B.still), B.cta - F(6), 0.28, [540, 450], 1.6);   // frozen for the final 15 frames
+  line('COME', t, B.cta, null, { y: 770, size: 124, col: C.gold }); line('THROUGH.', t, B.cta + F(4), null, { y: 890, size: 124, col: C.white });
+  const ch = [['WALK IN', 540 - 12, 1010, 'right'], ['DINE IN', 540 + 12, 1010, 'left'], ['CALL TO ORDER', 540, 1100, 'center']];
+  ch.forEach(([s, x, y, al], i) => { const e = ent(t, B.ctaChips[i], 13); if (e <= 0) return; ctx.save(); ctx.globalAlpha = Math.min(1, e * 1.4); chip(s, x, y + (1 - e) * 30, { size: 28, align: al }); ctx.restore(); });
+  line('PASEA ROAD, TUNAPUNA', t, B.addr, null, { y: 1230, size: 30, col: C.cream, font: 'Int', weight: 600, track: 0.2 });
+  line('OPEN DAILY · 6AM–6PM · @KAFNEO', t, B.addr + F(4), null, { y: 1290, size: 26, col: C.gold, font: 'Int', weight: 600, track: 0.2 });
+}
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); bg();
+  const Z = 1 + 0.0025 * Math.min(t, B.still); ctx.translate(540, 960); ctx.scale(Z, Z); ctx.translate(-540, -960);   // one slow push; frozen for the last 15 frames
+  const sw = (w, a, b) => t >= a && t < b;
+  if (t < B.wipe1 + F(12)) { if (t < B.chips[0] + F(6)) sHook(t); sTension(t); }
+  else if (t < B.wipe2 + F(12)) sLogo(t);
+  else if (t < B.wipe3 + F(12)) sPod(t);
+  else if (t < B.words[0]) sMenu(t);
+  else if (t < B.cta) { sMenu(t); sWords(t); }
+  else { sWords(t); sCTA(t); }
+  if (t >= B.toDot[0] && t < B.words[0]) sWords(t);
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); vignette();
+  [B.wipe1, B.wipe2, B.wipe3].forEach(w => facetWipe(t, w));
+}
+function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(Math.max(0, t + (i / (MB - 1) - 0.5) * 0.0167)); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('800 120px Pop'), document.fonts.load('600 30px Int'), document.fonts.load('400 30px Int'),
+  ...MENU.map(([k]) => img(`hi/${k}.png`)), ...['line', 'globe', 'rays', 'word', 'coffee', 'leaves'].map(k => img(`hi/logo_${k}.png`))]).then(([, , , ...ims]) => {
+  MENU.forEach(([k], i) => IMG[k] = ims[i]); ['line', 'globe', 'rays', 'word', 'coffee', 'leaves'].forEach((k, i) => LG[k] = ims[6 + i]);
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

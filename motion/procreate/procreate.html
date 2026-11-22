@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Procreate spec ad v4</title>
+<style>
+  @font-face { font-family: Head; src: url("fonts/figtree-latin-600-normal.woff2"); font-weight: 600; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// Procreate spec ad v4 (portfolio piece, not affiliated). Page contract: renderAt(t), TOTAL, ready, ?t=, ?scale=, ?mb= (motion blur sub-frames).
+// One idea: everything comes out of the logo and goes back into it. The dark rounded square changes shape; the swoosh's
+// seven colour bands become brush strokes, a QuickShape loop, the colour ring, ink, a recolour sweep, gallery tiles, and the swoosh again.
+// ---------- every beat lives here ----------
+const B = {
+  wmOut: [1.55, 1.95], squash: [1.70, 1.95], quant: [1.75, 2.10],
+  stretch: [2.05, 2.60], split: [2.50, 3.10], toCards: [2.15, 3.40], labels: [2.95, 3.45], sixB: [3.30, 3.60], brushCap: [3.10, 4.90],
+  cardsOut: [5.25, 5.85], curl: [5.35, 6.75], roughCap: [5.70, 7.05], snap: [7.15, 7.45], quickCap: [7.45, 9.00],
+  discFill: [8.50, 8.95], toRing: [8.55, 9.55], spin: 9.40, discGrad: [8.90, 9.30], selector: [9.55, 10.35], colourCap: [9.35, 10.85],
+  toCanvas: [11.00, 11.60], toLines: [11.00, 11.70], retract: [11.50, 12.25], draw: [11.60, 13.60], drawCap: [12.00, 14.20],
+  toIso: [15.30, 16.15], separate: [15.95, 16.85], tags: [16.55, 17.10], layerCap: [16.60, 18.30],
+  sweeps: [18.55, 19.15, 19.75, 20.35], sweepDur: 0.55, recolCap: [18.75, 20.90],
+  merge: [21.00, 21.45], toTile: [21.30, 21.95], tilesIn: [21.80, 23.20], galleryCap: [22.40, 24.10], flipBack: [24.30, 24.85],
+  toSwoosh: [24.90, 26.10], toIcon: [24.95, 25.85], unquant: [26.20, 26.55],
+  wmIn: [26.80, 27.30], cta: [27.70, 28.20], spec: [28.30, 28.70], END: 30.0,
+};
+// round 3: tighten the two long holds (brush cards -0.3s, finished drawing -0.6s)
+for (const k in B) { if (k === 'sweepDur') continue; const sh = v => v - (v >= 5.2 ? 0.3 : 0) - (v >= 15 ? 0.6 : 0); B[k] = Array.isArray(B[k]) ? B[k].map(sh) : sh(B[k]); }
+// ---------------------------------------------------------------------------
+const W = 1920, H = 1080, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const out = cv.getContext('2d');
+const work = document.createElement('canvas'); work.width = cv.width; work.height = cv.height; const ctx = work.getContext('2d');
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a)), pr = (t, w) => prog(t, w[0], w[1]);
+const ease = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }, outC = k => 1 - Math.pow(1 - clamp01(k), 3), inC = k => Math.pow(clamp01(k), 3), sine = k => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(k));
+const TAU = Math.PI * 2, BG = '#0c0c0d';
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), mix = (a, b, k) => { const A = hex(a), C = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, C[i], clamp01(k)))).join(',')})`; };
+const COL = ['#41c4aa', '#2aa3d8', '#6949c5', '#e75ad4', '#f64c88', '#f9732c', '#f9c03c'];   // sampled from the logo, upper edge to lower edge
+const stag = (t, w, i, st = 0.06, n = 7) => ease(prog(t, w[0] + i * st, w[1] - (n - 1 - i) * st));
+const NP = 64, S = Array.from({ length: NP }, (_, j) => j / (NP - 1));
+// ---------- layout (one spacing scale: 8px steps) ----------
+const IC = { x: 960, y: 470, s: 376 }, CARD = { w: 760, h: 72, gap: 16, cy: 488 }, cardTop = CARD.cy - (7 * CARD.h + 6 * CARD.gap) / 2, cardY = i => cardTop + i * (CARD.h + CARD.gap);
+const RING = { x: 960, y: 496, r: 264, w: 64 }, DISC = 168, CANV = { x: 960, y: 496, w: 528, h: 760 }, TILE = { w: 360, h: 248, gx: 384, gy: 272 }, PIV = [960, 520];
+const NAMES = ['Peppermint', '6B Pencil', 'Derwent', 'Procreate Pencil', 'Technical Pencil', 'HB Pencil', 'Narinder Pencil'];
+const CELLS = [[0, 0, 'kafneo'], [0, 1, null], [0, 2, 'jad'], [1, 2, 'anime'], [2, 2, null], [2, 1, 'sig'], [2, 0, null], [1, 0, 'red']];
+const cellXY = (r, c) => [960 + (c - 1) * TILE.gx, 520 + (r - 1) * TILE.gy];
+// iso: f = 0 flat, f = 1 the canvas lies on a tilted table
+function isoM(f) { const th = Math.PI / 4 * f, sq = lerp(1, 0.56, f), k = lerp(1, 0.78, f); return [Math.cos(th) * k, Math.sin(th) * sq * k, -Math.sin(th) * k, Math.cos(th) * sq * k]; }
+const isoPt = ([x, y], f, z = 0) => { const [a, b, c, d] = isoM(f), dx = x - PIV[0], dy = y - PIV[1]; return [PIV[0] + a * dx + c * dy, PIV[1] + b * dx + d * dy - z]; };
+function withIso(f, z, fn) { const [a, b, c, d] = isoM(f); ctx.save(); ctx.translate(PIV[0], PIV[1] - z); ctx.transform(a, b, c, d, 0, 0); ctx.translate(-PIV[0], -PIV[1]); fn(); ctx.restore(); }
+const isoF = t => t < B.toSwoosh[0] ? ease(pr(t, B.toIso)) : 1;
+// ---------- band shapes: two edges of NP points each, so any shape can morph into any other ----------
+let SW;
+const toIcon = ([u, v]) => [IC.x - IC.s / 2 + u * IC.s, IC.y - IC.s / 2 + v * IC.s];
+function resample(arr) { const n = arr.length; return S.map(s => { const x = s * (n - 1), i = Math.min(n - 2, Math.floor(x)), f = x - i; return [lerp(arr[i][0], arr[i + 1][0], f), lerp(arr[i][1], arr[i + 1][1], f)]; }); }
+let SWR;
+function shapeSwoosh(i) { const L = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k)]; return { e0: SWR.up.map((u, j) => toIcon(L(u, SWR.lo[j], i / 7))), e1: SWR.up.map((u, j) => toIcon(L(u, SWR.lo[j], (i + 1) / 7))) }; }
+function fromCentre(pts, w) { const e0 = [], e1 = []; pts.forEach((p, j) => { const a = pts[Math.max(0, j - 1)], b = pts[Math.min(pts.length - 1, j + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, nx = dy / l, ny = -dx / l, hw = w[j] / 2;
+  e0.push([p[0] + nx * hw, p[1] + ny * hw]); e1.push([p[0] - nx * hw, p[1] - ny * hw]); }); return { e0, e1 }; }
+const cardDX = (t, i) => (i % 2 ? 1 : -1) * inC(prog(t, B.cardsOut[0] + i * 0.03, B.cardsOut[1] + i * 0.03)) * 1500;   // leaving: ease in
+function shapeCard(i, t) { const y = cardY(i) + CARD.h * 0.64, x0 = 960 - CARD.w / 2 + 304, x1 = 960 + CARD.w / 2 - 40, dx = i === 1 ? 0 : cardDX(t, i);
+  return fromCentre(S.map(s => [lerp(x0, x1, s) + dx, y + Math.sin(s * Math.PI * 2 + i) * 3]), S.map(s => (i === 1 ? 8 : 7) * (0.35 + 0.65 * Math.pow(Math.sin(Math.PI * s), 0.5)))); }
+const ringRot = t => 0.12 * Math.max(0, t - B.spin);
+function shapeRing(i, t) { const seg = TAU / 7, a0 = -Math.PI / 2 + i * seg + 0.02, a1 = a0 + seg - 0.04, rot = ringRot(t);
+  return fromCentre(S.map(s => { const a = lerp(a0, a1, s) + rot; return [RING.x + RING.r * Math.cos(a), RING.y + RING.r * Math.sin(a)]; }), S.map(() => RING.w)); }
+function shapeLoop(wob) {   // the hand-drawn QuickShape loop; wob 1 = rough, 0 = perfect circle
+  return fromCentre(S.map(s => { const a = -Math.PI * 0.62 + s * TAU * 1.02, r = DISC + wob * (10 * Math.sin(3 * a + 1) + 6 * Math.sin(5 * a + 2) + 14 * s);
+    return [RING.x + r * Math.cos(a), RING.y + r * Math.sin(a) * (1 - 0.05 * wob)]; }), S.map(s => 8 * (0.55 + 0.45 * Math.sin(Math.PI * Math.min(1, s * 1.15))))); }
+const TARGETS = [[860, 300], [1080, 340], [1050, 520], [880, 600], [1090, 700], [850, 780], [980, 820]];
+function shapeLine(i, t) {   // ring segment unwinds into a curved, tapered ink line that lands on the paper
+  const seg = TAU / 7, a = -Math.PI / 2 + (i + 0.5) * seg + ringRot(t), o = [RING.x + (RING.r + 60) * Math.cos(a), RING.y + (RING.r + 60) * Math.sin(a)], p = TARGETS[i];
+  const mx = (o[0] + p[0]) / 2 + (i % 2 ? 1 : -1) * 110, my = (o[1] + p[1]) / 2 + (i % 2 ? -1 : 1) * 60;
+  return fromCentre(S.map(s => [(1 - s) ** 2 * o[0] + 2 * (1 - s) * s * mx + s * s * p[0], (1 - s) ** 2 * o[1] + 2 * (1 - s) * s * my + s * s * p[1]]), S.map(s => lerp(1.5, 6, s))); }
+function shapeTile(k) { const [x, y] = cellXY(CELLS[k][0], CELLS[k][1]), sh = fromCentre(S.map(s => [lerp(x - TILE.w / 2, x + TILE.w / 2, s), y]), S.map(() => TILE.h)); return { e0: sh.e0.map(p => isoPt(p, 1)), e1: sh.e1.map(p => isoPt(p, 1)) }; }
+const morph = (A, C, e) => ({ e0: A.e0.map((p, j) => [lerp(p[0], C.e0[j][0], e), lerp(p[1], C.e0[j][1], e)]), e1: A.e1.map((p, j) => [lerp(p[0], C.e1[j][0], e), lerp(p[1], C.e1[j][1], e)]) });
+function fillBand(sh, col, from = 0) { const j0 = Math.floor(from * (NP - 1)); if (j0 >= NP - 1) return; ctx.beginPath();
+  for (let j = j0; j < NP; j++) { const p = sh.e0[j]; j === j0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]); } for (let j = NP - 1; j >= j0; j--) ctx.lineTo(sh.e1[j][0], sh.e1[j][1]);
+  ctx.closePath(); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 0.7; ctx.strokeStyle = col; ctx.stroke(); }
+const tileBack = k => k === 7 ? '#242424' : COL[k];
+function band(i, t) {
+  if (t >= B.toSwoosh[0]) return { sh: morph(shapeTile(i), shapeSwoosh(i), stag(t, B.toSwoosh, i)), col: tileBack(i), from: 0 };
+  const eC = stag(t, B.toCards, i), eR = stag(t, B.toRing, i, 0.05), eL = stag(t, B.toLines, i, 0.04), eX = stag(t, B.retract, i, 0.04);
+  let sh = shapeSwoosh(i), col = COL[i], from = 0;
+  if (eC > 0) sh = morph(sh, shapeCard(i, t), eC);
+  if (i === 1) {   // the 6B stroke turns white, lifts off its card, curls into a rough loop, then QuickShape snaps it round
+    col = mix(COL[1], '#ffffff', ease(pr(t, B.sixB)));
+    const c = ease(pr(t, B.curl)), sn = outC(pr(t, B.snap)), wob = 1 - sn;
+    if (c > 0) sh = morph(shapeCard(1, t), shapeLoop(wob), c);
+    if (eR > 0) { sh = morph(shapeLoop(0), shapeRing(1, t), eR); col = mix('#ffffff', COL[1], eR); }
+  } else if (eR > 0) sh = morph(shapeCard(i, t), shapeRing(i, t), eR);
+  if (eL > 0) { sh = morph(shapeRing(i, t), shapeLine(i, t), eL); col = mix(COL[i], '#111111', prog(eL, 0.6, 1)); from = eX; }
+  if (eX >= 1) return null; return { sh, col, from };
+}
+// ---------- pieces ----------
+let swImg, wmImg, catImg, catData, revealT, catTmp, art = {}, corner = {}, layers = {}, recol = [];
+const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, Math.max(0, Math.min(r, w / 2, h / 2))); };
+function icon(swAlpha, sq = 1) { ctx.save(); ctx.translate(IC.x, IC.y); ctx.scale(sq, sq); ctx.translate(-IC.x, -IC.y); rr(IC.x, IC.y, IC.s, IC.s, IC.s * 0.225); ctx.fillStyle = '#242424'; ctx.fill();
+  if (swAlpha > 0) { ctx.save(); rr(IC.x, IC.y, IC.s, IC.s, IC.s * 0.225); ctx.clip(); ctx.globalAlpha = swAlpha; ctx.drawImage(swImg, IC.x - IC.s / 2, IC.y - IC.s / 2, IC.s, IC.s); ctx.restore(); } ctx.restore(); }
+function wordmark(k, outK = 0) { const ww = 464, wh = ww * wmImg.height / wmImg.width, x = 960 - ww / 2, y = 664; if (k <= 0) return;
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 10, y - 6, ww + 20, wh + 12); ctx.clip(); ctx.drawImage(wmImg, x, y + ((1 - k) + outK) * wh * 1.3, ww, wh); ctx.restore(); }
+function words(str, t, tin, tout, { y = 992, size = 52, col = '#fff' } = {}) {
+  if (t < tin || t > tout + 0.45) return; ctx.save(); ctx.font = `600 ${size}px Head, sans-serif`; ctx.letterSpacing = (-size * 0.025) + 'px';
+  const ws = str.split(' '), sp = ctx.measureText(' ').width, wd = ws.map(w => ctx.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let x = W / 2 - tot / 2;
+  ws.forEach((w, i) => { const e = outC(prog(t, tin + i * 0.07, tin + i * 0.07 + 0.36)), o = inC(prog(t, tout + i * 0.04, tout + i * 0.04 + 0.3)), dy = (1 - e) * size * 1.25 - o * size * 1.25;
+    if (e > 0 && o < 1) { ctx.save(); ctx.beginPath(); ctx.rect(x - 8, y - size * 1.05, wd[i] + 16, size * 1.4); ctx.clip(); ctx.fillStyle = col; ctx.fillText(w, x, y + dy); ctx.restore(); } x += wd[i] + sp; });
+  ctx.restore();
+}
+function cards(t) {
+  const st = ease(pr(t, B.stretch)), sp = ease(pr(t, B.split)), H7 = 7 * CARD.h + 6 * CARD.gap, col = mix('#242424', '#2B2B2E', st);
+  if (sp <= 0) { rr(960, lerp(IC.y, CARD.cy, st), lerp(IC.s, CARD.w, st), lerp(IC.s, H7, st), lerp(IC.s * 0.225, 16, st)); ctx.fillStyle = col; ctx.fill(); return; }
+  for (let i = 0; i < 7; i++) {
+    const y0 = cardTop + i * (H7 / 7) + H7 / 14, y1 = cardY(i) + CARD.h / 2, y = lerp(y0, y1, sp), h = lerp(H7 / 7 + 0.5, CARD.h, sp), dx = cardDX(t, i);
+    rr(960 + dx, y, CARD.w, h, lerp(2, 16, sp)); ctx.fillStyle = i === 1 ? mix('#2B2B2E', '#0B7BFF', ease(pr(t, B.sixB))) : col; ctx.fill();
+    const le = outC(prog(t, B.labels[0] + i * 0.05, B.labels[1] + i * 0.05)); if (le > 0) { ctx.save(); ctx.beginPath(); ctx.rect(960 - CARD.w / 2 + 16 + dx, y - h / 2 + 8, 300, 40); ctx.clip();
+      ctx.font = '600 24px Head, sans-serif'; ctx.fillStyle = '#F2F2F4'; ctx.fillText(NAMES[i], 960 - CARD.w / 2 + 32 + dx, y - h / 2 + 40 + (1 - le) * 34); ctx.restore(); }
+  }
+}
+function quickHint(t) {   // a thin progress arc while the pencil "holds", like QuickShape's hold
+  const h = prog(t, B.curl[1] + 0.05, B.snap[0]); if (h <= 0 || t > B.snap[1] + 0.25) return; const a = 1 - prog(t, B.snap[1], B.snap[1] + 0.25);
+  ctx.save(); ctx.globalAlpha = a * 0.85; ctx.beginPath(); ctx.arc(RING.x, RING.y - DISC - 64, 18, -Math.PI / 2, -Math.PI / 2 + TAU * h); ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.restore();
+}
+function disc(t) {   // blue fills the snapped circle, turns into the colour disc, then squares off into the canvas
+  const f = outC(pr(t, B.discFill)), c = ease(pr(t, B.toCanvas)); if (f <= 0 || t > B.toCanvas[1] + 0.05) return;
+  const y = lerp(RING.y, CANV.y, c), w = lerp(DISC * 2 * f, CANV.w, c), h = lerp(DISC * 2 * f, CANV.h, c), r = lerp(DISC * f, 24, c);
+  rr(960, y, w, h, r); ctx.fillStyle = '#0B7BFF'; ctx.fill();
+  const g = ease(pr(t, B.discGrad)) * (1 - c); if (g > 0) { ctx.save(); rr(960, y, w, h, r); ctx.clip(); ctx.globalAlpha = g;
+    const lg = ctx.createLinearGradient(960 - w / 2, 0, 960 + w / 2, 0); lg.addColorStop(0, '#ffffff'); lg.addColorStop(1, '#0B37FF'); ctx.fillStyle = lg; ctx.fillRect(960 - w / 2, y - h / 2, w, h);
+    const vg = ctx.createLinearGradient(0, y - h / 2, 0, y + h / 2); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,1)'); ctx.fillStyle = vg; ctx.fillRect(960 - w / 2, y - h / 2, w, h); ctx.restore(); }
+  if (c > 0) { ctx.globalAlpha = prog(c, 0, 0.6); rr(960, y, w, h, r); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.globalAlpha = 1; }
+}
+function selector(t) { const e = ease(pr(t, B.selector)); if (e <= 0 || t > B.toCanvas[0] + 0.2) return; const seg = TAU / 7, a = lerp(-Math.PI / 2 + seg * 0.5, -Math.PI / 2 + seg * 1.5, e) + ringRot(t), x = RING.x + RING.r * Math.cos(a), y = RING.y + RING.r * Math.sin(a);
+  ctx.globalAlpha = Math.min(outC(e * 4), 1 - prog(t, B.toCanvas[0], B.toCanvas[0] + 0.2)); ctx.beginPath(); ctx.arc(x, y, 26, 0, TAU); ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.globalAlpha = 1; }
+let lastP = -1;
+function catRevealed(p) { if (p === lastP) return catTmp; lastP = p; const w = catImg.width, h = catImg.height, o2 = catTmp.getContext('2d').createImageData(w, h), d = catData.data, o = o2.data;
+  for (let i = 0; i < w * h; i++) { const a = clamp01((p - revealT[i]) / 0.05); o[i * 4] = lerp(255, d[i * 4], a); o[i * 4 + 1] = lerp(255, d[i * 4 + 1], a); o[i * 4 + 2] = lerp(255, d[i * 4 + 2], a); o[i * 4 + 3] = 255; }
+  catTmp.getContext('2d').putImageData(o2, 0, 0); return catTmp; }
+const catFit = (w, h, im = catImg) => { const sc = Math.min((w - 40) / im.width, (h - 40) / im.height); return [im.width * sc, im.height * sc]; };
+const drawnDone = t => t >= B.draw[1] + 0.05;
+function sweepState(t) {   // which recolour version is showing, and how far the next one has wiped across
+  let base = -1, next = -1, k = 0; B.sweeps.forEach((s, i) => { const e = prog(t, s, s + B.sweepDur); if (e >= 1) base = i === 3 ? -1 : i; else if (e > 0) { next = i === 3 ? -1 : i; k = ease(e); } });
+  return { base, next, k, active: t > B.sweeps[0] && t < B.sweeps[3] + B.sweepDur };
+}
+function paper(t) {   // the canvas: drawing, then layers on a tilted table, then a gallery tile
+  if (t < B.toCanvas[1] - 0.1 || t >= B.flipBack[0] + 0.3) return;
+  const f = isoF(t), sepE = ease(pr(t, B.separate)) * (1 - ease(pr(t, B.merge))), tt = ease(pr(t, B.toTile)), flip = 180 * ease(pr(t, B.flipBack));
+  const w = lerp(CANV.w, TILE.w, tt) * Math.abs(Math.cos(flip * Math.PI / 180)), h = lerp(CANV.h, TILE.h, tt), y = lerp(CANV.y, 520, tt), r = lerp(24, 10, tt), sep = 150 * sepE;
+  if (flip >= 90) { withIso(f, 0, () => { rr(960, y, w, h, r); ctx.fillStyle = '#242424'; ctx.fill(); }); return; }
+  const drawn = t < B.draw[1] + 0.05;
+  const PAPER = ['#ffffff', ...[[6, 0.26], [3, 0.22], [0, 0.26]].map(([c, k]) => mix('#ffffff', COL[c], k))], swp = drawnDone(t) ? sweepState(t) : { base: -1, next: -1, k: 0 };
+  withIso(f, -sep, () => { rr(960, y, w, h, r); ctx.fillStyle = PAPER[swp.base + 1]; ctx.fill();
+    if (swp.k > 0) { const [iw0] = catFit(w, h); ctx.save(); rr(960, y, w, h, r); ctx.clip(); ctx.beginPath(); ctx.rect(960 - iw0 / 2 - 40, y - h / 2, (iw0 + 80) * swp.k, h); ctx.fillStyle = PAPER[swp.next + 1]; ctx.fill(); ctx.restore(); } });
+  const [iw, ih] = catFit(w, h), place = () => [960 - iw / 2, y - ih / 2, iw, ih];
+  if (drawn) { const p = Math.pow(sine(pr(t, B.draw)), 0.85) * 1.02; withIso(f, 0, () => { ctx.save(); rr(960, y, w, h, r); ctx.clip(); ctx.drawImage(catRevealed(p), ...place()); ctx.restore(); });
+    if (p > 0 && p < 0.8) { const rows = 7, pp = p / 0.8 * rows, row = Math.min(rows - 1, Math.floor(pp)), xx = row % 2 ? 1 - (pp - row) : pp - row;
+      ctx.beginPath(); ctx.arc(960 - iw / 2 + xx * iw, y - ih / 2 + (row + 0.5) / rows * ih, 14, 0, TAU); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(17,17,17,0.7)'; ctx.stroke(); } return; }
+  const sw = sweepState(t);
+  // colour layer (with recolour sweep), then line art on top; each lifts off the table by sep
+  withIso(f, 0, () => { ctx.save(); rr(960, y, w, h, r); ctx.clip(); ctx.drawImage(sw.base < 0 ? layers.colour : recol[sw.base], ...place());
+    if (sw.next !== -2 && sw.k > 0) { const [x0, y0] = place(); ctx.beginPath(); ctx.rect(x0 - 40, y0 - 40, (iw + 80) * sw.k, ih + 80); ctx.clip(); ctx.drawImage(sw.next < 0 ? layers.colour : recol[sw.next], ...place());
+      ctx.fillStyle = sw.next < 0 ? '#ffffff' : COL[[6, 3, 0][sw.next]]; ctx.fillRect(x0 - 40 + (iw + 80) * sw.k - 10, y0 - 40, 10, ih + 80); }
+    ctx.restore(); if (sepE > 0.02) { ctx.globalAlpha = sepE; rr(960, y, w, h, r); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.stroke(); ctx.globalAlpha = 1; } });
+  withIso(f, sep, () => { ctx.save(); rr(960, y, w, h, r); ctx.clip(); ctx.globalAlpha = 1 - sepE; ctx.drawImage(layers.line, ...place()); ctx.globalAlpha = sepE; ctx.drawImage(layers.lineW, ...place()); ctx.restore(); if (sepE > 0.02) { ctx.globalAlpha = sepE; rr(960, y, w, h, r); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.stroke(); ctx.globalAlpha = 1; } });
+  const te = outC(pr(t, B.tags)) * (1 - ease(pr(t, B.merge))); if (te > 0) [['Paper', -sep], ['Colour', 0], ['Line art', sep]].forEach(([n, z], i) => {
+    const [px, py] = isoPt([960 + w / 2, y - h / 2], f, z); ctx.save(); ctx.font = '600 26px Head, sans-serif'; const tw = ctx.measureText(n).width; ctx.beginPath(); ctx.rect(px + 24, py - 34, tw + 16, 44); ctx.clip();
+    ctx.fillStyle = '#F2F2F4'; ctx.fillText(n, px + 32, py + (1 - outC(prog(te, i * 0.15, 1))) * 40); ctx.restore(); });
+}
+const ripple = k => { const [r, c] = CELLS[k]; return Math.hypot(r - 1, c - 1) * 0.22 + k * 0.05; };
+function flipAngle(t, k) { const a = B.tilesIn[0] + ripple(k), e = ease(prog(t, a, a + 0.7)), b = ease(prog(t, B.flipBack[0] + k * 0.03, B.flipBack[1] + k * 0.03 - 0.21)); return t < B.flipBack[0] ? lerp(-270, 0, e) : 180 * b; }
+function tiles(t) {
+  if (t < B.tilesIn[0] || t >= B.toSwoosh[0] + 0.6) return;
+  CELLS.forEach(([r, c, key], k) => { if (k < 7 && t >= B.toSwoosh[0]) return;
+    let [x, y] = cellXY(r, c); const ph = flipAngle(t, k), sx = Math.abs(Math.cos(ph * Math.PI / 180)); if (sx < 0.004) return;
+    const back = Math.cos(ph * Math.PI / 180) < 0 || ph >= 90, m = k === 7 ? ease(pr(t, [B.toSwoosh[0], B.toSwoosh[0] + 0.55])) : 0; x = lerp(x, 960, m); y = lerp(y, 520, m);
+    withIso(1, 0, () => { ctx.save(); rr(x, y, TILE.w * sx * (1 - m * 0.4), TILE.h * (1 - m * 0.4), 10); ctx.fillStyle = back || !key ? tileBack(k) : corner[key]; ctx.fill();
+      if (!back && key) { ctx.clip(); const im = art[key], sc = Math.min((TILE.w - 24) / im.width, (TILE.h - 24) / im.height); ctx.translate(x, y); ctx.scale(sx, 1); ctx.drawImage(im, -im.width * sc / 2, -im.height * sc / 2, im.width * sc, im.height * sc); }
+      ctx.restore(); }); });
+}
+function centreToIcon(t) { if (t < B.toSwoosh[0]) return; const e = ease(pr(t, B.toIcon));   // the middle tile lifts off the table and becomes the icon square
+  withIso(1 - e, 0, () => { rr(960, lerp(520, IC.y + (PIV[1] - IC.y) * 0 , e) , lerp(TILE.w, IC.s, e), lerp(TILE.h, IC.s, e), lerp(10, IC.s * 0.225, e)); ctx.fillStyle = '#242424'; ctx.fill(); }); }
+// ---------- frame ----------
+function frame(t) {
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+  const Z = 1 + 0.0025 * t; ctx.translate(960, 540); ctx.scale(Z, Z); ctx.translate(-960, -540);   // one slow push for the whole film
+  const qv = ease(pr(t, B.quant)), uq = ease(pr(t, B.unquant)), sq = 1 - 0.05 * Math.sin(Math.PI * pr(t, B.squash));
+  if (t < B.stretch[0]) { icon(1, sq); wordmark(1, ease(pr(t, B.wmOut))); }
+  else if (t < B.cardsOut[1] + 0.3) cards(t);
+  disc(t); paper(t); tiles(t); centreToIcon(t);
+  if (t >= B.toIcon[1]) icon(uq);
+  if (t >= B.quant[0] && t < B.unquant[1]) { ctx.save(); ctx.globalAlpha = t < B.stretch[0] ? qv : (t >= B.unquant[0] ? 1 - uq : 1);
+    if (t < B.stretch[0]) { ctx.translate(IC.x, IC.y); ctx.scale(sq, sq); ctx.translate(-IC.x, -IC.y); rr(IC.x, IC.y, IC.s, IC.s, IC.s * 0.225); ctx.clip(); }
+    for (let i = 6; i >= 0; i--) { const b = band(i, t); if (b) fillBand(b.sh, b.col, b.from); } ctx.restore(); }
+  quickHint(t); selector(t);
+  if (t >= B.wmIn[0]) { wordmark(outC(pr(t, B.wmIn))); words('On the App Store.', t, B.cta[0], 99, { y: 840, size: 40, col: '#F2F2F4' }); words('Spec ad. Not affiliated with Procreate.', t, B.spec[0], 99, { y: 1024, size: 22, col: '#A6A6AE' }); }
+  words('Pick a brush.', t, B.brushCap[0], B.brushCap[1]); words('Sketch it rough.', t, B.roughCap[0], B.roughCap[1]); words('QuickShape snaps it clean.', t, B.quickCap[0], B.quickCap[1]);
+  words('Pick a colour.', t, B.colourCap[0], B.colourCap[1]); words('Then draw.', t, B.drawCap[0], B.drawCap[1]); words('Layer by layer.', t, B.layerCap[0], B.layerCap[1]);
+  words('Recolour with a swipe.', t, B.recolCap[0], B.recolCap[1]); words('Keep every piece.', t, B.galleryCap[0], B.galleryCap[1]);
+}
+function render(t) {   // motion blur: average MB sub-frames across a half-frame shutter
+  out.setTransform(1, 0, 0, 1, 0, 0);
+  if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
+  for (let i = 0; i < MB; i++) { frame(t + (i / (MB - 1) - 0.5) * 0.02); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1;
+}
+const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+window.TOTAL = B.END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('600 52px Head'), fetch('hi/bands.json').then(r => r.json()), img('hi/swoosh.png'), img('hi/wordmark.svg'), img('hi/cat.png'),
+  ...['kafneo', 'jad', 'red', 'anime', 'sig'].map(k => img(`hi/${k}.png`))]).then(([_, bj, sw, wm, cat, ...ims]) => {
+  SW = bj; SWR = { up: resample(bj.up), lo: resample(bj.lo) }; swImg = sw; wmImg = wm; catImg = cat; ['kafneo', 'jad', 'red', 'anime', 'sig'].forEach((k, i) => art[k] = ims[i]);
+  for (const k in art) { const c = document.createElement('canvas'); c.width = c.height = 4; const g = c.getContext('2d'); g.drawImage(art[k], 3, 3, 4, 4, 0, 0, 4, 4); const p = g.getImageData(0, 0, 1, 1).data; corner[k] = '#' + [p[0], p[1], p[2]].map(v => v.toString(16).padStart(2, '0')).join(''); }
+  const w = cat.width, h = cat.height; catTmp = document.createElement('canvas'); catTmp.width = w; catTmp.height = h; const g = catTmp.getContext('2d'); g.drawImage(cat, 0, 0); catData = g.getImageData(0, 0, w, h);
+  revealT = new Float32Array(w * h); const d = catData.data, rows = 7;
+  const mkL = () => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }, lineC = mkL(), colC = mkL(), lD = lineC.getContext('2d').createImageData(w, h), cD = colC.getContext('2d').createImageData(w, h);
+  const pal = [6, 3, 0].map(i => hex(COL[i])), rD = pal.map(() => colC.getContext('2d').createImageData(w, h));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y * w + x) * 4, r0 = d[i], g0 = d[i + 1], b0 = d[i + 2], mx = Math.max(r0, g0, b0), mn = Math.min(r0, g0, b0), sat = mx ? (mx - mn) / mx : 0, edge = x < 6 || y < 6 || x > w - 7 || y > h - 7;
+    const row = Math.min(rows - 1, Math.floor(y / h * rows)), xx = row % 2 ? 1 - x / w : x / w, path = (row + xx) / rows, noise = (Math.sin(x * 0.11 + y * 0.07) + Math.sin(x * 0.031 - y * 0.05)) * 0.012;
+    revealT[y * w + x] = edge ? 9 : sat > 0.25 && mx > 60 ? 0.55 + path * 0.42 + noise : path * 0.8 + noise;
+    const isCol = sat > 0.22 && mx > 50 && !edge, dark = edge ? 0 : clamp01((235 - mx) / 180);
+    if (isCol) { cD.data.set([r0, g0, b0, 255], i); const L = (0.3 * r0 + 0.59 * g0 + 0.11 * b0) / 255; pal.forEach((p, k) => rD[k].data.set([p[0] * (0.35 + 0.75 * L), p[1] * (0.35 + 0.75 * L), p[2] * (0.35 + 0.75 * L), 255].map(v => Math.min(255, v)), i)); }
+    else if (dark > 0.05) { lD.data.set([17, 17, 17, 255 * dark], i); } }
+  lineC.getContext('2d').putImageData(lD, 0, 0); const lineW = mkL(), wD = lineW.getContext('2d').createImageData(w, h); for (let i = 0; i < w * h; i++) { wD.data[i * 4] = wD.data[i * 4 + 1] = wD.data[i * 4 + 2] = 242; wD.data[i * 4 + 3] = lD.data[i * 4 + 3]; } lineW.getContext('2d').putImageData(wD, 0, 0); colC.getContext('2d').putImageData(cD, 0, 0); layers = { line: lineC, lineW, colour: colC };
+  recol = rD.map(id => { const c = mkL(); c.getContext('2d').putImageData(id, 0, 0); return c; });
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % B.END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>
