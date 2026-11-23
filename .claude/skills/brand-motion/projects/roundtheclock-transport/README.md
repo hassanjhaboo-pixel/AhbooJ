@@ -67,3 +67,16 @@ for f in 9x16 1x1; do
   node ../../scripts/render.mjs out/rtc-song-$f.html --audio out/rtc-song-mix.wav --blur 3
 done
 ```
+
+## v2: "Departure board" (Nov 2026)
+Same song, same beat grid, same copy and photos; new design direction. Split-flap departure board tiles (gold on black), a
+shipping waybill with a barcode on the van photo, a manifest checklist on kraft, a rubber-stamp offer on paper, and a
+01 / 02 / 03 route tracker the van drives along across the three pillars. One type system: Big Shoulders + IBM Plex Mono
+(both OFL). Dropped from v1 to clear the anti-vibecode list: serif italic accents and the "01 / 03" eyebrow pills.
+
+```bash
+node make-board.mjs
+node ../../scripts/build.mjs --brand ../../brand/roundtheclock-board.json --story storyboard-board-9x16.json --out out/rtc-board-9x16.html
+node ../../scripts/render.mjs out/rtc-board-9x16.html --audio out/rtc-song-mix.wav --blur 3
+```
+`out/rtc-song-mix.wav` is the soundtrack from the v1 render (or rebuild it with `./mix-song.sh`).
