@@ -1,0 +1,79 @@
+{
+  "name": "SM Threads",
+  "tagline": "Where sexy is the standard",
+  "url": "@sm.threads_",
+
+  "voice": {
+    "tone": "confident, sexy, proud Trini",
+    "maxWordsPerCard": 4,
+    "case": "upper",
+    "cta": "DM to order"
+  },
+
+  "palette": {
+    "bg": "#ECD0D5",
+    "ink": "#2A0A1C",
+    "primary": "#CB0870",
+    "primaryDeep": "#9E0657",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#FBF6EE",
+    "onSecondary": "#2A0A1C",
+    "accent": "#E0313F",
+    "onAccent": "#FFFFFF",
+    "dark": "#1E0A14",
+    "onDark": "#FFFFFF",
+    "cream": "#FBF6EE",
+    "screen": "#E6EBF0",
+    "sandInk": "#7A6553",
+    "leaf": "#2E7D4F",
+    "chapter1": "primary",
+    "chapter2": "bg",
+    "chapter3": "dark"
+  },
+
+  "type": {
+    "fontUrls": [],
+    "fontFiles": [
+      { "family": "Big Shoulders", "weight": 700, "src": "assets/smthreads/fonts/BigShoulders-Bold.ttf" },
+      { "family": "Outfit", "weight": 700, "src": "assets/smthreads/fonts/Outfit-Bold.ttf" },
+      { "family": "Outfit", "weight": 400, "src": "assets/smthreads/fonts/Outfit-Regular.ttf" }
+    ],
+    "display":  { "family": "Big Shoulders", "fallback": "'Liberation Sans Narrow', sans-serif", "weight": 700, "case": "upper", "tracking": 0.0, "lineHeight": 0.9 },
+    "headline": { "family": "Big Shoulders", "fallback": "'Liberation Sans Narrow', sans-serif", "weight": 700, "case": "upper", "tracking": 0.01, "lineHeight": 0.95 },
+    "body":     { "family": "Outfit", "fallback": "'Liberation Sans', sans-serif", "weight": 700, "case": "upper", "tracking": 0.12, "lineHeight": 1.2 },
+    "scale": { "display": 0.16, "headline": 0.1, "title": 0.07, "body": 0.04, "caption": 0.03 }
+  },
+
+  "logo": {
+    "src": "assets/smthreads/logo.png",
+    "srcOnDark": "assets/smthreads/logo.png",
+    "wordmark": "SM Threads",
+    "color": "primary",
+    "clearSpace": 0.4,
+    "_note": "Rebuilt from an Instagram screenshot. Replace with her original logo file when it arrives."
+  },
+
+  "shape": {
+    "language": "rounded",
+    "radius": 0.02,
+    "strokeW": 0.006,
+    "motif": "magenta stitched thread line that zips across the frame on every cut"
+  },
+
+  "motion": {
+    "energy": "punchy",
+    "bpm": 150,
+    "exit": "inCubic",
+    "move": "inOutCubic",
+    "transition": "inOutCubic",
+    "stagger": 0.06,
+    "signatureTransition": "cut"
+  },
+
+  "layout": { "safe": 0.08, "alignment": "center" },
+
+  "rules": {
+    "do": ["Her real garments are always the hero", "Text sits on a solid magenta block or a clean empty area, never over the garment", "End on the hang tag over blush"],
+    "dont": ["No gradients, no glass panels, no grain on top of the film plates", "No em dashes", "Never redesign or recolour a garment"]
+  }
+}

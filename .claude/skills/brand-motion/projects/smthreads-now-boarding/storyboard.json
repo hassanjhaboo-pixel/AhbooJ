@@ -1,0 +1,1663 @@
+{
+ "title": "SM Threads: Now Boarding",
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "bpm": 150,
+ "scenes": [
+  {
+   "id": "boarding",
+   "dur": "8b",
+   "bg": "dark",
+   "camera": {
+    "at": [
+     0.5,
+     0.5
+    ],
+    "keys": [
+     {
+      "at": 0,
+      "dur": 2.6,
+      "zoom": 1.04,
+      "ease": "linear"
+     },
+     {
+      "at": 2.6,
+      "dur": 0.6,
+      "zoom": 2.6894,
+      "x": 0.5049,
+      "y": 0.6835,
+      "ease": "inExpo"
+     }
+    ]
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S1-cabin-empty.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.815,
+     "y": 0.2622,
+     "w": 0.0287,
+     "in": {
+      "fx": "cut",
+      "at": 0.15
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.815,
+     "y": 0.2622,
+     "w": 0.0357,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.815,
+     "y": 0.2622,
+     "w": 0.025,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.6439,
+     "y": 0.2434,
+     "w": 0.05,
+     "in": {
+      "fx": "cut",
+      "at": 0.35
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.6439,
+     "y": 0.2434,
+     "w": 0.035,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.6439,
+     "y": 0.2434,
+     "w": 0.0181,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.669,
+     "y": 0.3435,
+     "w": 0.0283,
+     "in": {
+      "fx": "cut",
+      "at": 0.55
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.669,
+     "y": 0.3435,
+     "w": 0.0147,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.669,
+     "y": 0.3435,
+     "w": 0.0326,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.5828,
+     "y": 0.3701,
+     "w": 0.0198,
+     "in": {
+      "fx": "cut",
+      "at": 0.75
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.5828,
+     "y": 0.3701,
+     "w": 0.0441,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.5828,
+     "y": 0.3701,
+     "w": 0.0548,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.4798,
+     "y": 0.4124,
+     "w": 0.0594,
+     "in": {
+      "fx": "cut",
+      "at": 0.95
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.4798,
+     "y": 0.4124,
+     "w": 0.0739,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.4798,
+     "y": 0.4124,
+     "w": 0.0517,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.2976,
+     "y": 0.2262,
+     "w": 0.1096,
+     "in": {
+      "fx": "cut",
+      "at": 1.15
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.2976,
+     "y": 0.2262,
+     "w": 0.0767,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.2976,
+     "y": 0.2262,
+     "w": 0.0396,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.7024,
+     "y": 0.5031,
+     "w": 0.0817,
+     "in": {
+      "fx": "cut",
+      "at": 1.35
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.7024,
+     "y": 0.5031,
+     "w": 0.0422,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.7024,
+     "y": 0.5031,
+     "w": 0.0939,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "x": 0.2601,
+     "y": 0.4867,
+     "w": 0.0396,
+     "in": {
+      "fx": "cut",
+      "at": 1.55
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.2601,
+     "y": 0.4867,
+     "w": 0.0882,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.2601,
+     "y": 0.4867,
+     "w": 0.1096,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.5049,
+     "y": 0.6835,
+     "w": 0.1524,
+     "in": {
+      "fx": "cut",
+      "at": 1.75
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.5049,
+     "y": 0.6835,
+     "w": 0.1894,
+     "in": {
+      "fx": "cut",
+      "at": 2
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "rect",
+     "x": 0.5049,
+     "y": 0.6835,
+     "w": 0.3498,
+     "h": 0.2079,
+     "fill": "primary",
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": "tick"
+    },
+    {
+     "type": "text",
+     "text": "TOBAGO",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.075,
+     "x": 0.5049,
+     "y": 0.6835,
+     "in": {
+      "fx": "cut",
+      "at": 2.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "NOW BOARDING",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.12,
+     "y": 0.1,
+     "x": 0.5,
+     "highlight": {
+      "fill": "primary",
+      "pad": 0.22,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": -0.2,
+      "dur": 0.3,
+      "ease": "outBack"
+     },
+     "screen": true,
+     "out": {
+      "fx": "cut",
+      "at": 2.6
+     }
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.88,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "destination",
+   "dur": "3b",
+   "bg": "primary",
+   "elements": [
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "DESTINATION",
+     "role": "body",
+     "color": "onPrimary",
+     "size": 0.045,
+     "x": 0.5,
+     "y": 0.4
+    },
+    {
+     "type": "cycler",
+     "items": [
+      "MIAMI",
+      "LONDON",
+      "PARIS",
+      "TOBAGO"
+     ],
+     "every": "0.5b",
+     "at": 0,
+     "fx": "cut",
+     "holdLast": true,
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.22,
+     "x": 0.5,
+     "y": 0.5,
+     "sfx": "tick"
+    },
+    {
+     "type": "text",
+     "text": "ON TIME",
+     "role": "body",
+     "color": "primary",
+     "size": 0.04,
+     "x": 0.5,
+     "y": 0.61,
+     "highlight": {
+      "fill": "onPrimary",
+      "pad": 0.35,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": 0.85,
+      "dur": 0.25
+     }
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 0.88,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "pegs",
+   "dur": "8b",
+   "bg": "cream",
+   "elements": [
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S3-pegs-empty.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover"
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-top.png",
+     "anchor": "top",
+     "x": 0.2855,
+     "y": 0.3228,
+     "w": 0.3303,
+     "in": {
+      "fx": "swing",
+      "at": 0.4,
+      "dur": 0.7
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.6
+     },
+     "shadow": {
+      "color": "rgba(90,60,30,0.28)",
+      "blur": 0.012,
+      "y": 0.012
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-bottom.png",
+     "anchor": "top",
+     "x": 0.5935,
+     "y": 0.3271,
+     "w": 0.2566,
+     "in": {
+      "fx": "swing",
+      "at": 1.2,
+      "dur": 0.7
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.6
+     },
+     "shadow": {
+      "color": "rgba(90,60,30,0.28)",
+      "blur": 0.012,
+      "y": 0.012
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "assets/peg-skirt.png",
+     "anchor": "top",
+     "x": 0.8168,
+     "y": 0.3079,
+     "w": 0.265,
+     "in": {
+      "fx": "swing",
+      "at": 1.6,
+      "dur": 0.7
+     },
+     "out": {
+      "fx": "cut",
+      "at": 2.6
+     },
+     "shadow": {
+      "color": "rgba(90,60,30,0.28)",
+      "blur": 0.012,
+      "y": 0.012
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S3-pegs-full.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover",
+     "in": {
+      "fx": "cut",
+      "at": 2.6
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "SEWN IN TRINIDAD",
+     "role": "display",
+     "color": "primary",
+     "size": 0.13,
+     "x": 0.5,
+     "y": 0.905,
+     "maxWidth": 0.92,
+     "split": "word",
+     "stagger": 0.4,
+     "in": {
+      "fx": "pop",
+      "at": 0.4,
+      "dur": 0.3,
+      "ease": "outBack"
+     }
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.88,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "sand",
+   "dur": "8b",
+   "bg": "cream",
+   "camera": {
+    "zoom": [
+     1,
+     1.04
+    ],
+    "ease": "linear"
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S4-sand-empty.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-purple.png",
+     "x": 0.2709,
+     "y": 0.2313,
+     "w": 0.4277,
+     "in": {
+      "fx": "drop-near",
+      "at": 0.2,
+      "dur": 0.45
+     },
+     "out": {
+      "fx": "cut",
+      "at": 1.6
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-red.png",
+     "x": 0.2726,
+     "y": 0.4722,
+     "w": 0.4228,
+     "in": {
+      "fx": "drop-near",
+      "at": 0.6,
+      "dur": 0.45
+     },
+     "out": {
+      "fx": "cut",
+      "at": 1.6
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "assets/sand-orange.png",
+     "x": 0.2716,
+     "y": 0.7343,
+     "w": 0.3873,
+     "in": {
+      "fx": "drop-near",
+      "at": 1,
+      "dur": 0.45
+     },
+     "out": {
+      "fx": "cut",
+      "at": 1.6
+     },
+     "sfx": "plop"
+    },
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S4-sand-tops.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover",
+     "in": {
+      "fx": "cut",
+      "at": 1.6
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "purple twist",
+     "role": "headline",
+     "case": "lower",
+     "color": "sandInk",
+     "size": 0.068,
+     "x": 0.6,
+     "anchor": "left",
+     "align": "left",
+     "y": 0.2313,
+     "opacity": 0.8,
+     "blend": "multiply",
+     "shadow": {
+      "color": "rgba(255,255,255,0.55)",
+      "blur": 0.002,
+      "y": 0.003
+     },
+     "in": {
+      "fx": "wipe",
+      "at": 1.6,
+      "dur": 0.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       0.585,
+       0.2313
+      ],
+      [
+       0.49970000000000003,
+       0.2313
+      ]
+     ],
+     "stroke": "sandInk",
+     "strokeW": 0.005,
+     "cap": "round",
+     "opacity": 0.7,
+     "blend": "multiply",
+     "head": {
+      "r": 0.009,
+      "fill": "sandInk"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 1.8,
+      "dur": 0.25
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "red viper",
+     "role": "headline",
+     "case": "lower",
+     "color": "sandInk",
+     "size": 0.068,
+     "x": 0.6,
+     "anchor": "left",
+     "align": "left",
+     "y": 0.4722,
+     "opacity": 0.8,
+     "blend": "multiply",
+     "shadow": {
+      "color": "rgba(255,255,255,0.55)",
+      "blur": 0.002,
+      "y": 0.003
+     },
+     "in": {
+      "fx": "wipe",
+      "at": 2,
+      "dur": 0.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       0.585,
+       0.4722
+      ],
+      [
+       0.499,
+       0.4722
+      ]
+     ],
+     "stroke": "sandInk",
+     "strokeW": 0.005,
+     "cap": "round",
+     "opacity": 0.7,
+     "blend": "multiply",
+     "head": {
+      "r": 0.009,
+      "fill": "sandInk"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.2,
+      "dur": 0.25
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "orange crush",
+     "role": "headline",
+     "case": "lower",
+     "color": "sandInk",
+     "size": 0.068,
+     "x": 0.6,
+     "anchor": "left",
+     "align": "left",
+     "y": 0.7343,
+     "opacity": 0.8,
+     "blend": "multiply",
+     "shadow": {
+      "color": "rgba(255,255,255,0.55)",
+      "blur": 0.002,
+      "y": 0.003
+     },
+     "in": {
+      "fx": "wipe",
+      "at": 2.4,
+      "dur": 0.4
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       0.585,
+       0.7343
+      ],
+      [
+       0.4802,
+       0.7343
+      ]
+     ],
+     "stroke": "sandInk",
+     "strokeW": 0.005,
+     "cap": "round",
+     "opacity": 0.7,
+     "blend": "multiply",
+     "head": {
+      "r": 0.009,
+      "fill": "sandInk"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.6,
+      "dur": 0.25
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.88,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "standard",
+   "dur": "6b",
+   "bg": "dark",
+   "camera": {
+    "zoom": [
+     1.02,
+     1.08
+    ],
+    "ease": "linear"
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "../../../../../sm-threads/assets/S5-card.jpg",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7914,
+     "fit": "cover"
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "SEXY IS",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.13,
+     "y": 0.085,
+     "x": 0.5,
+     "highlight": {
+      "fill": "primary",
+      "pad": 0.22,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": 0.2,
+      "dur": 0.3,
+      "ease": "outBack"
+     },
+     "screen": true
+    },
+    {
+     "type": "text",
+     "text": "THE STANDARD.",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.13,
+     "y": 0.165,
+     "x": 0.5,
+     "highlight": {
+      "fill": "primary",
+      "pad": 0.22,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": 0.6,
+      "dur": 0.3,
+      "ease": "outBack"
+     },
+     "screen": true
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.08,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "tanline",
+   "dur": "6b",
+   "bg": "dark",
+   "camera": {
+    "zoom": [
+     1,
+     1.06
+    ],
+    "ease": "linear"
+   },
+   "elements": [
+    {
+     "type": "image",
+     "src": "",
+     "label": "S6-tan-reveal (strawberry tan mark)",
+     "placeholder": "accent",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7778
+    },
+    {
+     "type": "image",
+     "src": "",
+     "label": "S6-tan-strap (strap covering it)",
+     "placeholder": "primaryDeep",
+     "x": 0.5,
+     "y": 0.5,
+     "w": 1,
+     "h": 1.7778,
+     "out": {
+      "fx": "slide-right",
+      "at": 0.8,
+      "dur": 0.45,
+      "ease": "inOutCubic"
+     },
+     "sfx": "whoosh"
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "text",
+     "text": "LEAVE WITH PROOF.",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.11,
+     "y": 0.86,
+     "x": 0.5,
+     "highlight": {
+      "fill": "primary",
+      "pad": 0.22,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": 1.4,
+      "dur": 0.3,
+      "ease": "outBack"
+     },
+     "screen": true
+    },
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "head": {
+      "r": 0.014,
+      "fill": "cream"
+     },
+     "in": {
+      "fx": "draw",
+      "at": 2.08,
+      "dur": 0.3,
+      "ease": "inCubic"
+     },
+     "sfx": "whoosh"
+    }
+   ]
+  },
+  {
+   "id": "endcard",
+   "dur": "9b",
+   "bg": "bg",
+   "elements": [
+    {
+     "type": "path",
+     "points": [
+      [
+       -0.08,
+       0.22
+      ],
+      [
+       0.3,
+       0.42
+      ],
+      [
+       0.62,
+       0.5
+      ],
+      [
+       1.08,
+       0.78
+      ]
+     ],
+     "smooth": true,
+     "stroke": "primary",
+     "strokeW": 0.009,
+     "cap": "round",
+     "dash": [
+      0.022,
+      0.014
+     ],
+     "screen": true,
+     "out": {
+      "fx": "draw",
+      "at": 0,
+      "dur": 0.3,
+      "ease": "outCubic"
+     },
+     "sfx": false
+    },
+    {
+     "type": "group",
+     "x": 0.5,
+     "y": 0.12,
+     "in": {
+      "fx": "swing",
+      "at": 0,
+      "dur": 0.9
+     },
+     "loop": {
+      "fx": "sway",
+      "period": "4b",
+      "amp": 0.35
+     },
+     "sfx": "whoosh",
+     "children": [
+      {
+       "type": "rect",
+       "w": 0.05,
+       "wUnit": "U",
+       "h": 0.4,
+       "anchor": "bottom",
+       "x": 0,
+       "y": -0.01,
+       "fill": "primary"
+      },
+      {
+       "type": "poly",
+       "pts": [
+        [
+         -0.2,
+         -0.07
+        ],
+        [
+         0.2,
+         -0.07
+        ],
+        [
+         0.31,
+         0.05
+        ],
+        [
+         0.31,
+         1.06
+        ],
+        [
+         -0.31,
+         1.06
+        ],
+        [
+         -0.31,
+         0.05
+        ]
+       ],
+       "radius": 0.03,
+       "fill": "cream",
+       "shadow": {
+        "color": "rgba(42,10,28,0.22)",
+        "blur": 0.03,
+        "y": 0.02
+       }
+      },
+      {
+       "type": "circle",
+       "r": 0.03,
+       "fill": "bg",
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "ring",
+       "r": 0.03,
+       "fill": "primaryDeep",
+       "strokeW": 0.008,
+       "x": 0,
+       "y": 0
+      },
+      {
+       "type": "image",
+       "src": "../../brand/assets/smthreads/logo.png",
+       "w": 0.48,
+       "x": 0,
+       "y": 0.27
+      },
+      {
+       "type": "rect",
+       "w": 0.44,
+       "wUnit": "U",
+       "h": 0.004,
+       "fill": "primary",
+       "x": 0,
+       "y": 0.5,
+       "opacity": 0.6
+      },
+      {
+       "type": "text",
+       "text": "MADE IN TRINIDAD.",
+       "role": "headline",
+       "color": "ink",
+       "size": 0.075,
+       "x": 0,
+       "y": 0.6
+      },
+      {
+       "type": "text",
+       "text": "MADE TO YOU.",
+       "role": "headline",
+       "color": "primary",
+       "size": 0.075,
+       "x": 0,
+       "y": 0.7
+      },
+      {
+       "type": "text",
+       "text": "XS TO XXL. CUSTOM FIT.",
+       "role": "body",
+       "color": "ink",
+       "size": 0.03,
+       "x": 0,
+       "y": 0.84
+      },
+      {
+       "type": "text",
+       "text": "7 TO 14 DAYS",
+       "role": "body",
+       "color": "ink",
+       "size": 0.03,
+       "x": 0,
+       "y": 0.9,
+       "opacity": 0.75
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "DM @SM.THREADS_",
+     "role": "display",
+     "color": "onPrimary",
+     "size": 0.085,
+     "y": 0.9,
+     "x": 0.5,
+     "highlight": {
+      "fill": "primary",
+      "pad": 0.22,
+      "radius": 0.004
+     },
+     "in": {
+      "fx": "pop",
+      "at": 1.2,
+      "dur": 0.3,
+      "ease": "outBack"
+     },
+     "loop": {
+      "fx": "pulse",
+      "period": "2b",
+      "amp": 0.4
+     }
+    }
+   ]
+  }
+ ]
+}
