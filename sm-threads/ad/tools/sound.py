@@ -46,6 +46,12 @@ for e in ev:
     elif n in ('wave.in',): whoosh(a + 0.6, 1.6, 0.07)
     elif n in ('wave.out',): whoosh(a + 0.8, 1.6, 0.05)
     elif n == 'peg.lower': whoosh(a + 0.7, 1.2, 0.03)
+    elif n == 'peg.cut': pluck(a, 79, 0.11); pluck(a + 0.08, 86, 0.05)
+    elif n == 'map.land': pluck(a, 81, 0.1); pluck(a + 0.15, 88, 0.07)
+    elif n in ('dive', 'heart.fly'): whoosh(a + 0.5, 1.4, 0.06)
+    elif n == 'tilt': whoosh(a + 0.4, 0.9, 0.06)
+    elif n == 'wave.big': whoosh(a + 0.6, 1.8, 0.09)
+    elif n == 'heart.lift': [pluck(a + i * 0.09, m, 0.06) for i, m in enumerate([84, 88, 91, 96])]
 fade = np.minimum(1, (L - t) / 2.0)[:, None] * np.minimum(1, t / 0.4)[:, None]; mix *= fade
 mix = mix / (np.abs(mix).max() + 1e-9) * 0.8
 w = wave.open(out, 'wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((mix * 32767).astype(np.int16).tobytes()); w.close(); print('wrote', out)
