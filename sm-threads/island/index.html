@@ -167,7 +167,7 @@ const SUN_SKY = V.norm([-0.35, 0.16, -1]), SUN_BEACH = V.norm([0.12, 0.09, -1]);
 function camera(t) {
   if (t < T.beach) {   // falling with the pieces towards the islands, one long ease that only ever goes down and forward
     const k = t / T.beach, e = inOutSine(k) * 0.55 + k * 0.45;
-    const eye = [lerp(2000, -3400, e), lerp(26000, 5200, inCubic(k) * 0.4 + e * 0.6), lerp(40000, 4600, e)], tgt = [lerp(-3500, -4300, e), 0, lerp(-18000, -6000, e)];
+    const eye = [lerp(2000, 9600, e), lerp(26000, 5200, inCubic(k) * 0.4 + e * 0.6), lerp(40000, -3200, e)], tgt = [lerp(-3500, 11200, e), 0, lerp(-18000, -12600, e)];
     return { eye, tgt, fov: 50, sun: SUN_SKY, world: 'sky' }; }
   if (t < T.end) {   // beach: a lateral track along the line, slowly closing in; then the push into the aqua top
     const k = prog(t, T.beach, T.push), p = prog(t, T.push, T.end);
@@ -232,8 +232,8 @@ function drawScene(t) {
   return cam;
 }
 const CLOUDS = []; { let s = 11; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  for (let i = 0; i < 26; i++) { const e = r(), side = r() < 0.5 ? -1 : 1; const cx = lerp(2000, -3400, e) + side * (3000 + r() * 6000), cy = lerp(23000, 5600, e) + (r() - 0.5) * 3000, cz = lerp(38000, 5000, e) + (r() - 0.5) * 6000; CLOUDS.push({ p: [cx, cy, cz], s: 1600 + r() * 2600, a: 0.35 + r() * 0.3, tex: i % 3 }); }
-  for (let i = 0; i < 9; i++) CLOUDS.push({ p: [lerp(-3200, -3500, i / 8) + (r() - 0.5) * 500, lerp(6400, 5000, i / 8), lerp(5600, 3900, i / 8) + (r() - 0.5) * 300], s: 1500 + r() * 700, a: 0.9, tex: i % 3 }); }
+  for (let i = 0; i < 26; i++) { const e = r(), side = r() < 0.5 ? -1 : 1; const cx = lerp(2000, 9600, e) + side * (3000 + r() * 6000), cy = lerp(23000, 5600, e) + (r() - 0.5) * 3000, cz = lerp(38000, -2600, e) + (r() - 0.5) * 6000; CLOUDS.push({ p: [cx, cy, cz], s: 1600 + r() * 2600, a: 0.35 + r() * 0.3, tex: i % 3 }); }
+  for (let i = 0; i < 9; i++) CLOUDS.push({ p: [lerp(9300, 9650, i / 8) + (r() - 0.5) * 500, lerp(6400, 5000, i / 8), lerp(-2000, -3700, i / 8) + (r() - 0.5) * 300], s: 1500 + r() * 700, a: 0.9, tex: i % 3 }); }
 
 // ---------------- 2D overlay: words, white-out, colour hand-off, end card ----------------
 function words(c, str, lt, t0, o = {}) {
@@ -258,7 +258,7 @@ function drawTagTexture(lt) { const c = TAGC.getContext('2d'); c.setTransform(1,
   c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.fillStyle = 'rgba(0,0,0,0)'; c.save(); c.globalCompositeOperation = 'destination-out'; c.fill(); c.restore(); c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.lineWidth = 9; c.strokeStyle = '#B98A3E'; c.stroke();
   c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(-190, -50); c.lineTo(190, -50); c.lineTo(300, 60); c.lineTo(300, 1040); c.lineTo(-300, 1040); c.lineTo(-300, 60); c.closePath(); c.stroke(); c.restore();
   const L = IMG.logo; if (L) { const lw = 460, lh = lw * L.height / L.width; c.drawImage(L, -lw / 2, 300 - lh / 2, lw, lh); }
-  c.textAlign = 'center'; c.fillStyle = PLUM; c.font = '400 50px Soft, sans-serif'; c.fillText('Made in Trinidad.', 0, 650); c.fillStyle = MAG; c.fillText('Made to you.', 0, 722);
+  c.textAlign = 'center'; c.fillStyle = PLUM; c.font = '400 50px Soft, sans-serif'; c.font = '400 44px Soft, sans-serif'; c.fillText('Made in Arouca, Trinidad.', 0, 650); c.font = '400 50px Soft, sans-serif'; c.fillStyle = MAG; c.fillText('Made to you.', 0, 722);
   c.fillStyle = 'rgba(42,10,28,0.72)'; c.font = '400 30px Soft, sans-serif'; c.fillText('XS to XXL.  Custom fit.  7 to 14 days.', 0, 840); }
 const BG = document.createElement('canvas'); BG.width = cv.width; BG.height = cv.height;
 function endCard(t) { const lt = t - T.end;
@@ -276,10 +276,19 @@ function endCard(t) { const lt = t - T.end;
   ctx.restore();
   words(ctx, 'DM @sm.threads_ to order', lt, 2.2, { y: 1640, size: 50, stagger: 0.1 }); }
 
+// a pin on her studio in Arouca, projected from the 3D island into the frame
+let PLACES = null;
+function arouca(t, cam) { if (!PLACES) return; const a = outCubic(prog(t, 0.9, 1.6)) * (1 - prog(t, 4.0, 4.6)); if (a <= 0) return;
+  const [u, v] = PLACES.arouca, wp = [(u - 0.5) * ISL_S, 75, (v - 0.5) * ISL_S], VP = M4.mul(M4.persp(cam.fov * Math.PI / 180, W / H, 20, 200000), M4.look(cam.eye, cam.tgt));
+  const x = VP[0] * wp[0] + VP[4] * wp[1] + VP[8] * wp[2] + VP[12], y = VP[1] * wp[0] + VP[5] * wp[1] + VP[9] * wp[2] + VP[13], w = VP[3] * wp[0] + VP[7] * wp[1] + VP[11] * wp[2] + VP[15]; if (w <= 0) return;
+  const sx = (x / w * 0.5 + 0.5) * W, sy = (1 - (y / w * 0.5 + 0.5)) * H;
+  ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.globalAlpha = a; for (let k = 0; k < 2; k++) { const ph = (t * 0.8 + k * 0.5) % 1; ctx.beginPath(); ctx.arc(sx, sy, 10 + ph * 34, 0, TAU); ctx.strokeStyle = `rgba(203,8,112,${0.6 * (1 - ph)})`; ctx.lineWidth = 3; ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(sx, sy, 11, 0, TAU); ctx.fillStyle = MAG; ctx.fill(); ctx.beginPath(); ctx.arc(sx, sy, 4.5, 0, TAU); ctx.fillStyle = CREAM; ctx.fill();
+  ctx.font = '400 30px Soft, sans-serif'; ctx.fillStyle = CREAM; ctx.shadowColor = 'rgba(30,20,10,0.45)'; ctx.shadowBlur = 10; ctx.textAlign = 'left'; ctx.fillText('SM Threads, Arouca', sx + 22, sy + 10); ctx.restore(); }
 function render(t) {
   const cam = drawScene(Math.min(t, T.end + 3));
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.drawImage(glc, 0, 0);
-  if (t < T.beach) { words(ctx, 'Sewn in Trinidad.', t, 1.6, { y: 300, size: 70, out: 4.2 });
+  if (t < T.beach) { arouca(t, cam); words(ctx, 'Sewn in Arouca.', t, 1.6, { y: 300, size: 70, out: 4.2 });
     const wo = inOutSine(prog(t, T.beach - 0.75, T.beach)); if (wo > 0) { ctx.save(); ctx.globalAlpha = wo; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
   else if (t < T.end) { const wi = 1 - inOutSine(prog(t, T.beach, T.beach + 0.7)); if (wi > 0) { ctx.save(); ctx.globalAlpha = wi; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
     words(ctx, 'Made to you.', t - T.beach, 4.6, { y: 300, size: 72, out: 9.0 }); words(ctx, 'XS to XXL. Custom fit.', t - T.beach, 5.4, { y: 372, size: 40, out: 9.0 });
@@ -288,7 +297,7 @@ function render(t) {
 }
 const EVENTS = [{ name: 'start', t: 0 }, { name: 'cloud', t: +(T.beach - 0.75).toFixed(3) }, { name: 'beach', t: +T.beach.toFixed(3) }, ...PIECES.map((p, i) => ({ name: 'land', t: +(T.beach + 0.9 + i * 2 * B).toFixed(3) })), { name: 'push', t: +T.push.toFixed(3) }, { name: 'end', t: +T.end.toFixed(3) }];
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
-window.ready = Promise.all([...PIECES.map(p => load(p.k, `../ad/cut/${p.k}.png`)), load('logo', '../ad/cut/logo.png'), fetch('../ad/data/tt-outline.json').then(r => r.json()).then(j => TT = j), document.fonts.load('400 60px Soft')]).then(() => {
+window.ready = Promise.all([...PIECES.map(p => load(p.k, `../ad/cut/${p.k}.png`)), load('logo', '../ad/cut/logo.png'), fetch('../ad/data/tt-outline.json').then(r => r.json()).then(j => { TT = j; PLACES = j.places; }), document.fonts.load('400 60px Soft')]).then(() => {
   P = { sky: program(VS_SKY, FS_SKY), sea: program(VS_SEA, FS_SEA), lit: program(VS_LIT, FS_LIT), cloth: program(VS_CLOTH, FS_CLOTH), bill: program(VS_BILL, FS_BILL) };
   SKYQ = mesh([-1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1], [[0, 2]]); const g = grid(220, -0.5, 0.5); SEA = mesh(g.d, [[0, 2]], g.ix); const cg = grid(40, 0, 1); CLOTH = mesh(cg.d, [[0, 2]], cg.ix);
   const islands = TT.islands.filter(i => i.area > 30); ISL = mesh(islandMesh(islands, 70), [[0, 3], [1, 3]]); ISL_SAND = mesh(islandMesh(islands, 30, 1.012), [[0, 3], [1, 3]]);

@@ -78,13 +78,13 @@ function tri(c, img, s0, s1, s2, d0, d1, d2) {
 
 // ---------------- the in-flight map (one function for the seat screen and the full frame, driven by absolute time) ----------------
 const MAPC = mk(1080, 1920);
-const PIARCO = [0.38, 0.43], DIVE = [0.52, 0.63];   // traced-map coords (0..1): the airport, and a point deep inside Trinidad
+let PIARCO, AROUCA, CROWN, DIVE;   // traced-map coords, set from the real lon/lat once the outline loads
 function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothing
   const c = MAPC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h);
   const [ax, ay] = DATA.tt.aspect, port = h > w;
   const s0 = Math.min(w * 0.84 / ax, h * (port ? 0.5 : 0.74) / ay);
-  const dive = inExpo(prog(T, SHOT.map + 1.9, SHOT.pegs + 0.15)), Z = Math.exp(lerp(0, Math.log(28), dive));
-  const fx = lerp(ax / 2, DIVE[0], dive), fy = lerp(ay / 2, DIVE[1], dive), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.53 : 0.5);
+  const dive = inExpo(prog(T, SHOT.map + 1.6, SHOT.pegs + 0.05)), Z = Math.exp(lerp(0, Math.log(150), dive));
+  const dk = Math.pow(dive, 0.2), fx = lerp(ax / 2, DIVE[0], dk), fy = lerp(ay / 2, DIVE[1], dk), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.53 : 0.5);
   const M = ([u, v]) => [cxp + (u - fx) * s, cyp + (v - fy) * s];
   c.fillStyle = '#F7E4E8'; c.fillRect(0, 0, w, h);
   // faint latitude / longitude grid, like a real flight map
@@ -96,7 +96,7 @@ function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothi
   const la = outCubic(prog(T, 1.6, 2.4)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.3)); if (la > 0) { c.save(); c.globalAlpha = la; c.fillStyle = PLUM; c.font = `400 ${Math.round(s0 * 0.045)}px Soft, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
     const [tx, ty] = M([0.5, 0.67]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.16]); c.fillText('TOBAGO', bx, by); c.restore(); }
   // route: a solid magenta arc that fills in as the plane flies it
-  const route = bez([-0.35, -0.55], [0.0, -0.45], [0.25, 0.05], PIARCO, 120).map(M), rp = inOutSine(prog(T, 1.2, SHOT.map + 1.5));
+  const route = bez(PIARCO, [PIARCO[0] + 0.06, PIARCO[1] - 0.2], [CROWN[0] - 0.16, CROWN[1] - 0.04], CROWN, 120).map(M), rp = inOutSine(prog(T, 1.2, SHOT.map + 1.5));
   c.save(); c.globalAlpha = 1 - dive; c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.22)'; c.lineWidth = Math.max(3, s0 * 0.012); c.setLineDash([s0 * 0.02, s0 * 0.02]); c.beginPath(); route.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
   c.setLineDash([]); c.strokeStyle = MAG; c.lineWidth = Math.max(3, s0 * 0.012); c.beginPath(); const nI = Math.max(1, Math.floor(rp * (route.length - 1))); for (let i = 0; i <= nI; i++) i ? c.lineTo(...route[i]) : c.moveTo(...route[i]); c.stroke();
   // the plane
@@ -104,12 +104,15 @@ function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothi
   if (rp > 0) { c.save(); c.translate(x0, y0); c.rotate(ang + Math.PI / 2); c.scale(ps / 20, ps / 20); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 8; c.shadowOffsetY = 4; c.fillStyle = PLUM; c.beginPath();
     c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); }
   // arrival pin with a soft pulse
-  const pa = outCubic(prog(T, SHOT.map + 1.3, SHOT.map + 1.7)); if (pa > 0) { const [px, py] = M(PIARCO); for (let k = 0; k < 2; k++) { const ph = ((T - SHOT.map - 1.3) * 0.8 + k * 0.5) % 1; c.beginPath(); c.arc(px, py, s0 * 0.02 + ph * s0 * 0.07, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
+  // her studio, next to the airport
+  const ar = outCubic(prog(T, 1.0, 1.6)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.2)); if (ar > 0) { const [ax2, ay2] = M(AROUCA); c.save(); c.globalAlpha = ar; c.beginPath(); c.arc(ax2, ay2, s0 * 0.014, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(ax2, ay2, s0 * 0.006, 0, TAU); c.fillStyle = CREAM; c.fill();
+    c.font = `400 ${Math.round(s0 * 0.034)}px Soft, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', ax2 - s0 * 0.03, ay2 - s0 * 0.02); c.restore(); }
+  const pa = outCubic(prog(T, SHOT.map + 1.3, SHOT.map + 1.7)); if (pa > 0) { const [px, py] = M(CROWN); for (let k = 0; k < 2; k++) { const ph = ((T - SHOT.map - 1.3) * 0.8 + k * 0.5) % 1; c.beginPath(); c.arc(px, py, s0 * 0.02 + ph * s0 * 0.07, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
     c.beginPath(); c.arc(px, py, s0 * 0.018 * pa, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.007 * pa, 0, TAU); c.fillStyle = CREAM; c.fill(); }
   c.restore();
   // header bar, like the airline's map page
   const hb = 1 - prog(T, SHOT.map + 1.8, SHOT.map + 2.4); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.034); c.font = `400 ${fs}px Soft, sans-serif`; c.fillStyle = PLUM;
-    const mins = Math.max(0, Math.round(18 - 17 * prog(T, 0.9, SHOT.map + 1.5))); c.textAlign = 'left'; c.fillText(mins > 0 ? `Arriving Piarco  ·  ${mins} min` : 'Arrived  ·  Piarco', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('29°C', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
+    const mins = Math.max(0, Math.round(18 - 17 * prog(T, 0.9, SHOT.map + 1.5))); c.textAlign = 'left'; c.fillText(mins > 0 ? `Piarco to Tobago  ·  ${mins} min` : 'Landed  ·  Tobago', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('29°C', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
 }
 
 // ---------------- cabin screens ----------------
@@ -175,7 +178,7 @@ const SHOTS = [
       for (let i = 0; i < 9; i++) { c.save(); c.translate(0, i * 46); c.rotate((i % 2 ? 1 : -1) * (0.9 + Math.sin(lt * 1.6 + i) * 0.06)); c.beginPath(); c.ellipse(70, 0, 80, 11, 0, 0, TAU); c.fill(); c.restore(); }
       c.fillRect(-4, -20, 8, 440); c.restore();
       hangPiece(c, 'peg-top', lt, 2 * BT, 0.0); hangPiece(c, 'peg-bottom', lt, 4 * BT, 1.7); hangPiece(c, 'peg-skirt', lt, 6 * BT, 3.1);
-      words(c, 'Sewn in Trinidad.', lt, 8 * BT, { y: 1700, size: 68 }); },
+      words(c, 'Sewn in Arouca.', lt, 8 * BT, { y: 1700, size: 68 }); },
     out: { kind: 'tilt' } },
   { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [430, 960] }),
     draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
@@ -213,11 +216,11 @@ const SHOTS = [
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
       const Lg = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (Lg) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * Lg.height / Lg.width; c.drawImage(Lg, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
-      tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 50, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
+      tagWords(c, 'Made in Arouca, Trinidad.', lt, 1.7, 650, 44, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
       c.restore();
       words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 50, stagger: 0.1 }); } },
 ];
-const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 250, size: 50, out: 1.7 }); words(c, 'Trinidad & Tobago.', lt, 0.45, { y: 330, size: 76, out: 1.75 }); };
+const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 250, size: 50, out: 1.7 }); words(c, 'Tobago.', lt, 0.45, { y: 330, size: 76, out: 1.75 }); };
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09) {
   c.save(); c.font = `400 ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
   const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = -tot / 2;
@@ -281,6 +284,6 @@ window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
-]).then(() => { ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+]).then(() => { const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>
