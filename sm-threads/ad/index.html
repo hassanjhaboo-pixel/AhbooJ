@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SM Threads: Now Boarding</title>
+<style>
+  @font-face { font-family: Soft; src: url("fonts/Outfit-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: Soft; src: url("fonts/Outfit-Bold.ttf"); font-weight: 700; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script src="puppet.js"></script>
+<script>
+// SM Threads "Now Boarding" v1. 9:16, built on the saas-animation page contract: renderAt(t), TOTAL, ready, EVENTS.
+// One idea: a beach trip told through where her pieces turn up. One magenta thread (from the needle in her logo) runs
+// through every shot: it is the flight path, it lowers the pieces onto the pegs, it underlines the copy.
+// Every shot grows out of a shape in the one before (screen -> wall, knot -> sand, sand heart -> card, heart buckle -> skin,
+// strawberry -> end card). Photos move smoothly; hand-drawn doodles hold poses at 12/s and boil, so they read as drawn.
+
+// ---------------- timing (edit here to re-time everything) ----------------
+const SHOT = { cabin: 0, pegs: 5.4, sand: 11.4, card: 17.0, tan: 21.6, end: 24.8 }, END = 30.5, TRD = 0.9;
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
+const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576; plate px -> frame px
+
+// ---------------- palette ----------------
+const MAG = '#CB0870', PLUM = '#2A0A1C', BLUSH = '#ECD0D5', CREAM = '#FBF6EE', SANDINK = '#6E5948', LEAF = '#3E8E5A';
+
+// ---------------- helpers ----------------
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const ctx = cv.getContext('2d');
+const mk = () => { const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; return c; };
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const outCubic = k => 1 - Math.pow(1 - clamp01(k), 3), inOutCubic = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const outQuint = k => 1 - Math.pow(1 - clamp01(k), 5), inOutSine = k => -(Math.cos(Math.PI * clamp01(k)) - 1) / 2;
+const TAU = Math.PI * 2, DEG = Math.PI / 180;
+let POSE = 0, BID = 0; const rnd = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+const boil = (amt = 1.6) => { const id = BID++; return [(rnd(POSE, id) - 0.5) * 2 * amt, (rnd(POSE, id + 57) - 0.5) * 2 * amt]; };
+const IMG = {}; const load = (k, src) => new Promise(r => { const i = new Image(); i.onload = () => { IMG[k] = i; r(); }; i.onerror = () => r(); i.src = src; });
+const plateSpace = c => c.setTransform(SCALE * K, 0, 0, SCALE * K, 0, SCALE * OY);
+const frameSpace = c => c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+function plate(c, k) { plateSpace(c); c.drawImage(IMG[k], 0, 0, 1438, 2576); }
+const EVENTS = []; const ev = (name, t) => EVENTS.push({ name, t: +t.toFixed(3) });
+
+// words fade up from blurred to sharp with a small rise, one after another (frame space)
+function words(c, str, lt, t0, o = {}) {
+  const { x = W / 2, y = 200, size = 64, col = PLUM, weight = 400, stagger = 0.09, dur = 0.7, out = null, shadow = null, align = 'center', track = -0.01 } = o;
+  frameSpace(c); c.save(); c.font = `${weight} ${size}px Soft, sans-serif`; c.letterSpacing = (size * track) + 'px'; c.textBaseline = 'alphabetic';
+  const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
+  let px = align === 'center' ? x - tot / 2 : align === 'right' ? x - tot : x; const pos = [];
+  ws.forEach((w, i) => {
+    const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + dur)), b = out == null ? 0 : inOutSine(prog(lt, out + i * stagger * 0.5, out + i * stagger * 0.5 + 0.5)), v = a * (1 - b);
+    if (v > 0.003) { c.save(); c.globalAlpha = v; c.filter = `blur(${((1 - a) * 14 + b * 10) * SCALE}px)`;
+      if (shadow) { c.shadowColor = shadow; c.shadowBlur = 18 * SCALE; c.shadowOffsetY = 3 * SCALE; }
+      c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.32 - b * size * 0.2); c.restore(); }
+    pos.push([px, wd[i]]); px += wd[i] + sp; });
+  c.restore(); return pos;   // word x positions, for underlines
+}
+// a polyline drawn on up to `p` (0..1) of its length; optional stitch dashes
+function drawPart(c, pts, p, { col = MAG, w = 5, dash = null, alpha = 1 } = {}) {
+  if (p <= 0) return; let L = 0; const seg = [];
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); L += d; }
+  let rem = L * clamp01(p); c.save(); c.globalAlpha *= alpha; c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.lineJoin = 'round'; if (dash) c.setLineDash(dash);
+  c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(pts[i - 1][0], pts[i][0], k), lerp(pts[i - 1][1], pts[i][1], k)); rem -= seg[i - 1]; }
+  c.stroke(); c.restore();
+  return pts;
+}
+const bez = (p0, p1, p2, p3, n = 60) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return [u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]; });
+const heartPts = (x, y, s, n = 90) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n * TAU; return [x + s * 16 * Math.pow(Math.sin(t), 3) / 16, y - s * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 16]; });
+const wobble = (pts, amt) => pts.map(([x, y], i) => { const [bx, by] = boil(amt); return [x + bx, y + by]; });
+function sparkle(c, x, y, r, k, col = CREAM) {   // four-point twinkle, k = 0..1 life
+  if (k <= 0 || k >= 1) return; const s = Math.sin(Math.PI * k) * r; c.save(); c.translate(x, y); c.rotate(k * 0.6); c.fillStyle = col; c.beginPath();
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? s * 0.22 : s; c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } c.closePath(); c.fill(); c.restore();
+}
+
+// ---------------- puppets (cloth that bends between pins, like After Effects' puppet tool) ----------------
+const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
+const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };   // where each piece hangs, plate px
+const PUP = {}, TMP = mk(), SHD = mk();
+function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
+  PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
+// swing angle: a decaying pendulum after landing + a slow island breeze
+const swing = (lt, land, amp, ph) => { const s = lt - land; const pend = s > 0 ? amp * Math.exp(-s / 1.1) * Math.sin(s * 4.2) : 0; return (pend + 1.4 * Math.sin(lt * 1.25 + ph) + 0.6 * Math.sin(lt * 2.3 + ph * 2)) * DEG; };
+function hangPiece(c, k, lt, arrive, ph) {
+  const [x0, y0] = CUT[k], [px, py] = PEG[k];
+  const e = outQuint(prog(lt, arrive, arrive + 1.6)), dy = (1 - e) * -420;            // lowered on the thread
+  if (lt < arrive) return;
+  const th = swing(lt, arrive + 1.1, 7, ph), ax = px - x0, ay = 4;
+  const moves = [{ rot: th * 0.6, ox: ax, oy: ay }, { rot: th, ox: ax, oy: ay }, { rot: th * 1.5, ox: ax, oy: ay, dx: Math.sin(lt * 2.6 + ph) * 3 }, { rot: th * 1.4, ox: ax, oy: ay, dx: Math.sin(lt * 2.4 + ph + 1) * 3 }];
+  const s = SCALE * K, X = x0 * s, Y = (y0 + dy) * s + OY * SCALE;
+  const t = TMP.getContext('2d'); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, TMP.width, TMP.height); PUP[k].draw(t, moves, X, Y, s, TMP.width, TMP.height);
+  const sh = SHD.getContext('2d'); sh.setTransform(1, 0, 0, 1, 0, 0); sh.globalCompositeOperation = 'copy'; sh.drawImage(TMP, 0, 0); sh.globalCompositeOperation = 'source-in'; sh.fillStyle = '#6B4426'; sh.fillRect(0, 0, SHD.width, SHD.height); sh.globalCompositeOperation = 'source-over';
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+  // cast shadow on the wall: sun from the upper left, so it falls right and down, softer the further the cloth is from the wall
+  c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.34; c.filter = `blur(${6 * SCALE}px)`; c.drawImage(SHD, 40 * s, 30 * s);
+  c.globalAlpha = 0.18; c.filter = `blur(${14 * SCALE}px)`; c.drawImage(SHD, 58 * s, 44 * s);
+  c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.filter = 'none'; c.drawImage(TMP, 0, 0); c.restore();
+  // the thread it came down on, snipped and drawn back up once it is hanging
+  plateSpace(c); const up = inOutCubic(prog(lt, arrive + 1.5, arrive + 2.3)), ty = lerp(py + dy - 6, -40, up);
+  if (up < 1) { c.save(); c.strokeStyle = MAG; c.lineWidth = 4; c.globalAlpha = 0.95; c.beginPath(); c.moveTo(px, -40); c.lineTo(px + Math.sin(lt * 3) * 2, ty); c.stroke();
+    c.fillStyle = CREAM; c.beginPath(); c.arc(px, ty, 6, 0, TAU); c.fill(); c.restore(); }
+}
+
+// ---------------- shots ----------------
+const SCREENS = { oh3: [1118, 650, 1226, 710], oh2: [854, 590, 998, 674], r5: [902, 854, 1022, 922], r4: [758, 910, 918, 1002],
+  r3L: [610, 1002, 770, 1126], oh1: [284, 496, 572, 680], midR: [848, 1198, 1172, 1394], midL: [228, 1162, 520, 1346] };
+const FRONT = [464, 1598, 988, 1916];
+const PIECES = ['sand-purple', 'sand-red', 'sand-orange', 'peg-top'], PSIZE = { 'sand-purple': [615, 732], 'sand-red': [608, 582], 'sand-orange': [557, 762], 'peg-top': [475, 1257] };
+function onScreen(c, k, [x0, y0, x1, y1], a) { if (a <= 0) return; const [w, h] = PSIZE[k], s = Math.min((x1 - x0) * 0.8 / w, (y1 - y0) * 0.8 / h);
+  c.save(); c.globalAlpha = a; c.fillStyle = '#F4F7FA'; c.fillRect(x0, y0, x1 - x0, y1 - y0); c.drawImage(IMG[k], (x0 + x1) / 2 - w * s / 2, (y0 + y1) / 2 - h * s / 2, w * s, h * s); c.restore(); }
+// the front seat screen: a hand-drawn flight map, stitched route into Trinidad and Tobago
+function flightMap(c, lt) {
+  const [x0, y0, x1, y1] = FRONT, w = x1 - x0, h = y1 - y0, X = u => x0 + u * w, Y = v => y0 + v * h;
+  const on = outCubic(prog(lt, 0.5, 1.1)); if (on <= 0) return;
+  c.save(); c.beginPath(); c.rect(x0, y0, w, h); c.clip(); c.globalAlpha = on;
+  c.fillStyle = '#E3F0F3'; c.fillRect(x0, y0, w, h);
+  // little sea waves
+  c.strokeStyle = 'rgba(120,170,185,0.55)'; c.lineWidth = 2.5; for (let i = 0; i < 7; i++) { const wx = X(0.08 + (i * 0.137 + lt * 0.01) % 0.9), wy = Y(0.2 + (i * 0.29) % 0.7); c.beginPath(); c.arc(wx, wy, 7, Math.PI * 1.1, Math.PI * 1.9); c.arc(wx + 13, wy, 7, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+  // islands, drawn with a boil so they look hand-inked
+  const isl = (pts) => { const p = wobble(pts.map(([u, v]) => [X(u), Y(v)]), 0.8); c.beginPath(); p.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); c.fillStyle = BLUSH; c.fill(); c.strokeStyle = MAG; c.lineWidth = 3.5; c.lineJoin = 'round'; c.stroke(); };
+  const ip = outCubic(prog(lt, 0.8, 1.5)); c.save(); c.globalAlpha *= ip;
+  isl([[0.27, 0.52], [0.36, 0.47], [0.5, 0.46], [0.6, 0.47], [0.63, 0.53], [0.62, 0.7], [0.57, 0.79], [0.42, 0.81], [0.33, 0.77], [0.36, 0.67], [0.31, 0.6], [0.21, 0.56]]);
+  isl([[0.71, 0.33], [0.77, 0.27], [0.83, 0.23], [0.86, 0.25], [0.8, 0.31], [0.74, 0.35]]);
+  c.restore();
+  // stitched route from the top left, a little plane riding the tip, a heart pin where it lands
+  const route = bez([X(-0.05), Y(0.12)], [X(0.25), Y(-0.05)], [X(0.55), Y(0.05)], [X(0.79), Y(0.27)]);
+  const rp = inOutSine(prog(lt, 1.2, 3.2)); drawPart(c, route, rp, { col: MAG, w: 3.5, dash: [9, 8] });
+  if (rp > 0 && rp < 1) { const i = Math.min(route.length - 2, Math.floor(rp * (route.length - 1))), [ax, ay] = route[i], [bx, by] = route[i + 1];
+    c.save(); c.translate(ax, ay); c.rotate(Math.atan2(by - ay, bx - ax)); c.fillStyle = MAG; c.beginPath();
+    c.ellipse(0, 0, 15, 4.5, 0, 0, TAU); c.fill(); c.beginPath(); c.moveTo(3, 0); c.lineTo(-5, -14); c.lineTo(-9, -14); c.lineTo(-4, 0); c.lineTo(-9, 14); c.lineTo(-5, 14); c.closePath(); c.fill(); c.restore(); }
+  const hp = outCubic(prog(lt, 3.1, 3.5)); if (hp > 0) { const pts = heartPts(X(0.79), Y(0.2), 15 * hp); c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.fillStyle = MAG; c.fill(); }
+  c.font = '400 25px Soft, sans-serif'; c.fillStyle = PLUM; c.textAlign = 'center'; c.globalAlpha = on * outCubic(prog(lt, 3.3, 3.9)); c.fillText('Trinidad & Tobago', X(0.5), Y(0.93));
+  c.restore();
+}
+const SHOTS = [
+  { key: 'cabin', bg: '#1A1A1A', focus: [540, 1270], zoom: lt => 1 + 0.011 * lt,
+    draw(c, lt) { plate(c, 'S1-cabin-empty');
+      Object.entries(SCREENS).forEach(([k, r], i) => { const t0 = 0.3 + i * 0.22, a = outCubic(prog(lt, t0, t0 + 0.5)), sw = inOutSine(prog(lt, 3.0 + i * 0.05, 3.5 + i * 0.05));
+        onScreen(c, PIECES[i % 4], r, a * (1 - sw)); onScreen(c, PIECES[(i + 1) % 4], r, a * sw); });
+      flightMap(c, lt);
+      words(c, 'Now boarding.', lt, 0.25, { y: 236, size: 76, col: PLUM });
+      words(c, 'Next stop, Trinidad & Tobago.', lt, 2.0, { y: 310, size: 44, col: PLUM, stagger: 0.08 });
+    },
+    out: { kind: 'rect', rect: FRONT, r: 8, plate: true } },
+  { key: 'pegs', bg: '#EFE6D8', focus: [540, 900], zoom: lt => 1.0 + 0.012 * lt,
+    draw(c, lt) { plate(c, 'S3-pegs-empty');
+      // palm frond shadow drifting across the wall: the breeze that moves the pieces
+      frameSpace(c); c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.16; c.filter = `blur(${9 * SCALE}px)`; c.fillStyle = '#5A3C22';
+      c.translate(930 + Math.sin(lt * 0.9) * 18, 1180); c.rotate(-0.5 + Math.sin(lt * 1.1) * 0.05);
+      for (let i = 0; i < 9; i++) { c.save(); c.translate(0, i * 46); c.rotate((i % 2 ? 1 : -1) * (0.9 + Math.sin(lt * 1.6 + i) * 0.06)); c.beginPath(); c.ellipse(70, 0, 80, 11, 0, 0, TAU); c.fill(); c.restore(); }
+      c.fillRect(-4, -20, 8, 440); c.restore();
+      hangPiece(c, 'peg-top', lt, 0.5, 0.0); hangPiece(c, 'peg-bottom', lt, 1.4, 1.7); hangPiece(c, 'peg-skirt', lt, 2.3, 3.1);
+      const pos = words(c, 'Sewn in Trinidad.', lt, 3.4, { y: 1700, size: 66, col: PLUM });
+      if (pos[2]) { const [ux, uw] = pos[2]; frameSpace(c); BID = 9000; drawPart(c, wobble(bez([ux, 1728], [ux + uw * 0.3, 1740], [ux + uw * 0.7, 1722], [ux + uw, 1732], 24), 0.8), inOutSine(prog(lt, 4.3, 5.0)), { col: MAG, w: 5, dash: [12, 9] }); }
+    },
+    out: { kind: 'circle', c: [416, 1372], r: 34, plate: true } },
+  { key: 'sand', bg: '#E8DDCD', focus: [430, 960], zoom: lt => 1.0 + 0.01 * lt,
+    draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
+      // a wave washes over the right half and pulls back, leaving the names written in the wet sand
+      const inn = outCubic(prog(lt, 0.4, 1.7)), back = inOutSine(prog(lt, 1.9, 3.5)), edge = lerp(1180, 600, inn * (1 - back)), wetK = inOutSine(prog(lt, 1.9, 5.5));
+      const shore = y => edge + Math.sin(y * 0.012 + lt * 2.2) * 16 + Math.sin(y * 0.031 + lt * 1.3) * 7;
+      const reach = lerp(1180, 600, inn), wetA = 0.2 * (1 - wetK);   // the sand the wave reached stays darker for a while
+      if (wetA > 0.002 && inn > 0) { c.save(); c.globalCompositeOperation = 'multiply'; c.filter = `blur(${30 * SCALE}px)`; c.fillStyle = `rgba(140,116,92,${wetA})`; c.beginPath(); c.moveTo(1240, -40); for (let y = -40; y <= H + 40; y += 30) c.lineTo(reach + 30 + Math.sin(y * 0.012) * 16, y); c.lineTo(1240, H + 40); c.closePath(); c.fill(); c.restore(); }
+      c.save(); c.beginPath(); c.moveTo(1200, 0); for (let y = 0; y <= H; y += 24) c.lineTo(shore(y), y); c.lineTo(1200, H); c.closePath(); c.fillStyle = 'rgba(150,200,205,0.30)'; c.fill();
+      c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 12; c.beginPath(); for (let y = 0; y <= H; y += 24) c.lineTo(shore(y) - 4, y); c.stroke();
+      c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = 4; c.beginPath(); for (let y = 0; y <= H; y += 24) c.lineTo(shore(y) + 34 + Math.sin(y * 0.02) * 8, y); c.stroke(); c.restore();
+      // names (PLACEHOLDERS until she sends hers), written in by a finger: a soft groove with a light lip
+      const NAMES = [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]];
+      NAMES.forEach(([n, y], i) => { const p = inOutSine(prog(lt, 2.4 + i * 0.45, 3.3 + i * 0.45)); if (p <= 0) return;
+        c.save(); c.font = '400 58px Soft, sans-serif'; c.letterSpacing = '1px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
+        c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore();
+        c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.55; BID = 7000 + i * 10; drawPart(c, wobble(bez([590, y - 18], [565, y - 22], [545, y - 14], [528, y - 10], 12), 0.6), inOutSine(prog(lt, 2.7 + i * 0.45, 3.1 + i * 0.45)), { col: SANDINK, w: 5 }); c.restore(); });
+      // a heart drawn in the sand: it becomes the next shot
+      c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.5; BID = 7900; drawPart(c, wobble(heartPts(840, 1700, 62), 0.7), inOutSine(prog(lt, 4.0, 5.1)), { col: SANDINK, w: 7 }); c.restore();
+    },
+    out: { kind: 'heart', c: [840, 1700], r: 62 } },
+  { key: 'card', bg: '#8E897F', focus: [540, 1000], zoom: lt => 1.02 + 0.014 * lt,
+    draw(c, lt) { plate(c, 'S5-card'); frameSpace(c);
+      // a hand-drawn ring around the heart buckle, and a few twinkles
+      BID = 5000; c.save(); drawPart(c, wobble(Array.from({ length: 61 }, (_, i) => { const a = -1.9 + i / 60 * TAU * 1.08; return [540 + Math.cos(a) * 88, 1019 + Math.sin(a) * 66]; }), 1.2), inOutSine(prog(lt, 1.4, 2.2)), { col: MAG, w: 6 }); c.restore();
+      [[440, 940, 1.0], [655, 950, 1.4], [612, 1110, 1.9], [390, 1440, 2.3], [770, 700, 2.7], [462, 1080, 3.1]].forEach(([x, y, t], i) => sparkle(c, x, y, 22, prog(lt, t, t + 0.9), i % 2 ? CREAM : '#FFE3EE'));
+      const pos = words(c, 'Sexy is the standard.', lt, 0.4, { y: 196, size: 72, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
+      if (pos[3]) { const [ux, uw] = pos[3]; BID = 5100; drawPart(c, wobble(bez([ux, 226], [ux + uw * 0.35, 236], [ux + uw * 0.7, 220], [ux + uw, 230], 24), 0.8), inOutSine(prog(lt, 1.3, 2.0)), { col: MAG, w: 6, dash: [13, 9] }); }
+    },
+    out: { kind: 'heart', c: [540, 1016], r: 24 } },
+  { key: 'tan', bg: '#9C6448', focus: [540, 900], zoom: lt => 1 + 0.012 * lt,
+    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+      // PLACEHOLDER: S6-tan-reveal / S6-tan-strap go here. The strawberry doodle stays and traces her tan mark.
+      c.save(); c.fillStyle = 'rgba(255,240,230,0.5)'; c.font = '400 26px Soft, sans-serif'; c.textAlign = 'center'; c.fillText('tan line photo goes here', W / 2, 330); c.restore();
+      const sx = 540, sy = 900, p = inOutSine(prog(lt, 0.3, 1.3)); BID = 6000;
+      const half = bez([sx, sy - 120], [sx + 120, sy - 140], [sx + 150, sy - 10], [sx, sy + 170], 30), body = half.concat(half.slice().reverse().map(([x, y]) => [2 * sx - x, y]));
+      if (p > 0) { const f = outCubic(prog(lt, 1.0, 1.5)); if (f > 0) { c.save(); c.globalAlpha = f * 0.85; c.beginPath(); body.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.fillStyle = '#E0313F'; c.fill(); c.restore(); }
+        drawPart(c, wobble(body, 1.2), p, { col: MAG, w: 7 });
+        for (let i = 0; i < 9; i++) { const k = outCubic(prog(lt, 1.3 + i * 0.06, 1.6 + i * 0.06)); if (k > 0) { c.save(); c.fillStyle = '#FFE9A8'; c.translate(sx + ((i % 3) - 1) * (64 - Math.floor(i / 3) * 18) + (Math.floor(i / 3) === 1 ? 8 : 0), sy - 50 + Math.floor(i / 3) * 62); c.rotate(0.4); c.beginPath(); c.ellipse(0, 0, 5 * k, 9 * k, 0, 0, TAU); c.fill(); c.restore(); } }
+        const lp = inOutSine(prog(lt, 1.1, 1.7)); [[-1, 0.5], [0, -0.1], [1, 0.5]].forEach(([d, r], i) => { drawPart(c, wobble(bez([sx, sy - 128], [sx + d * 30, sy - 165], [sx + d * 75, sy - 150], [sx + d * 80, sy - 130 - (d === 0 ? 40 : 0)], 16), 1), lp, { col: LEAF, w: 7 }); }); }
+      words(c, 'Leave with proof.', lt, 1.4, { y: 1560, size: 72, col: CREAM, shadow: 'rgba(40,15,5,0.3)' });
+    },
+    out: { kind: 'circle', c: [540, 920], r: 150 } },
+  { key: 'end', bg: BLUSH, focus: [540, 960], zoom: () => 1,
+    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+      // the hang tag comes down on its ribbon and settles with a damped swing
+      const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3);
+      const ex = 540, ey = lerp(-900, 300, drop);
+      c.save(); c.fillStyle = MAG; c.fillRect(ex - 22, -20, 44, ey + 20); c.restore();
+      c.save(); c.translate(ex, ey); c.rotate(th * DEG);
+      c.shadowColor = 'rgba(42,10,28,0.16)'; c.shadowBlur = 40 * SCALE; c.shadowOffsetY = 18 * SCALE;
+      c.beginPath(); c.moveTo(-200, -70); c.lineTo(200, -70); c.lineTo(320, 50); c.lineTo(320, 1030); c.quadraticCurveTo(320, 1060, 290, 1060); c.lineTo(-290, 1060); c.quadraticCurveTo(-320, 1060, -320, 1030); c.lineTo(-320, 50); c.closePath(); c.fillStyle = CREAM; c.fill();
+      c.shadowColor = 'transparent'; c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.fillStyle = BLUSH; c.fill(); c.lineWidth = 9; c.strokeStyle = '#B98A3E'; c.stroke();
+      // stitched border, sewn on as it settles
+      const border = [[-190, -50], [190, -50], [300, 60], [300, 1040], [-300, 1040], [-300, 60], [-190, -50]];
+      const bp = []; for (let i = 1; i < border.length; i++) for (let j = 0; j < 20; j++) bp.push([lerp(border[i - 1][0], border[i][0], j / 20), lerp(border[i - 1][1], border[i][1], j / 20)]); bp.push(border[0]);
+      drawPart(c, bp, inOutSine(prog(lt, 1.0, 2.4)), { col: MAG, w: 3, dash: [10, 8], alpha: 0.75 });
+      const L = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (L) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * L.height / L.width; c.drawImage(L, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
+      c.restore();
+      // tag copy, in tag space via a temporary frame mapping
+      const inTag = (fn) => { c.save(); frameSpace(c); c.translate(ex, ey); c.rotate(th * DEG); fn(); c.restore(); };
+      inTag(() => { tagWords(c, 'Made in Trinidad.', lt, 1.7, 0, 650, 50, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 0, 840, 30, 'rgba(42,10,28,0.72)', 0.05); });
+      const pos = words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 50, col: PLUM, stagger: 0.1 });
+      if (pos[1]) { const [ux, uw] = pos[1]; BID = 8800; drawPart(c, wobble(bez([ux, 1626], [ux + uw * 0.3, 1636], [ux + uw * 0.7, 1620], [ux + uw, 1630], 24), 0.8), inOutSine(prog(lt, 3.6, 4.3)), { col: MAG, w: 5, dash: [12, 9] }); }
+    } },
+];
+// words drawn in the tag's own (rotated) space
+function tagWords(c, str, lt, t0, x, y, size, col, stagger = 0.09) {
+  c.save(); c.font = `400 ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+  const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = x - tot / 2;
+  ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + 0.7)); if (a > 0.003) { c.save(); c.globalAlpha = a; c.filter = `blur(${(1 - a) * 12 * SCALE}px)`; c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.3); c.restore(); } px += wd[i] + sp; });
+  c.restore();
+}
+
+// ---------------- compositing: camera per shot, shape-morph transitions ----------------
+const ORDER = SHOTS.map(s => s.key), START = ORDER.map(k => SHOT[k]);
+const SH = SHOTS.map(mk);
+function camOf(k, lt) { const s = SHOTS[k]; return { z: s.zoom(lt), fx: s.focus[0], fy: s.focus[1] }; }
+function drawShot(k, lt) { BID = k * 1000; const c = SH[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.filter = 'none'; c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, cv.width, cv.height); SHOTS[k].draw(c, lt); return SH[k]; }
+function blit(c, can, cam, extra = 1) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); const z = cam.z * extra; c.translate(cam.fx * SCALE, cam.fy * SCALE); c.scale(z, z); c.translate(-cam.fx * SCALE, -cam.fy * SCALE); c.drawImage(can, 0, 0); c.restore(); }
+const toScreen = (cam, x, y) => [cam.fx + (x - cam.fx) * cam.z, cam.fy + (y - cam.fy) * cam.z, cam.z];
+const pp = (x, y) => [x * K, y * K + OY];   // plate px -> frame px
+function render(t) {
+  POSE = Math.floor(t * 12 + 1e-6);   // doodles hold poses at 12 a second
+  let k = 0; for (let i = 0; i < START.length; i++) if (t >= START[i]) k = i;
+  const inTr = k > 0 && t < START[k] + TRD, cur = inTr ? k - 1 : k, lt = t - START[cur];
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const cc = camOf(cur, lt); blit(ctx, drawShot(cur, lt), cc);
+  if (inTr) {
+    const nx = cur + 1, ln = t - START[nx], e = inOutCubic(prog(t, START[nx], START[nx] + TRD)), o = SHOTS[cur].out, can = drawShot(nx, ln);
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); const R = Math.hypot(W, H) * 0.62;
+    if (o.kind === 'circle') { const [cx0, cy0] = o.plate ? pp(...o.c) : o.c, r0 = o.plate ? o.r * K : o.r; const [x, y, s] = toScreen(cc, cx0, cy0); ctx.arc(lerp(x, W / 2, e), lerp(y, H / 2, e), lerp(r0 * s, R, e), 0, TAU); }
+    else if (o.kind === 'heart') { const [x, y, s] = toScreen(cc, ...o.c); const hp = heartPts(lerp(x, W / 2, e), lerp(y, H / 2 + 120, e), lerp(o.r * s, 1500, e * e)); hp.forEach(([a, b], i) => i ? ctx.lineTo(a, b) : ctx.moveTo(a, b)); ctx.closePath(); }
+    else { const [a0, b0] = pp(o.rect[0], o.rect[1]), [a1, b1] = pp(o.rect[2], o.rect[3]); const [x0, y0] = toScreen(cc, a0, b0), [x1, y1, s] = toScreen(cc, a1, b1); ctx.roundRect(lerp(x0, -30, e), lerp(y0, -30, e), lerp(x1 - x0, W + 60, e), lerp(y1 - y0, H + 60, e), lerp(o.r * s, 0, e)); }
+    ctx.save(); ctx.clip(); ctx.fillStyle = SHOTS[nx].bg; ctx.fillRect(0, 0, W, H); if (e > 0.12) blit(ctx, can, camOf(nx, ln), lerp(0.93, 1, outCubic(prog(e, 0.12, 1)))); ctx.restore(); ctx.restore();
+  }
+}
+// events for sound sync
+START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
+Object.keys(SCREENS).forEach((k, i) => ev('screen.on', 0.3 + i * 0.22)); ev('map.heart', 3.1); ev('screens.change', 3.0);
+[0.5, 1.4, 2.3].forEach(a => { ev('peg.lower', SHOT.pegs + a); ev('peg.land', SHOT.pegs + a + 1.4); });
+ev('wave.in', SHOT.sand + 0.4); ev('wave.out', SHOT.sand + 1.9); ev('card.ring', SHOT.card + 1.4); ev('tan.berry', SHOT.tan + 0.3);
+ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
+window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
+window.ready = Promise.all([
+  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'),
+  ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
+  document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
+]).then(() => { ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>
