@@ -15,7 +15,9 @@
 //   tan line --(circle)--> hang tag.
 
 // ---------------- timing (one place to re-time everything) ----------------
-const SHOT = { cabin: 0, map: 5.6, pegs: 9.6, sand: 15.6, card: 21.2, tan: 25.8, end: 29.0 }, END = 34.5;
+const BPM = 112, BT = 60 / BPM;   // everything sits on the soca score's beat grid
+const SHOT = { cabin: 0, map: 10 * BT, pegs: 18 * BT, sand: 30 * BT, card: 40 * BT, tan: 48 * BT, end: 54 * BT }, END = 64 * BT + 0.6;
+let ENV = null; const kick = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.kick[f] || 0; }, energy = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.energy[f] || 0; };
 const TRD = { map: 1.2, pegs: 0.55, sand: 0.85, card: 1.4, tan: 1.1, end: 0.9 };   // transition into each shot
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
 const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
@@ -119,7 +121,7 @@ const SCRN = mk(), SCRX = SCRN.getContext('2d');
 function screens(c, lt) {
   const Q = DATA.quads, keys = Object.keys(Q).filter(k => k !== 'front');
   SCRX.setTransform(1, 0, 0, 1, 0, 0); SCRX.globalCompositeOperation = 'source-over'; SCRX.clearRect(0, 0, SCRN.width, SCRN.height); plateSpace(SCRX);
-  keys.forEach((k, i) => { const on = 0.6 + i * 0.17; if (lt < on) return; const idx = (i + (lt > 3.4 + i * 0.05 ? 1 : 0)) % 4; warp(SCRX, tile(PIECES[idx]), 0, 0, 640, 400, Q[k], 6);
+  keys.forEach((k, i) => { const on = BT + i * BT / 2; if (lt < on) return; const idx = (i + (lt > 6 * BT ? 1 : 0)) % 4; warp(SCRX, tile(PIECES[idx]), 0, 0, 640, 400, Q[k], 6);
     const fl = 1 - prog(lt, on, on + 0.12); if (fl > 0) { SCRX.save(); SCRX.globalAlpha = fl * 0.9; SCRX.fillStyle = '#FFFFFF'; pathPts(SCRX, Q[k]); SCRX.fill(); SCRX.restore(); } });
   if (lt > 0.9) { const [x0, y0, x1, y1] = [0, 0, 960, 540]; drawMap(lt + SHOT.cabin, 960, 540); warp(SCRX, MAPC, 0, 0, 960, 540, Q.front, 14); }
   // glass: a soft diagonal sheen across every screen
@@ -172,17 +174,17 @@ const SHOTS = [
       c.translate(930 + Math.sin(lt * 0.9) * 18, 1180); c.rotate(-0.5 + Math.sin(lt * 1.1) * 0.05);
       for (let i = 0; i < 9; i++) { c.save(); c.translate(0, i * 46); c.rotate((i % 2 ? 1 : -1) * (0.9 + Math.sin(lt * 1.6 + i) * 0.06)); c.beginPath(); c.ellipse(70, 0, 80, 11, 0, 0, TAU); c.fill(); c.restore(); }
       c.fillRect(-4, -20, 8, 440); c.restore();
-      hangPiece(c, 'peg-top', lt, 0.9, 0.0); hangPiece(c, 'peg-bottom', lt, 1.7, 1.7); hangPiece(c, 'peg-skirt', lt, 2.5, 3.1);
-      words(c, 'Sewn in Trinidad.', lt, 3.3, { y: 1700, size: 68 }); },
+      hangPiece(c, 'peg-top', lt, 2 * BT, 0.0); hangPiece(c, 'peg-bottom', lt, 4 * BT, 1.7); hangPiece(c, 'peg-skirt', lt, 6 * BT, 3.1);
+      words(c, 'Sewn in Trinidad.', lt, 8 * BT, { y: 1700, size: 68 }); },
     out: { kind: 'tilt' } },
   { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [430, 960] }),
     draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
-      const inn = outCubic(prog(lt, 0.9, 2.2)), back = inOutSine(prog(lt, 2.4, 4.0)), edge = lerp(1180, 600, inn * (1 - back)), wetK = inOutSine(prog(lt, 2.4, 5.6));
+      const inn = outCubic(prog(lt, 2 * BT, 4.5 * BT)), back = inOutSine(prog(lt, 5 * BT, 8 * BT)), edge = lerp(1180, 600, inn * (1 - back)), wetK = inOutSine(prog(lt, 2.4, 5.6));
       const shore = y => edge + Math.sin(y * 0.012 + lt * 2.2) * 16 + Math.sin(y * 0.031 + lt * 1.3) * 7;
       const reach = lerp(1180, 600, inn), wetA = 0.2 * (1 - wetK);
       if (wetA > 0.002 && inn > 0) { c.save(); c.globalCompositeOperation = 'multiply'; c.filter = `blur(${30 * SCALE}px)`; c.fillStyle = `rgba(140,116,92,${wetA})`; c.beginPath(); c.moveTo(1240, -40); for (let y = -40; y <= H + 40; y += 30) c.lineTo(reach + 30 + Math.sin(y * 0.012) * 16, y); c.lineTo(1240, H + 40); c.closePath(); c.fill(); c.restore(); }
       waterEdge(c, shore, 1);
-      [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]].forEach(([n, y], i) => { const p = inOutSine(prog(lt, 2.9 + i * 0.45, 3.8 + i * 0.45)); if (p <= 0) return;
+      [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]].forEach(([n, y], i) => { const p = inOutSine(prog(lt, (6 + i) * BT, (7.6 + i) * BT)); if (p <= 0) return;
         c.save(); c.font = '400 58px Soft, sans-serif'; c.letterSpacing = '1px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
         c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore(); }); },
     out: { kind: 'wave' } },
@@ -223,7 +225,7 @@ function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09) {
   c.restore();
 }
 // silver heart lift inside the card shot (shot-local frame px): rises off the buckle, one turn, drifts to centre, grows a little
-const LIFT0 = 2.5, LIFT1 = SHOT.tan - SHOT.card;   // until the transition starts
+const LIFT0 = 4.5 * BT, LIFT1 = SHOT.tan - SHOT.card;   // until the transition starts
 function liftState(lt) { if (lt < LIFT0) return null; const k = inOutSine(prog(lt, LIFT0, LIFT1)), e = outCubic(prog(lt, LIFT0, LIFT0 + 0.5));
   return { x: lerp(BUCKLE[0], 540, k), y: lerp(BUCKLE[1], 960, k) - e * 6, s: BUCKLE_S * (1 + 0.25 * e + 1.8 * k * k), spin: TAU * inOutCubic(prog(lt, LIFT0 + 0.2, LIFT1 - 0.1)) }; }
 // the sea's edge: translucent water + a foam line (frame space)
@@ -242,14 +244,14 @@ function render(t) {
   let k = 0; for (let i = 0; i < START.length; i++) if (t >= START[i]) k = i;
   const nxKey = ORDER[k], inTr = k > 0 && t < START[k] + TRD[nxKey], cur = inTr ? k - 1 : k, lt = t - START[cur];
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
-  const cc = SHOTS[cur].cam(lt);
+  const cc = SHOTS[cur].cam(lt); const kb = t > 8 * BT && t < 58 * BT ? kick(t) * 0.004 : 0; cc.z *= 1 + kb;
   if (!inTr) { blit(ctx, drawShot(cur, lt), cc); return; }
   const nx = cur + 1, ln = t - START[nx], d = TRD[ORDER[nx]], p = prog(t, START[nx], START[nx] + d), kind = SHOTS[cur].out.kind, nc = SHOTS[nx].cam(ln);
   if (kind === 'screen') {   // the seat screen opens out to the full frame, the map still running inside it
     blit(ctx, drawShot(cur, lt), cc); const e = inOutCubic(p), Q = DATA.quads.front.map(([x, y]) => toScreen(cc, ...pp(x, y))), F = [[0, 0], [W, 0], [W, H], [0, H]];
     const quad = Q.map((q0, i) => [lerp(q0[0], F[i][0], e), lerp(q0[1], F[i][1], e)]), mw = Math.round(lerp(960, 1080, e)), mh = Math.round(lerp(540, 1920, e));
     drawMap(t, mw, mh); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); warp(ctx, MAPC, 0, 0, mw, mh, quad, 14); ctx.restore();
-    ctx.save(); ctx.globalAlpha = prog(e, 0.55, 1); mapText(ctx, ln); ctx.restore(); return; }
+    ctx.save(); ctx.globalAlpha = prog(e, 0.8, 1); mapText(ctx, ln); ctx.restore(); return; }
   if (kind === 'land') {   // the dive ends inside the island; its land is the wall's colour, so the wall simply comes up
     blit(ctx, drawShot(cur, lt), cc); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = WALL; ctx.globalAlpha = clamp01(p * 3); ctx.fillRect(0, 0, W, H); ctx.restore();
     blit(ctx, drawShot(nx, ln), nc, 0, inOutSine(prog(p, 0.25, 1))); return; }
@@ -271,14 +273,14 @@ function render(t) {
   if (e > 0.12) blit(ctx, B, { z: nc.z * lerp(0.93, 1, outCubic(prog(e, 0.12, 1))), f: nc.f }); ctx.restore();
 }
 START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
-for (let i = 0; i < 13; i++) ev('screen.on', 0.6 + i * 0.17); ev('screens.change', 3.4); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
-[0.9, 1.7, 2.5].forEach(a => ev('peg.cut', SHOT.pegs + a)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 0.9); ev('wave.out', SHOT.sand + 2.4); ev('wave.big', SHOT.card);
+for (let i = 0; i < 13; i++) ev('screen.on', BT + i * BT / 2); ev('screens.change', 6 * BT); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
+[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 2 * BT); ev('wave.out', SHOT.sand + 5 * BT); ev('wave.big', SHOT.card);
 ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
-  loadJSON('tt', 'data/tt-outline.json'), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
+  loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
 ]).then(() => { ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>

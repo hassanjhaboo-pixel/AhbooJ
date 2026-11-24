@@ -2,6 +2,7 @@
 # page's EVENTS, airy whooshes under moves. Replace the pad with her soca track; keep the plucks as a light SFX stem.
 #   python3 tools/sound.py events.json out.wav 30.5
 import json, sys, wave, numpy as np
+SFX_ONLY = '--sfx-only' in sys.argv
 SR = 48000; ev = json.load(open(sys.argv[1])); out = sys.argv[2]; L = float(sys.argv[3]); N = int(L * SR); mix = np.zeros((N, 2))
 t = np.arange(N) / SR; rng = np.random.default_rng(3)
 def lp(x, a): y = np.empty_like(x); s = 0.0
@@ -12,8 +13,8 @@ def onepole(x, k):
     for i in range(len(x)): s += k * (x[i] - s); y[i] = s
     return y
 hz = lambda m: 440 * 2 ** ((m - 69) / 12)
-chords = [[48, 55, 59, 64], [45, 52, 55, 60], [41, 48, 52, 57], [43, 50, 55, 59]]; bar = 60 / 84 * 4
-for b in range(int(L / bar) + 1):
+chords = [] if SFX_ONLY else [[48, 55, 59, 64], [45, 52, 55, 60], [41, 48, 52, 57], [43, 50, 55, 59]]; bar = 60 / 84 * 4
+for b in ([] if SFX_ONLY else range(int(L / bar) + 1)):
     for m in chords[b % 4]:
         s0 = int(b * bar * SR); n = int((bar + 1.2) * SR); n = min(n, N - s0)
         if n <= 0: continue
@@ -22,7 +23,7 @@ for b in range(int(L / bar) + 1):
         mix[s0:s0 + n, 0] += tone * env * 0.05; mix[s0:s0 + n, 1] += tone * env * 0.05
 # a soft shaker on the off beats for a little island lilt
 beat = 60 / 84
-for i in range(int(L / beat * 2)):
+for i in ([] if SFX_ONLY else range(int(L / beat * 2))):
     s0 = int((i * beat / 2 + beat / 4) * SR); n = int(0.06 * SR)
     if s0 + n >= N: break
     nz = rng.standard_normal(n) * np.exp(-np.arange(n) / SR / 0.015); nz = nz - onepole(nz, 0.25)
@@ -39,7 +40,7 @@ def whoosh(at, dur=0.9, g=0.05):
 scale = [72, 74, 76, 79, 81, 84, 86, 88]; k = 0
 for e in ev:
     n, a = e['name'], e['t']
-    if n == 'screen.on': pluck(a, scale[k % 5], 0.07, (k % 3 - 1) * 0.6); k += 1
+    if n == 'screen.on': pluck(a, scale[k % 5], 0.05, (k % 3 - 1) * 0.6); k += 1
     elif n.startswith('shot.') and a > 0: whoosh(a + 0.3, 1.0); pluck(a + 0.45, 76, 0.1); pluck(a + 0.6, 83, 0.07)
     elif n in ('peg.land', 'tag.land'): pluck(a, 79, 0.1)
     elif n in ('map.heart', 'card.ring', 'tan.berry', 'cta'): pluck(a, 84, 0.1); pluck(a + 0.12, 88, 0.08)

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SM Threads: Island Time</title>
+<style>
+  @font-face { font-family: Soft; src: url("../ad/fonts/Outfit-Regular.ttf"); font-weight: 400; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script>
+// SM Threads "Island Time". A real-time 3D film in WebGL2 with hand-written shaders, 9:16, cut to its own soca score.
+//   A  sky:   her pieces fall through a sunset sky like silk; clouds stream past; the traced Trinidad & Tobago, extruded,
+//             sit on a Gerstner-wave ocean far below. The camera plunges into a cloud.
+//   B  beach: out of the cloud onto a golden-hour beach. The same pieces float down onto a clothesline over the shore and
+//             flutter, backlit, while the camera tracks along the line. The drums drop as we come out of the cloud.
+//   C  the wind lifts the aqua top into the lens; its colour opens into
+//   D  the hang tag, turning on its ribbon in real perspective over the soft-focus sunset.
+// Cloth: each piece is a 40x40 mesh, pinned at the top, bent in the vertex shader by travelling wind waves; normals come
+// from the displaced surface, light passes through thin fabric when the sun is behind it. Page contract: renderAt(t).
+
+// ---------------- timing (beats at 112 BPM) ----------------
+const BPM = 112, B = 60 / BPM, T = { beach: 10 * B, push: 30 * B, end: 34 * B }, END = 44 * B + 0.8;
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
+const MAG = '#CB0870', PLUM = '#2A0A1C', BLUSH = '#ECD0D5', CREAM = '#FBF6EE';
+
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const ctx = cv.getContext('2d');
+const glc = document.createElement('canvas'); glc.width = cv.width; glc.height = cv.height;
+const gl = glc.getContext('webgl2', { antialias: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const outCubic = k => 1 - Math.pow(1 - clamp01(k), 3), inOutCubic = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const inOutSine = k => -(Math.cos(Math.PI * clamp01(k)) - 1) / 2, outQuint = k => 1 - Math.pow(1 - clamp01(k), 5), inCubic = k => Math.pow(clamp01(k), 3);
+const TAU = Math.PI * 2;
+const V = { sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], mul: (a, s) => [a[0] * s, a[1] * s, a[2] * s],
+  dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], norm: a => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; },
+  lerp: (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)] };
+const M4 = {
+  mul(a, b) { const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) { let s = 0; for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k]; o[c * 4 + r] = s; } return o; },
+  persp(fov, asp, n, f) { const t = 1 / Math.tan(fov / 2), o = new Float32Array(16); o[0] = t / asp; o[5] = t; o[10] = (f + n) / (n - f); o[11] = -1; o[14] = 2 * f * n / (n - f); return o; },
+  look(e, c, up = [0, 1, 0]) { const z = V.norm(V.sub(e, c)), x = V.norm(V.cross(up, z)), y = V.cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -V.dot(x, e), -V.dot(y, e), -V.dot(z, e), 1]); },
+  model(p, ry = 0, rx = 0, rz = 0, s = 1) { const cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx), cz = Math.cos(rz), sz = Math.sin(rz);
+    const Ry = [cy, 0, -sy, 0, 0, 1, 0, 0, sy, 0, cy, 0, 0, 0, 0, 1], Rx = [1, 0, 0, 0, 0, cx, sx, 0, 0, -sx, cx, 0, 0, 0, 0, 1], Rz = [cz, sz, 0, 0, -sz, cz, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+    let m = M4.mul(M4.mul(Ry, Rx), Rz); m = M4.mul([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1], m); return M4.mul(m, [s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1]); },
+  inv(m) { const a = m, o = new Float32Array(16);
+    const b00 = a[0] * a[5] - a[1] * a[4], b01 = a[0] * a[6] - a[2] * a[4], b02 = a[0] * a[7] - a[3] * a[4], b03 = a[1] * a[6] - a[2] * a[5], b04 = a[1] * a[7] - a[3] * a[5], b05 = a[2] * a[7] - a[3] * a[6];
+    const b06 = a[8] * a[13] - a[9] * a[12], b07 = a[8] * a[14] - a[10] * a[12], b08 = a[8] * a[15] - a[11] * a[12], b09 = a[9] * a[14] - a[10] * a[13], b10 = a[9] * a[15] - a[11] * a[13], b11 = a[10] * a[15] - a[11] * a[14];
+    const d = 1 / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
+    o[0] = (a[5] * b11 - a[6] * b10 + a[7] * b09) * d; o[1] = (a[2] * b10 - a[1] * b11 - a[3] * b09) * d; o[2] = (a[13] * b05 - a[14] * b04 + a[15] * b03) * d; o[3] = (a[10] * b04 - a[9] * b05 - a[11] * b03) * d;
+    o[4] = (a[6] * b08 - a[4] * b11 - a[7] * b07) * d; o[5] = (a[0] * b11 - a[2] * b08 + a[3] * b07) * d; o[6] = (a[14] * b02 - a[12] * b05 - a[15] * b01) * d; o[7] = (a[8] * b05 - a[10] * b02 + a[11] * b01) * d;
+    o[8] = (a[4] * b10 - a[5] * b08 + a[7] * b06) * d; o[9] = (a[1] * b08 - a[0] * b10 - a[3] * b06) * d; o[10] = (a[12] * b04 - a[13] * b02 + a[15] * b00) * d; o[11] = (a[9] * b02 - a[8] * b04 - a[11] * b00) * d;
+    o[12] = (a[5] * b07 - a[4] * b09 - a[6] * b06) * d; o[13] = (a[0] * b09 - a[1] * b07 + a[2] * b06) * d; o[14] = (a[13] * b01 - a[12] * b03 - a[14] * b00) * d; o[15] = (a[8] * b03 - a[9] * b01 + a[10] * b00) * d; return o; } };
+
+// ---------------- shaders ----------------
+const COMMON = `
+  uniform vec3 uSun, uCam; uniform float uT, uFogNear, uFogFar;
+  float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+  float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
+  float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; } return v; }
+  vec3 sky(vec3 d){   // warm sunset: peach horizon, blush above, pale cream-pink at the top (no purple to blue)
+    float h = d.y; vec3 hor = vec3(1.0, 0.76, 0.6), bl = vec3(0.97, 0.78, 0.8), top = vec3(0.98, 0.9, 0.89);
+    vec3 c = mix(hor, bl, smoothstep(0.0, 0.2, h)); c = mix(c, top, smoothstep(0.2, 0.75, h)); c = mix(c, vec3(0.93, 0.66, 0.55), smoothstep(0.0, -0.3, h));
+    float s = max(dot(d, uSun), 0.0); c += vec3(1.0, 0.55, 0.3) * pow(s, 16.0) * 0.18 + vec3(1.0, 0.8, 0.55) * pow(s, 420.0) * 0.5 + vec3(1.0, 0.93, 0.82) * smoothstep(0.99955, 0.9998, s) * 1.1;
+    if (h > 0.0) { vec2 uv = d.xz / (h + 0.08) * 0.9 + vec2(uT * 0.012, 0.0); float cl = fbm(uv * 1.3); float m = smoothstep(0.52, 0.82, cl) * smoothstep(0.0, 0.12, h) * 0.7;
+      c = mix(c, vec3(1.0, 0.9, 0.86) + vec3(0.12, 0.04, 0.0) * pow(s, 4.0), m); }
+    return c; }
+  vec3 fogged(vec3 c, vec3 p){ float f = smoothstep(uFogNear, uFogFar, distance(p, uCam)); return mix(c, sky(normalize(p - uCam) * vec3(1.0, 0.25, 1.0) + vec3(0.0, 0.02, 0.0)), f); }`;
+const VS_SKY = `#version 300 es
+  in vec2 aP; out vec2 vN; void main(){ vN = aP; gl_Position = vec4(aP, 0.9999, 1.0); }`;
+const FS_SKY = `#version 300 es
+  precision highp float; in vec2 vN; uniform mat4 uInvVP; ${COMMON} out vec4 o;
+  void main(){ vec4 p = uInvVP * vec4(vN, 1.0, 1.0); vec3 d = normalize(p.xyz / p.w - uCam); o = vec4(sky(d), 1.0); }`;
+const WAVE = `
+  uniform float uWave, uShoreFlat; // wavelength multiplier: 1 at the beach, large from the sky
+  vec3 gerstner(vec2 xz, out vec3 n){ vec3 p = vec3(xz.x, 0.0, xz.y); vec3 nn = vec3(0.0, 1.0, 0.0);
+    vec4 W[4]; W[0] = vec4(0.8, 0.6, 140.0, 4.2); W[1] = vec4(-0.3, 1.0, 72.0, 2.1); W[2] = vec4(0.9, -0.2, 41.0, 1.1); W[3] = vec4(0.2, 0.95, 23.0, 0.55);
+    for (int i = 0; i < 4; i++) { vec2 dir = normalize(W[i].xy); float L = W[i].z * uWave, A = W[i].w * uWave, k = 6.2832 / L, w = sqrt(9.8 * k) * 0.9, f = k * dot(dir, xz) - w * uT, Q = 0.55;
+      p.x += Q * A * dir.x * cos(f); p.z += Q * A * dir.y * cos(f); p.y += A * sin(f);
+      nn.x -= dir.x * k * A * cos(f); nn.z -= dir.y * k * A * cos(f); nn.y -= Q * k * A * sin(f); }
+    n = normalize(nn); return p; }`;
+const VS_SEA = `#version 300 es
+  in vec2 aP; uniform mat4 uVP; uniform vec2 uCenter; uniform float uExtent, uShoreZ; ${COMMON} ${WAVE} out vec3 vW; out vec3 vN;
+  void main(){ vec2 xz = uCenter + aP * uExtent; vec3 n; vec3 p = gerstner(xz, n); float calm = mix(0.12, 1.0, smoothstep(uShoreZ + 60.0, uShoreZ - 600.0, xz.y)); p = vec3(mix(xz.x, p.x, calm), p.y * calm - (1.0 - calm) * 4.0, mix(xz.y, p.z, calm)); n = normalize(mix(vec3(0.0, 1.0, 0.0), n, calm)); vW = p; vN = n; gl_Position = uVP * vec4(p, 1.0); }`;
+const FS_SEA = `#version 300 es
+  precision highp float; in vec3 vW; in vec3 vN; uniform float uShoreZ; ${COMMON} out vec4 o;
+  void main(){ vec3 n = normalize(vN + vec3(0.0, 1.6, 0.0) * 0.0); vec3 v = normalize(uCam - vW); float fr = 0.03 + 0.97 * pow(1.0 - max(dot(n, v), 0.0), 5.0);
+    vec3 refl = sky(reflect(-v, n) * vec3(1.0, 1.0, 1.0)); vec3 deep = vec3(0.16, 0.42, 0.45), shallow = vec3(0.35, 0.7, 0.66);
+    float sh = clamp((vW.z - uShoreZ + 260.0) / 260.0, 0.0, 1.0); vec3 water = mix(deep, shallow, sh);
+    vec3 c = mix(water, refl, clamp(fr, 0.0, 1.0)); float sp = pow(max(dot(reflect(-uSun, n), v), 0.0), 220.0); c += vec3(1.0, 0.85, 0.6) * sp * 2.2;
+    // foam: the wash at the shore and the crests
+    float fn = fbm(vW.xz * 0.02 + vec2(0.0, uT * 0.3)); float wash = uShoreZ - 20.0 + sin(uT * 1.1) * 28.0 + fn * 30.0;
+    float foam = smoothstep(wash - 40.0, wash, vW.z) * (1.0 - smoothstep(wash, wash + 6.0, vW.z)); c = mix(c, vec3(1.0, 0.97, 0.94), foam * 0.85);
+    o = vec4(fogged(c, vW), 1.0); }`;
+const VS_LIT = `#version 300 es
+  in vec3 aP; in vec3 aN; uniform mat4 uVP, uM; ${COMMON} out vec3 vW; out vec3 vN;
+  void main(){ vec4 w = uM * vec4(aP, 1.0); vW = w.xyz; vN = mat3(uM) * aN; gl_Position = uVP * w; }`;
+const FS_LIT = `#version 300 es
+  precision highp float; in vec3 vW; in vec3 vN; uniform vec3 uColor; uniform float uSand; ${COMMON} out vec4 o;
+  void main(){ vec3 n = normalize(vN); vec3 col = uColor;
+    if (uSand > 0.5) { float g = fbm(vW.xz * 0.05) * 0.5 + h21(floor(vW.xz * 1.5)) * 0.12; col *= 0.88 + g * 0.24; float wet = smoothstep(-40.0, -140.0, vW.z); col *= 1.0 - wet * 0.22; }
+    if (uSand > 1.5) { float g = fbm(vW.xz * 0.0007), r = fbm(vW.xz * 0.0025 + 3.0); col = mix(vec3(0.3, 0.46, 0.3), vec3(0.62, 0.68, 0.44), g); col *= 0.8 + r * 0.4; }
+    float d = uSand > 0.5 && uSand < 1.5 ? 0.92 + 0.12 * max(dot(n, uSun), 0.0) : max(dot(n, uSun), 0.0) * 0.6 + 0.55 + 0.1 * n.y; o = vec4(fogged(col * d * vec3(1.05, 0.98, 0.92), vW), 1.0); }`;
+const VS_CLOTH = `#version 300 es
+  in vec2 aP; uniform mat4 uVP, uM; uniform vec2 uSize; uniform float uAmp, uPh, uFree; ${COMMON} out vec2 vUV; out vec3 vW; out vec3 vN;
+  vec3 disp(vec2 uv){ float x = (uv.x - 0.5) * uSize.x, y = -uv.y * uSize.y; float d = mix(uv.y, 0.35 + abs(uv.y - 0.5) + abs(uv.x - 0.5) * 0.6, uFree);
+    float wv = sin(x * 0.045 + y * 0.028 - uT * 3.4 + uPh) + 0.45 * sin(x * 0.09 - y * 0.05 - uT * 5.1 + uPh * 1.7);
+    float z = uAmp * pow(d, 1.25) * (wv * 0.55 + 0.75); return vec3(x + uAmp * 0.12 * d * sin(uT * 2.0 + uPh + y * 0.02), y + uAmp * 0.08 * d * cos(uT * 2.6 + uPh), z); }
+  void main(){ vUV = aP; vec3 p = disp(aP); vec3 a = disp(aP + vec2(0.01, 0.0)) - p, b = disp(aP + vec2(0.0, 0.01)) - p; vN = mat3(uM) * normalize(cross(a, b));
+    vec4 w = uM * vec4(p, 1.0); vW = w.xyz; gl_Position = uVP * w; }`;
+const FS_CLOTH = `#version 300 es
+  precision highp float; in vec2 vUV; in vec3 vW; in vec3 vN; uniform sampler2D uTex; uniform float uAlpha; ${COMMON} out vec4 o;
+  void main(){ vec4 tx = texture(uTex, vUV); if (tx.a < 0.45) discard; vec3 n = normalize(vN); vec3 v = normalize(uCam - vW); if (dot(n, v) < 0.0) n = -n;
+    float lam = max(dot(n, uSun), 0.0); float through = pow(max(dot(-v, uSun), 0.0), 3.0) * 0.55;            // sun behind thin fabric
+    float rim = pow(1.0 - max(dot(n, v), 0.0), 3.0) * 0.25; float shade = 0.62 + 0.38 * n.z * 0.5 + lam * 0.35;
+    vec3 c = tx.rgb * shade + tx.rgb * vec3(1.0, 0.75, 0.55) * through + vec3(1.0, 0.85, 0.7) * rim;
+    o = vec4(fogged(c, vW), uAlpha); }`;
+const VS_BILL = `#version 300 es
+  in vec2 aP; uniform mat4 uVP; uniform vec3 uPos, uRight, uUp; uniform vec2 uSize; ${COMMON} out vec2 vUV; out vec3 vW;
+  void main(){ vUV = aP * 0.5 + 0.5; vec3 w = uPos + uRight * aP.x * uSize.x + uUp * aP.y * uSize.y; vW = w; gl_Position = uVP * vec4(w, 1.0); }`;
+const FS_BILL = `#version 300 es
+  precision highp float; in vec2 vUV; in vec3 vW; uniform sampler2D uTex; uniform float uAlpha; uniform vec3 uTint; ${COMMON} out vec4 o;
+  void main(){ vec4 tx = texture(uTex, vUV); float s = pow(max(dot(normalize(vW - uCam), uSun), 0.0), 6.0); vec3 c = uTint * tx.rgb + vec3(0.25, 0.1, 0.0) * s; o = vec4(c, tx.a * uAlpha); }`;
+function program(vs, fs) { const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error("lost=" + gl.isContextLost() + " x=" + x + " log=" + gl.getShaderInfoLog(x) + s.slice(0, 120)); return x; };
+  const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.bindAttribLocation(p, 0, 'aP'); gl.bindAttribLocation(p, 1, 'aN'); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++) { const a = gl.getActiveUniform(p, i); u[a.name] = gl.getUniformLocation(p, a.name); } return { p, u }; }
+let P = {};
+function mesh(data, layout, idx) { const vao = gl.createVertexArray(); gl.bindVertexArray(vao); const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+  const stride = layout.reduce((a, l) => a + l[1], 0) * 4; let off = 0; layout.forEach(([loc, n]) => { gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, n, gl.FLOAT, false, stride, off); off += n * 4; });
+  let count = data.length / (stride / 4), ib = null; if (idx) { ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(idx), gl.STATIC_DRAW); count = idx.length; }
+  return { vao, count, indexed: !!idx, buf: b }; }
+function grid(n, a = 0, b = 1) { const d = [], ix = []; for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) d.push(lerp(a, b, i / n), lerp(a, b, j / n));
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const v = j * (n + 1) + i; ix.push(v, v + 1, v + n + 1, v + 1, v + n + 2, v + n + 1); } return { d, ix }; }
+function boxData(w, h, d) { const x = w / 2, z = d / 2, F = [[[0, 0, 1], [[-x, 0, z], [x, 0, z], [x, h, z], [-x, h, z]]], [[0, 0, -1], [[x, 0, -z], [-x, 0, -z], [-x, h, -z], [x, h, -z]]], [[1, 0, 0], [[x, 0, z], [x, 0, -z], [x, h, -z], [x, h, z]]],
+  [[-1, 0, 0], [[-x, 0, -z], [-x, 0, z], [-x, h, z], [-x, h, -z]]], [[0, 1, 0], [[-x, h, z], [x, h, z], [x, h, -z], [-x, h, -z]]]]; const out = [];
+  F.forEach(([n, q]) => [0, 1, 2, 0, 2, 3].forEach(i => out.push(...q[i], ...n))); return out; }
+// ear clipping for the island tops
+function triangulate(pts) { const idx = pts.map((_, i) => i), out = []; const area = pts.reduce((a, p, i) => { const q = pts[(i + 1) % pts.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0), sgn = Math.sign(area);
+  const inside = (p, a, b, c) => { const s = (u, v, w) => (u[0] - w[0]) * (v[1] - w[1]) - (v[0] - w[0]) * (u[1] - w[1]); const d1 = s(p, a, b), d2 = s(p, b, c), d3 = s(p, c, a); return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0)); };
+  let guard = 0; while (idx.length > 3 && guard++ < 20000) { let cut = false; for (let i = 0; i < idx.length; i++) { const a = pts[idx[(i + idx.length - 1) % idx.length]], b = pts[idx[i]], c = pts[idx[(i + 1) % idx.length]];
+      const cr = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]); if (cr * sgn <= 0) continue; let ok = true; for (const j of idx) { const p = pts[j]; if (p === a || p === b || p === c) continue; if (inside(p, a, b, c)) { ok = false; break; } }
+      if (!ok) continue; out.push(idx[(i + idx.length - 1) % idx.length], idx[i], idx[(i + 1) % idx.length]); idx.splice(i, 1); cut = true; break; } if (!cut) break; }
+  if (idx.length === 3) out.push(...idx); return out; }
+const ISL_S = 30000;
+function islandMesh(islands, top, scale = 1) { const d = []; islands.forEach(isl => { let pts = isl.pts.map(([u, v]) => [(u - 0.5) * ISL_S, (v - 0.5) * ISL_S]);
+    if (scale !== 1) { const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cz = pts.reduce((a, p) => a + p[1], 0) / pts.length; pts = pts.map(([x, z]) => [cx + (x - cx) * scale, cz + (z - cz) * scale]); }
+    triangulate(pts).forEach(i => d.push(pts[i][0], top, pts[i][1], 0, 1, 0));
+    for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length], n = V.norm([b[1] - a[1], 0, -(b[0] - a[0])]); [[a, -40], [b, -40], [b, top], [a, -40], [b, top], [a, top]].forEach(([p, y]) => d.push(p[0], y, p[1], ...n)); } }); return d; }
+
+// ---------------- assets ----------------
+const IMG = {}; const load = (k, src) => new Promise(r => { const i = new Image(); i.onload = () => { IMG[k] = i; r(); }; i.onerror = () => r(); i.src = src; });
+let TT = null, ENVJ = null; const TEX = {};
+function texFrom(src) { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; }
+function cloudCanvas(seed) { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); let s = seed; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 26; i++) { const px = 128 + (r() - 0.5) * 110, py = 135 + (r() - 0.5) * 50, rr = 26 + r() * 40, g = x.createRadialGradient(px, py, 0, px, py, rr); g.addColorStop(0, 'rgba(255,255,255,0.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256); } return c; }
+
+// ---------------- the pieces ----------------
+const PIECES = [ // key, image px, world width, line x (beach), sky offset [right, up, fwd], phase
+  { k: 'sand-purple', px: [615, 732], w: 132, x: -330, sky: [-40, -300, 560], ph: 0.0 },
+  { k: 'sand-red', px: [608, 582], w: 132, x: -165, sky: [260, 380, 1400], ph: 1.3 },
+  { k: 'peg-top', px: [475, 1257], w: 110, x: 0, sky: [-330, -260, 1100], ph: 2.1 },
+  { k: 'sand-orange', px: [557, 762], w: 128, x: 165, sky: [320, -120, 820], ph: 3.4 },
+  { k: 'peg-bottom', px: [369, 755], w: 104, x: 330, sky: [-180, 520, 1900], ph: 4.6 },
+];
+const LINE_Y = 240, LINE_Z = 0, SAG = 26;
+const lineY = x => LINE_Y - SAG * (1 - Math.pow(x / 420, 2));
+
+// ---------------- camera ----------------
+const SUN_SKY = V.norm([-0.35, 0.16, -1]), SUN_BEACH = V.norm([0.12, 0.09, -1]);
+function camera(t) {
+  if (t < T.beach) {   // falling with the pieces towards the islands, one long ease that only ever goes down and forward
+    const k = t / T.beach, e = inOutSine(k) * 0.55 + k * 0.45;
+    const eye = [lerp(2000, -3400, e), lerp(26000, 5200, inCubic(k) * 0.4 + e * 0.6), lerp(40000, 4600, e)], tgt = [lerp(-3500, -4300, e), 0, lerp(-18000, -6000, e)];
+    return { eye, tgt, fov: 50, sun: SUN_SKY, world: 'sky' }; }
+  if (t < T.end) {   // beach: a lateral track along the line, slowly closing in; then the push into the aqua top
+    const k = prog(t, T.beach, T.push), p = prog(t, T.push, T.end);
+    const x = lerp(-300, 150, inOutSine(k)), z = lerp(980, 760, inOutSine(k)), y = lerp(260, 200, inOutSine(k));
+    const eye = V.lerp([x, y, z], [0, 150, 190], inCubic(p)), tgt = V.lerp([x * 0.5, 175, -200], [0, 140, 0], inOutCubic(p));
+    return { eye, tgt, fov: 40, sun: SUN_BEACH, world: 'beach' }; }
+  return { eye: [0, 120, 700], tgt: [0, 160, -400], fov: 40, sun: SUN_BEACH, world: 'end' };
+}
+function basis(cam) { const f = V.norm(V.sub(cam.tgt, cam.eye)), r = V.norm(V.cross(f, [0, 1, 0])), u = V.cross(r, f); return { f, r, u }; }
+
+// ---------------- draw ----------------
+let SEA, SKYQ, ISL, ISL_SAND, BOX, POST, CLOTH, CLIP, ROPE, ROPEB, SAND;
+function setCommon(pr, cam, t, fog) { gl.useProgram(pr.p); const u = pr.u; if (u.uSun) gl.uniform3fv(u.uSun, cam.sun); if (u.uCam) gl.uniform3fv(u.uCam, cam.eye); if (u.uT) gl.uniform1f(u.uT, t);
+  if (u.uFogNear) { gl.uniform1f(u.uFogNear, fog[0]); gl.uniform1f(u.uFogFar, fog[1]); } }
+function clothPose(pc, i, t) {   // where each piece is: falling in the sky, drifting onto the line, or hanging
+  const h = pc.w * pc.px[1] / pc.px[0];
+  if (t < T.beach) { const cam = camera(t), bs = basis(cam), [ro, uo, fo] = pc.sky, drift = t * 46 + Math.sin(t * 0.9 + pc.ph) * 30;
+    const p = V.add(V.add(V.add(cam.eye, V.mul(bs.f, fo)), V.mul(bs.r, ro + Math.sin(t * 0.7 + pc.ph) * 50)), V.mul(bs.u, uo + drift));
+    return { p, ry: Math.atan2(-bs.f[0], -bs.f[2]) + Math.sin(t * 0.8 + pc.ph) * 0.9, rx: -0.9 + Math.sin(t * 0.6 + pc.ph) * 0.5, rz: Math.sin(t * 1.1 + pc.ph) * 0.7, free: 1, amp: 26, h, alpha: 1 }; }
+  const land = T.beach + 0.9 + i * 2 * B, k = outQuint(prog(t, land - 1.7, land)), top = [pc.x, lineY(pc.x), LINE_Z];
+  const from = [pc.x + 160 - i * 50, 760 + i * 40, LINE_Z + 120];
+  const p = V.lerp(from, top, k), sway = (1 - k);
+  let amp = lerp(26, 9 + 3 * Math.sin(t * 0.7 + pc.ph), k), ry = sway * Math.sin(t * 1.3 + pc.ph) * 1.2, rx = sway * -0.6, rz = sway * Math.sin(t * 1.7 + pc.ph) * 0.8;
+  if (pc.k === 'peg-top' && t > T.push) { const p2 = inCubic(prog(t, T.push, T.end)); amp += p2 * 40; rx -= p2 * 0.9; }
+  return { p, ry, rx, rz, free: 1 - k, amp, h, alpha: t < land - 1.7 ? 0 : 1 };
+}
+function drawScene(t) {
+  const cam = camera(t), asp = W / H, Pm = M4.persp(cam.fov * Math.PI / 180, asp, cam.world === 'sky' ? 20 : 2, cam.world === 'sky' ? 200000 : 30000), Vm = M4.look(cam.eye, cam.tgt), VP = M4.mul(Pm, Vm);
+  const fog = cam.world === 'sky' ? [26000, 120000] : [1400, 14000];
+  gl.viewport(0, 0, glc.width, glc.height); gl.clearColor(1, 0.9, 0.88, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  // sky
+  gl.disable(gl.DEPTH_TEST); setCommon(P.sky, cam, t, fog); gl.uniformMatrix4fv(P.sky.u.uInvVP, false, M4.inv(VP)); gl.bindVertexArray(SKYQ.vao); gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  // sea
+  setCommon(P.sea, cam, t, fog); gl.uniformMatrix4fv(P.sea.u.uVP, false, VP);
+  const sky = cam.world === 'sky'; gl.uniform2f(P.sea.u.uCenter, sky ? cam.eye[0] : 0, sky ? cam.eye[2] - 30000 : -6000); gl.uniform1f(P.sea.u.uExtent, sky ? 140000 : 26000); gl.uniform1f(P.sea.u.uWave, sky ? 70 : 1);
+  gl.uniform1f(P.sea.u.uShoreZ, sky ? -1e9 : -120); gl.bindVertexArray(SEA.vao); gl.drawElements(gl.TRIANGLES, SEA.count, gl.UNSIGNED_INT, 0);
+  // land
+  setCommon(P.lit, cam, t, fog); gl.uniformMatrix4fv(P.lit.u.uVP, false, VP);
+  const lit = (m, M, col, sand = 0) => { gl.uniformMatrix4fv(P.lit.u.uM, false, M); gl.uniform3fv(P.lit.u.uColor, col); gl.uniform1f(P.lit.u.uSand, sand); gl.bindVertexArray(m.vao); gl.drawArrays(gl.TRIANGLES, 0, m.count); };
+  if (sky) { lit(ISL_SAND, M4.model([0, 0, 0]), [0.93, 0.84, 0.7]); lit(ISL, M4.model([0, 0, 0]), [0.5, 0.6, 0.4], 2); }
+  else { lit(SAND, M4.model([0, 0, 0]), [0.92, 0.84, 0.72], 1);
+    lit(POST, M4.model([-440, 0, LINE_Z], 0.1), [0.52, 0.36, 0.24]); lit(POST, M4.model([440, 0, LINE_Z], -0.08), [0.52, 0.36, 0.24]);
+    // rope: a thin catenary ribbon facing the camera
+    const pts = []; for (let i = 0; i <= 40; i++) { const x = lerp(-440, 440, i / 40); pts.push([x, lineY(x) + 2, LINE_Z]); }
+    const rd = []; for (let i = 0; i < 40; i++) { const a = pts[i], b = pts[i + 1], dir = V.norm(V.sub(b, a)), vv = V.norm(V.sub(cam.eye, a)), s = V.mul(V.norm(V.cross(dir, vv)), 1.6);
+      [[a, 1], [b, 1], [b, -1], [a, 1], [b, -1], [a, -1]].forEach(([p, sg]) => rd.push(...V.add(p, V.mul(s, sg)), ...vv)); }
+    gl.bindBuffer(gl.ARRAY_BUFFER, ROPE.buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(rd), gl.DYNAMIC_DRAW); ROPE.count = rd.length / 6; lit(ROPE, M4.model([0, 0, 0]), [0.8, 0.2, 0.45]);
+    PIECES.forEach((pc, i) => { const land = T.beach + 0.9 + i * 2 * B; if (t > land) { const pop = outCubic(prog(t, land, land + 0.18)); lit(CLIP, M4.model([pc.x, lineY(pc.x) - 8, LINE_Z + 2], 0, 0, 0, pop), [1.0, 0.25, 0.6]); } }); }
+  // cloth
+  gl.disable(gl.CULL_FACE); setCommon(P.cloth, cam, t, fog); gl.uniformMatrix4fv(P.cloth.u.uVP, false, VP); gl.bindVertexArray(CLOTH.vao);
+  const order = PIECES.map((pc, i) => ({ pc, i, s: clothPose(pc, i, t) })).filter(o => o.s.alpha > 0 && (cam.world !== 'end')).sort((a, b) => V.dot(V.sub(b.s.p, cam.eye), V.sub(b.s.p, cam.eye)) - V.dot(V.sub(a.s.p, cam.eye), V.sub(a.s.p, cam.eye)));
+  order.forEach(({ pc, s }) => { gl.uniformMatrix4fv(P.cloth.u.uM, false, M4.model(s.p, s.ry, s.rx, s.rz)); gl.uniform2f(P.cloth.u.uSize, pc.w, s.h); gl.uniform1f(P.cloth.u.uAmp, s.amp); gl.uniform1f(P.cloth.u.uPh, pc.ph); gl.uniform1f(P.cloth.u.uFree, s.free);
+    gl.uniform1f(P.cloth.u.uAlpha, 1); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, TEX[pc.k]); gl.uniform1i(P.cloth.u.uTex, 0); gl.drawElements(gl.TRIANGLES, CLOTH.count, gl.UNSIGNED_INT, 0); });
+  // clouds (sky only): soft billboards along the fall, the camera passes through the last one
+  if (sky) { gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); setCommon(P.bill, cam, t, fog); const bs = basis(cam);
+    gl.uniformMatrix4fv(P.bill.u.uVP, false, VP); gl.uniform3fv(P.bill.u.uRight, bs.r); gl.uniform3fv(P.bill.u.uUp, bs.u); gl.uniform3f(P.bill.u.uTint, 1.0, 0.95, 0.93);
+    CLOUDS.map(c => ({ c, d: V.dot(V.sub(c.p, cam.eye), bs.f) })).filter(o => o.d > 30).sort((a, b) => b.d - a.d).forEach(({ c, d }) => {
+      gl.uniform3fv(P.bill.u.uPos, c.p); gl.uniform2f(P.bill.u.uSize, c.s, c.s * 0.6); gl.uniform1f(P.bill.u.uAlpha, c.a * clamp01((d - 30) / 400)); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, TEX['cloud' + c.tex]); gl.uniform1i(P.bill.u.uTex, 0);
+      gl.bindVertexArray(SKYQ.vao); gl.drawArrays(gl.TRIANGLES, 0, 6); });
+    gl.depthMask(true); gl.disable(gl.BLEND); }
+  return cam;
+}
+const CLOUDS = []; { let s = 11; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 26; i++) { const e = r(), side = r() < 0.5 ? -1 : 1; const cx = lerp(2000, -3400, e) + side * (3000 + r() * 6000), cy = lerp(23000, 5600, e) + (r() - 0.5) * 3000, cz = lerp(38000, 5000, e) + (r() - 0.5) * 6000; CLOUDS.push({ p: [cx, cy, cz], s: 1600 + r() * 2600, a: 0.35 + r() * 0.3, tex: i % 3 }); }
+  for (let i = 0; i < 9; i++) CLOUDS.push({ p: [lerp(-3200, -3500, i / 8) + (r() - 0.5) * 500, lerp(6400, 5000, i / 8), lerp(5600, 3900, i / 8) + (r() - 0.5) * 300], s: 1500 + r() * 700, a: 0.9, tex: i % 3 }); }
+
+// ---------------- 2D overlay: words, white-out, colour hand-off, end card ----------------
+function words(c, str, lt, t0, o = {}) {
+  const { x = W / 2, y = 200, size = 64, col = PLUM, stagger = 0.09, dur = 0.75, out = null, shadow = null } = o;
+  c.save(); c.setTransform(SCALE, 0, 0, SCALE, 0, 0); c.font = `400 ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+  const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = x - tot / 2;
+  ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + dur)), b = out == null ? 0 : inOutSine(prog(lt, out + i * stagger * 0.5, out + i * stagger * 0.5 + 0.5)), v = a * (1 - b);
+    if (v > 0.003) { c.save(); c.globalAlpha = v; c.filter = `blur(${((1 - a) * 14 + b * 10) * SCALE}px)`; if (shadow) { c.shadowColor = shadow; c.shadowBlur = 20 * SCALE; c.shadowOffsetY = 2 * SCALE; } c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.32 - b * size * 0.2); c.restore(); } px += wd[i] + sp; });
+  c.restore(); }
+function warp(c, src, sw, sh, quad, n = 10) { const P2 = (u, v) => { const [a, b, cc, d] = quad; const tp = [lerp(a[0], b[0], u), lerp(a[1], b[1], u)], bt = [lerp(d[0], cc[0], u), lerp(d[1], cc[1], u)]; return [lerp(tp[0], bt[0], v), lerp(tp[1], bt[1], v)]; };
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const u0 = i / n, u1 = (i + 1) / n, v0 = j / n, v1 = (j + 1) / n;
+    tri(c, src, [u0 * sw, v0 * sh], [u1 * sw, v0 * sh], [u0 * sw, v1 * sh], P2(u0, v0), P2(u1, v0), P2(u0, v1)); tri(c, src, [u1 * sw, v0 * sh], [u1 * sw, v1 * sh], [u0 * sw, v1 * sh], P2(u1, v0), P2(u1, v1), P2(u0, v1)); } }
+function tri(c, img, s0, s1, s2, d0, d1, d2) { const cx = (d0[0] + d1[0] + d2[0]) / 3, cy = (d0[1] + d1[1] + d2[1]) / 3, ex = p => { const dx = p[0] - cx, dy = p[1] - cy, l = Math.hypot(dx, dy) || 1; return [p[0] + dx / l * 0.9, p[1] + dy / l * 0.9]; };
+  c.save(); c.beginPath(); c.moveTo(...ex(d0)); c.lineTo(...ex(d1)); c.lineTo(...ex(d2)); c.closePath(); c.clip();
+  const [sx0, sy0] = s0, [sx1, sy1] = s1, [sx2, sy2] = s2, [x0, y0] = d0, [x1, y1] = d1, [x2, y2] = d2, den = sx0 * sy1 + sy0 * sx2 + sx1 * sy2 - sy1 * sx2 - sy0 * sx1 - sx0 * sy2; if (Math.abs(den) < 1e-9) { c.restore(); return; }
+  c.transform((x0 * sy1 + sy0 * x2 + x1 * sy2 - sy1 * x2 - sy0 * x1 - x0 * sy2) / den, (y0 * sy1 + sy0 * y2 + y1 * sy2 - sy1 * y2 - sy0 * y1 - y0 * sy2) / den, (sx0 * x1 + x0 * sx2 + sx1 * x2 - x1 * sx2 - x0 * sx1 - sx0 * x2) / den,
+    (sx0 * y1 + y0 * sx2 + sx1 * y2 - y1 * sx2 - y0 * sx1 - sx0 * y2) / den, (sx0 * sy1 * x2 + sy0 * x1 * sx2 + x0 * sx1 * sy2 - x0 * sy1 * sx2 - sy0 * sx1 * x2 - sx0 * x1 * sy2) / den, (sx0 * sy1 * y2 + sy0 * y1 * sx2 + y0 * sx1 * sy2 - y0 * sy1 * sx2 - sy0 * sx1 * y2 - sx0 * y1 * sy2) / den);
+  c.drawImage(img, 0, 0); c.restore(); }
+const TAGC = document.createElement('canvas'); TAGC.width = 680; TAGC.height = 1160;
+function drawTagTexture(lt) { const c = TAGC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 680, 1160); c.translate(340, 90);
+  c.beginPath(); c.moveTo(-200, -70); c.lineTo(200, -70); c.lineTo(320, 50); c.lineTo(320, 1030); c.quadraticCurveTo(320, 1060, 290, 1060); c.lineTo(-290, 1060); c.quadraticCurveTo(-320, 1060, -320, 1030); c.lineTo(-320, 50); c.closePath(); c.fillStyle = CREAM; c.fill();
+  c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.fillStyle = 'rgba(0,0,0,0)'; c.save(); c.globalCompositeOperation = 'destination-out'; c.fill(); c.restore(); c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.lineWidth = 9; c.strokeStyle = '#B98A3E'; c.stroke();
+  c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(-190, -50); c.lineTo(190, -50); c.lineTo(300, 60); c.lineTo(300, 1040); c.lineTo(-300, 1040); c.lineTo(-300, 60); c.closePath(); c.stroke(); c.restore();
+  const L = IMG.logo; if (L) { const lw = 460, lh = lw * L.height / L.width; c.drawImage(L, -lw / 2, 300 - lh / 2, lw, lh); }
+  c.textAlign = 'center'; c.fillStyle = PLUM; c.font = '400 50px Soft, sans-serif'; c.fillText('Made in Trinidad.', 0, 650); c.fillStyle = MAG; c.fillText('Made to you.', 0, 722);
+  c.fillStyle = 'rgba(42,10,28,0.72)'; c.font = '400 30px Soft, sans-serif'; c.fillText('XS to XXL.  Custom fit.  7 to 14 days.', 0, 840); }
+const BG = document.createElement('canvas'); BG.width = cv.width; BG.height = cv.height;
+function endCard(t) { const lt = t - T.end;
+  // soft-focus sunset behind (the 3D sky and sea, blurred like a long lens)
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = `blur(${26 * SCALE}px)`; ctx.drawImage(glc, -40 * SCALE, -40 * SCALE, cv.width + 80 * SCALE, cv.height + 80 * SCALE); ctx.filter = 'none';
+  ctx.fillStyle = 'rgba(236,208,213,0.35)'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore();
+  // the tag: drops in on its ribbon and turns a little on it, in real perspective
+  const drop = outQuint(prog(lt, 0, 1.5)), ey = lerp(-900, 300, drop), sw = (lt > 0.8 ? 7 * Math.exp(-(lt - 0.8) / 1.0) * Math.sin((lt - 0.8) * 4.4) : 0) + 0.6 * Math.sin(lt * 1.3), yaw = (lt > 0.5 ? 0.55 * Math.exp(-(lt - 0.5) / 1.3) * Math.sin((lt - 0.5) * 2.9) : 0.55) + 0.06 * Math.sin(lt * 0.9);
+  ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = MAG; ctx.fillRect(540 - 22, -20, 44, ey + 20);
+  drawTagTexture(lt); const f = 1700, corners = [[-340, -90], [340, -90], [340, 1070], [-340, 1070]].map(([x, y]) => { const r = sw * Math.PI / 180, X = x * Math.cos(r) - y * Math.sin(r), Y = x * Math.sin(r) + y * Math.cos(r), Z = X * Math.sin(yaw), X2 = X * Math.cos(yaw), s = f / (f + Z); return [540 + X2 * s, ey + Y * s]; });
+  ctx.shadowColor = 'rgba(42,10,28,0.18)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18; ctx.fillStyle = 'rgba(0,0,0,0.001)';
+  ctx.save(); ctx.filter = `blur(${22}px)`; ctx.globalAlpha = 0.2; ctx.fillStyle = PLUM; ctx.beginPath(); corners.forEach(([x, y], i) => i ? ctx.lineTo(x + 10, y + 26) : ctx.moveTo(x + 10, y + 26)); ctx.fill(); ctx.restore();
+  ctx.shadowColor = 'transparent'; warp(ctx, TAGC, 680, 1160, corners, 12);
+  const shade = Math.abs(Math.sin(yaw)) * 0.25; if (shade > 0.01) { ctx.save(); ctx.globalAlpha = shade; ctx.fillStyle = yaw > 0 ? '#000' : '#fff'; ctx.beginPath(); corners.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.fill(); ctx.restore(); }
+  ctx.restore();
+  words(ctx, 'DM @sm.threads_ to order', lt, 2.2, { y: 1640, size: 50, stagger: 0.1 }); }
+
+function render(t) {
+  const cam = drawScene(Math.min(t, T.end + 3));
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.drawImage(glc, 0, 0);
+  if (t < T.beach) { words(ctx, 'Sewn in Trinidad.', t, 1.6, { y: 300, size: 70, out: 4.2 });
+    const wo = inOutSine(prog(t, T.beach - 0.75, T.beach)); if (wo > 0) { ctx.save(); ctx.globalAlpha = wo; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
+  else if (t < T.end) { const wi = 1 - inOutSine(prog(t, T.beach, T.beach + 0.7)); if (wi > 0) { ctx.save(); ctx.globalAlpha = wi; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
+    words(ctx, 'Made to you.', t - T.beach, 4.6, { y: 300, size: 72, out: 9.0 }); words(ctx, 'XS to XXL. Custom fit.', t - T.beach, 5.4, { y: 372, size: 40, out: 9.0 });
+    const hand = inOutSine(prog(t, T.end - 0.5, T.end)); if (hand > 0) { ctx.save(); ctx.globalAlpha = hand; ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
+  else { endCard(t); const fi = 1 - inOutSine(prog(t, T.end, T.end + 0.6)); if (fi > 0) { ctx.save(); ctx.globalAlpha = fi; ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
+}
+const EVENTS = [{ name: 'start', t: 0 }, { name: 'cloud', t: +(T.beach - 0.75).toFixed(3) }, { name: 'beach', t: +T.beach.toFixed(3) }, ...PIECES.map((p, i) => ({ name: 'land', t: +(T.beach + 0.9 + i * 2 * B).toFixed(3) })), { name: 'push', t: +T.push.toFixed(3) }, { name: 'end', t: +T.end.toFixed(3) }];
+window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
+window.ready = Promise.all([...PIECES.map(p => load(p.k, `../ad/cut/${p.k}.png`)), load('logo', '../ad/cut/logo.png'), fetch('../ad/data/tt-outline.json').then(r => r.json()).then(j => TT = j), document.fonts.load('400 60px Soft')]).then(() => {
+  P = { sky: program(VS_SKY, FS_SKY), sea: program(VS_SEA, FS_SEA), lit: program(VS_LIT, FS_LIT), cloth: program(VS_CLOTH, FS_CLOTH), bill: program(VS_BILL, FS_BILL) };
+  SKYQ = mesh([-1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1], [[0, 2]]); const g = grid(220, -0.5, 0.5); SEA = mesh(g.d, [[0, 2]], g.ix); const cg = grid(40, 0, 1); CLOTH = mesh(cg.d, [[0, 2]], cg.ix);
+  const islands = TT.islands.filter(i => i.area > 30); ISL = mesh(islandMesh(islands, 70), [[0, 3], [1, 3]]); ISL_SAND = mesh(islandMesh(islands, 30, 1.012), [[0, 3], [1, 3]]);
+  POST = mesh(boxData(16, 262, 16), [[0, 3], [1, 3]]); CLIP = mesh(boxData(9, 22, 6), [[0, 3], [1, 3]]); ROPE = mesh([0, 0, 0, 0, 1, 0], [[0, 3], [1, 3]]);
+  SAND = mesh([-6000, 26, 1400, 0, 1, 0, 6000, 26, 1400, 0, 1, 0, 6000, -2, -150, 0, 1, 0, -6000, 26, 1400, 0, 1, 0, 6000, -2, -150, 0, 1, 0, -6000, -2, -150, 0, 1, 0], [[0, 3], [1, 3]]);
+  PIECES.forEach(p => TEX[p.k] = texFrom(IMG[p.k])); [0, 1, 2].forEach(i => TEX['cloud' + i] = texFrom(cloudCanvas(31 + i * 97)));
+  // attribute locations: every program uses location 0 = aP, 1 = aN
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>

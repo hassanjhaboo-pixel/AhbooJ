@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SM Threads: Now Boarding</title>
+<style>
+  @font-face { font-family: Soft; src: url("fonts/Outfit-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: Soft; src: url("fonts/Outfit-Bold.ttf"); font-weight: 700; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
+  canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script src="puppet.js"></script>
+<script>
+// SM Threads "Now Boarding" v2. 9:16. saas-animation page contract: renderAt(t), TOTAL, ready, EVENTS.
+// Whole-frame movement, every shot carried into the next by a camera move or a shape:
+//   cabin --(push into the seat screen, it opens to full frame)--> in-flight map --(dive into Trinidad's coast, land = wall)-->
+//   peg rail --(whip tilt down)--> sand --(a wave washes over the whole frame)--> card --(the heart buckle lifts off in silver)-->
+//   tan line --(circle)--> hang tag.
+
+// ---------------- timing (one place to re-time everything) ----------------
+const SHOT = { cabin: 0, map: 5.6, pegs: 9.6, sand: 15.6, card: 21.2, tan: 25.8, end: 29.0 }, END = 34.5;
+const TRD = { map: 1.2, pegs: 0.55, sand: 0.85, card: 1.4, tan: 1.1, end: 0.9 };   // transition into each shot
+const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
+const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
+
+const MAG = '#CB0870', PLUM = '#2A0A1C', BLUSH = '#ECD0D5', CREAM = '#FBF6EE', WALL = '#EADFCD', SANDINK = '#6E5948';
+
+// ---------------- helpers ----------------
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const ctx = cv.getContext('2d');
+const mk = (w = cv.width, h = cv.height) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const outCubic = k => 1 - Math.pow(1 - clamp01(k), 3), inCubic = k => Math.pow(clamp01(k), 3), inOutCubic = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const outQuint = k => 1 - Math.pow(1 - clamp01(k), 5), inOutSine = k => -(Math.cos(Math.PI * clamp01(k)) - 1) / 2, inExpo = k => k <= 0 ? 0 : Math.pow(2, 10 * clamp01(k) - 10);
+const TAU = Math.PI * 2, DEG = Math.PI / 180;
+const IMG = {}, DATA = {}; const load = (k, src) => new Promise(r => { const i = new Image(); i.onload = () => { IMG[k] = i; r(); }; i.onerror = () => r(); i.src = src; });
+const loadJSON = (k, src) => fetch(src).then(r => r.json()).then(j => { DATA[k] = j; });
+const plateSpace = c => c.setTransform(SCALE * K, 0, 0, SCALE * K, 0, SCALE * OY);
+const frameSpace = c => c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+function plate(c, k) { plateSpace(c); c.drawImage(IMG[k], 0, 0, 1438, 2576); }
+const pp = (x, y) => [x * K, y * K + OY];
+const EVENTS = []; const ev = (name, t) => EVENTS.push({ name, t: +t.toFixed(3) });
+const bez = (p0, p1, p2, p3, n = 80) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n, u = 1 - t; return [u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]; });
+const heartPts = (x, y, s, n = 120) => Array.from({ length: n + 1 }, (_, i) => { const t = i / n * TAU; return [x + s * Math.pow(Math.sin(t), 3), y - s * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 16]; });
+const pathPts = (c, pts) => { c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); };
+
+// words fade up from blurred to sharp with a small rise (frame space)
+function words(c, str, lt, t0, o = {}) {
+  const { x = W / 2, y = 200, size = 64, col = PLUM, weight = 400, stagger = 0.09, dur = 0.75, out = null, shadow = null } = o;
+  frameSpace(c); c.save(); c.font = `${weight} ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+  const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
+  let px = x - tot / 2;
+  ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + dur)), b = out == null ? 0 : inOutSine(prog(lt, out + i * stagger * 0.5, out + i * stagger * 0.5 + 0.5)), v = a * (1 - b);
+    if (v > 0.003) { c.save(); c.globalAlpha = v; c.filter = `blur(${((1 - a) * 14 + b * 10) * SCALE}px)`; if (shadow) { c.shadowColor = shadow; c.shadowBlur = 18 * SCALE; c.shadowOffsetY = 3 * SCALE; }
+      c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.32 - b * size * 0.2); c.restore(); } px += wd[i] + sp; });
+  c.restore();
+}
+
+// ---------------- image -> any four-corner quad (perspective-correct to the eye: a fine triangle grid) ----------------
+function warp(c, src, sx, sy, sw, sh, quad, n = 10) {   // quad: [tl, tr, br, bl] in c's current space
+  const P = (u, v) => { const [a, b, cc, d] = quad; const top = [lerp(a[0], b[0], u), lerp(a[1], b[1], u)], bot = [lerp(d[0], cc[0], u), lerp(d[1], cc[1], u)]; return [lerp(top[0], bot[0], v), lerp(top[1], bot[1], v)]; };
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const u0 = i / n, u1 = (i + 1) / n, v0 = j / n, v1 = (j + 1) / n;
+    tri(c, src, [sx + u0 * sw, sy + v0 * sh], [sx + u1 * sw, sy + v0 * sh], [sx + u0 * sw, sy + v1 * sh], P(u0, v0), P(u1, v0), P(u0, v1));
+    tri(c, src, [sx + u1 * sw, sy + v0 * sh], [sx + u1 * sw, sy + v1 * sh], [sx + u0 * sw, sy + v1 * sh], P(u1, v0), P(u1, v1), P(u0, v1));
+  }
+}
+function tri(c, img, s0, s1, s2, d0, d1, d2) {
+  const ex = (p, cx, cy) => { const dx = p[0] - cx, dy = p[1] - cy, l = Math.hypot(dx, dy) || 1; return [p[0] + dx / l * 0.9, p[1] + dy / l * 0.9]; };   // grow 0.9px so seams never show
+  const cx = (d0[0] + d1[0] + d2[0]) / 3, cy = (d0[1] + d1[1] + d2[1]) / 3;
+  c.save(); c.beginPath(); const e0 = ex(d0, cx, cy), e1 = ex(d1, cx, cy), e2 = ex(d2, cx, cy); c.moveTo(...e0); c.lineTo(...e1); c.lineTo(...e2); c.closePath(); c.clip();
+  const [sx0, sy0] = s0, [sx1, sy1] = s1, [sx2, sy2] = s2, [x0, y0] = d0, [x1, y1] = d1, [x2, y2] = d2;
+  const den = sx0 * sy1 + sy0 * sx2 + sx1 * sy2 - sy1 * sx2 - sy0 * sx1 - sx0 * sy2; if (Math.abs(den) < 1e-9) { c.restore(); return; }
+  const a = (x0 * sy1 + sy0 * x2 + x1 * sy2 - sy1 * x2 - sy0 * x1 - x0 * sy2) / den, cc = (sx0 * x1 + x0 * sx2 + sx1 * x2 - x1 * sx2 - x0 * sx1 - sx0 * x2) / den;
+  const e = (sx0 * sy1 * x2 + sy0 * x1 * sx2 + x0 * sx1 * sy2 - x0 * sy1 * sx2 - sy0 * sx1 * x2 - sx0 * x1 * sy2) / den;
+  const b = (y0 * sy1 + sy0 * y2 + y1 * sy2 - sy1 * y2 - sy0 * y1 - y0 * sy2) / den, d = (sx0 * y1 + y0 * sx2 + sx1 * y2 - y1 * sx2 - y0 * sx1 - sx0 * y2) / den;
+  const f = (sx0 * sy1 * y2 + sy0 * y1 * sx2 + y0 * sx1 * sy2 - y0 * sy1 * sx2 - sy0 * sx1 * y2 - sx0 * y1 * sy2) / den;
+  c.transform(a, b, cc, d, e, f); c.drawImage(img, 0, 0); c.restore();
+}
+
+// ---------------- the in-flight map (one function for the seat screen and the full frame, driven by absolute time) ----------------
+const MAPC = mk(1080, 1920);
+const PIARCO = [0.38, 0.43], DIVE = [0.52, 0.63];   // traced-map coords (0..1): the airport, and a point deep inside Trinidad
+function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothing
+  const c = MAPC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h);
+  const [ax, ay] = DATA.tt.aspect, port = h > w;
+  const s0 = Math.min(w * 0.84 / ax, h * (port ? 0.5 : 0.74) / ay);
+  const dive = inExpo(prog(T, SHOT.map + 1.9, SHOT.pegs + 0.15)), Z = Math.exp(lerp(0, Math.log(28), dive));
+  const fx = lerp(ax / 2, DIVE[0], dive), fy = lerp(ay / 2, DIVE[1], dive), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.53 : 0.5);
+  const M = ([u, v]) => [cxp + (u - fx) * s, cyp + (v - fy) * s];
+  c.fillStyle = '#F7E4E8'; c.fillRect(0, 0, w, h);
+  // faint latitude / longitude grid, like a real flight map
+  c.save(); c.strokeStyle = 'rgba(203,8,112,0.07)'; c.lineWidth = 1.5; for (let g = -2; g <= 3; g += 0.25) { const [x0, y0] = M([g, -2]), [x1, y1] = M([g, 3]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); const [a0, b0] = M([-2, g]), [a1, b1] = M([3, g]); c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.stroke(); } c.restore();
+  // islands: soft drop under the land, cream fill (the wall colour of the next shot), fine magenta coast
+  DATA.tt.islands.forEach(isl => { const pts = isl.pts.map(M); c.save(); c.shadowColor = 'rgba(160,60,90,0.18)'; c.shadowBlur = 18; c.shadowOffsetY = 6; pathPts(c, pts); c.fillStyle = WALL; c.fill(); c.restore();
+    pathPts(c, pts); c.lineWidth = Math.max(2, Math.min(4, 2.2 * Math.sqrt(Z))); c.strokeStyle = MAG; c.lineJoin = 'round'; c.globalAlpha = 1 - dive * 0.6; c.stroke(); c.globalAlpha = 1; });
+  // map labels
+  const la = outCubic(prog(T, 1.6, 2.4)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.3)); if (la > 0) { c.save(); c.globalAlpha = la; c.fillStyle = PLUM; c.font = `400 ${Math.round(s0 * 0.045)}px Soft, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
+    const [tx, ty] = M([0.5, 0.67]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.16]); c.fillText('TOBAGO', bx, by); c.restore(); }
+  // route: a solid magenta arc that fills in as the plane flies it
+  const route = bez([-0.35, -0.55], [0.0, -0.45], [0.25, 0.05], PIARCO, 120).map(M), rp = inOutSine(prog(T, 1.2, SHOT.map + 1.5));
+  c.save(); c.globalAlpha = 1 - dive; c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.22)'; c.lineWidth = Math.max(3, s0 * 0.012); c.setLineDash([s0 * 0.02, s0 * 0.02]); c.beginPath(); route.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
+  c.setLineDash([]); c.strokeStyle = MAG; c.lineWidth = Math.max(3, s0 * 0.012); c.beginPath(); const nI = Math.max(1, Math.floor(rp * (route.length - 1))); for (let i = 0; i <= nI; i++) i ? c.lineTo(...route[i]) : c.moveTo(...route[i]); c.stroke();
+  // the plane
+  const i0 = Math.min(route.length - 2, nI), [x0, y0] = route[i0], [x1, y1] = route[i0 + 1], ang = Math.atan2(y1 - y0, x1 - x0), ps = s0 * 0.05 * (1 - 0.25 * prog(T, SHOT.map + 1.0, SHOT.map + 1.5));
+  if (rp > 0) { c.save(); c.translate(x0, y0); c.rotate(ang + Math.PI / 2); c.scale(ps / 20, ps / 20); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 8; c.shadowOffsetY = 4; c.fillStyle = PLUM; c.beginPath();
+    c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); }
+  // arrival pin with a soft pulse
+  const pa = outCubic(prog(T, SHOT.map + 1.3, SHOT.map + 1.7)); if (pa > 0) { const [px, py] = M(PIARCO); for (let k = 0; k < 2; k++) { const ph = ((T - SHOT.map - 1.3) * 0.8 + k * 0.5) % 1; c.beginPath(); c.arc(px, py, s0 * 0.02 + ph * s0 * 0.07, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
+    c.beginPath(); c.arc(px, py, s0 * 0.018 * pa, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.007 * pa, 0, TAU); c.fillStyle = CREAM; c.fill(); }
+  c.restore();
+  // header bar, like the airline's map page
+  const hb = 1 - prog(T, SHOT.map + 1.8, SHOT.map + 2.4); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.034); c.font = `400 ${fs}px Soft, sans-serif`; c.fillStyle = PLUM;
+    const mins = Math.max(0, Math.round(18 - 17 * prog(T, 0.9, SHOT.map + 1.5))); c.textAlign = 'left'; c.fillText(mins > 0 ? `Arriving Piarco  ·  ${mins} min` : 'Arrived  ·  Piarco', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('29°C', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
+}
+
+// ---------------- cabin screens ----------------
+const PIECES = ['sand-purple', 'sand-red', 'sand-orange', 'peg-top'], PSIZE = { 'sand-purple': [615, 732], 'sand-red': [608, 582], 'sand-orange': [557, 762], 'peg-top': [475, 1257] };
+const TILE = {}; function tile(k) {   // a piece on the screen's white UI, as a texture
+  if (TILE[k]) return TILE[k]; const c = mk(640, 400), x = c.getContext('2d'), [w, h] = PSIZE[k], s = Math.min(640 * 0.74 / w, 400 * 0.82 / h);
+  x.fillStyle = '#F6F3F1'; x.fillRect(0, 0, 640, 400); x.drawImage(IMG[k], 320 - w * s / 2, 200 - h * s / 2, w * s, h * s); return TILE[k] = c; }
+const SCRN = mk(), SCRX = SCRN.getContext('2d');
+function screens(c, lt) {
+  const Q = DATA.quads, keys = Object.keys(Q).filter(k => k !== 'front');
+  SCRX.setTransform(1, 0, 0, 1, 0, 0); SCRX.globalCompositeOperation = 'source-over'; SCRX.clearRect(0, 0, SCRN.width, SCRN.height); plateSpace(SCRX);
+  keys.forEach((k, i) => { const on = 0.6 + i * 0.17; if (lt < on) return; const idx = (i + (lt > 3.4 + i * 0.05 ? 1 : 0)) % 4; warp(SCRX, tile(PIECES[idx]), 0, 0, 640, 400, Q[k], 6);
+    const fl = 1 - prog(lt, on, on + 0.12); if (fl > 0) { SCRX.save(); SCRX.globalAlpha = fl * 0.9; SCRX.fillStyle = '#FFFFFF'; pathPts(SCRX, Q[k]); SCRX.fill(); SCRX.restore(); } });
+  if (lt > 0.9) { const [x0, y0, x1, y1] = [0, 0, 960, 540]; drawMap(lt + SHOT.cabin, 960, 540); warp(SCRX, MAPC, 0, 0, 960, 540, Q.front, 14); }
+  // glass: a soft diagonal sheen across every screen
+  SCRX.save(); SCRX.globalCompositeOperation = 'source-atop'; const g = SCRX.createLinearGradient(0, 400, 1438, 1900); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.48, 'rgba(255,255,255,0.10)'); g.addColorStop(0.52, 'rgba(255,255,255,0.0)'); SCRX.fillStyle = g; SCRX.fillRect(0, 0, 1438, 2576); SCRX.restore();
+  // only where the real screen is visible (heads and seats stay in front)
+  SCRX.save(); SCRX.globalCompositeOperation = 'destination-in'; SCRX.drawImage(IMG.mask, 0, 0, 1438, 2576); SCRX.restore();
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SCRN, 0, 0); c.restore();
+}
+
+// ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
+const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
+const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
+const PUP = {}, TMP = mk(), SHD = mk();
+function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
+  PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
+const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
+function hangPiece(c, k, lt, on, ph) {
+  if (lt < on) return; const [x0, y0] = CUT[k], [px] = PEG[k], th = breeze(lt, ph), ax = px - x0, ay = 4;
+  const moves = [{ rot: th * 0.5, ox: ax, oy: ay }, { rot: th, ox: ax, oy: ay }, { rot: th * 1.5, ox: ax, oy: ay, dx: Math.sin(lt * 2.6 + ph) * 3 }, { rot: th * 1.4, ox: ax, oy: ay, dx: Math.sin(lt * 2.4 + ph + 1) * 3 }];
+  const s = SCALE * K, t = TMP.getContext('2d'); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, TMP.width, TMP.height); PUP[k].draw(t, moves, x0 * s, y0 * s + OY * SCALE, s, TMP.width, TMP.height);
+  const sh = SHD.getContext('2d'); sh.setTransform(1, 0, 0, 1, 0, 0); sh.globalCompositeOperation = 'copy'; sh.drawImage(TMP, 0, 0); sh.globalCompositeOperation = 'source-in'; sh.fillStyle = '#6B4426'; sh.fillRect(0, 0, SHD.width, SHD.height); sh.globalCompositeOperation = 'source-over';
+  c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.34; c.filter = `blur(${6 * SCALE}px)`; c.drawImage(SHD, 40 * s, 30 * s);
+  c.globalAlpha = 0.18; c.filter = `blur(${14 * SCALE}px)`; c.drawImage(SHD, 58 * s, 44 * s); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.filter = 'none'; c.drawImage(TMP, 0, 0); c.restore();
+}
+
+// ---------------- the silver heart: the buckle's heart, lifted off in polished metal ----------------
+const BUCKLE = [541, 1018], BUCKLE_S = 21;   // card shot, frame px (before camera), heart half-width
+function silverHeart(c, x, y, s, spin, rim = null) {
+  const sx = Math.cos(spin); c.save(); c.translate(x, y); c.scale(Math.max(0.04, Math.abs(sx)), 1);
+  const pts = heartPts(0, 0, s); const g = c.createLinearGradient(-s, -s, s * 0.9, s * 1.1), sh = (Math.sin(spin * 1.3) + 1) / 2;
+  g.addColorStop(0, '#FFFFFF'); g.addColorStop(clamp01(0.18 + sh * 0.2), '#D9DCE1'); g.addColorStop(clamp01(0.42 + sh * 0.15), '#8E949D'); g.addColorStop(clamp01(0.62 + sh * 0.1), '#F2F3F5'); g.addColorStop(1, '#9AA0A8');
+  if (rim == null) { c.shadowColor = 'rgba(20,20,25,0.35)'; c.shadowBlur = s * 0.5; c.shadowOffsetY = s * 0.25; pathPts(c, pts); c.fillStyle = g; c.fill(); c.shadowColor = 'transparent';
+    pathPts(c, pts); c.lineWidth = Math.max(1.2, s * 0.05); c.strokeStyle = 'rgba(70,74,82,0.55)'; c.stroke();
+    c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(255,255,255,0.75)'; c.beginPath(); c.ellipse(-s * 0.42, -s * 0.38, s * 0.16, s * 0.07, -0.6, 0, TAU); c.fill(); }
+  else { pathPts(c, pts); c.lineWidth = rim; c.strokeStyle = g; c.stroke(); }
+  c.restore();
+}
+
+// ---------------- shots ----------------
+const SHOTS = [
+  { key: 'cabin', bg: '#1A1A1A', cam: lt => ({ z: 1 + 0.02 * lt, f: pp(716, 1752) }),
+    draw(c, lt) { plate(c, 'S1-cabin-empty'); screens(c, lt); words(c, 'Now boarding.', lt, 0.3, { y: 236, size: 76 }); },
+    out: { kind: 'screen' } },
+  { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
+    draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
+    out: { kind: 'land' } },
+  { key: 'pegs', bg: WALL, cam: lt => ({ z: 1.07 + 0.012 * lt, f: [lerp(380, 700, inOutSine(lt / 6)), 900] }),
+    draw(c, lt) { plate(c, 'S3-pegs-empty');
+      frameSpace(c); c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.15; c.filter = `blur(${9 * SCALE}px)`; c.fillStyle = '#5A3C22';
+      c.translate(930 + Math.sin(lt * 0.9) * 18, 1180); c.rotate(-0.5 + Math.sin(lt * 1.1) * 0.05);
+      for (let i = 0; i < 9; i++) { c.save(); c.translate(0, i * 46); c.rotate((i % 2 ? 1 : -1) * (0.9 + Math.sin(lt * 1.6 + i) * 0.06)); c.beginPath(); c.ellipse(70, 0, 80, 11, 0, 0, TAU); c.fill(); c.restore(); }
+      c.fillRect(-4, -20, 8, 440); c.restore();
+      hangPiece(c, 'peg-top', lt, 0.9, 0.0); hangPiece(c, 'peg-bottom', lt, 1.7, 1.7); hangPiece(c, 'peg-skirt', lt, 2.5, 3.1);
+      words(c, 'Sewn in Trinidad.', lt, 3.3, { y: 1700, size: 68 }); },
+    out: { kind: 'tilt' } },
+  { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [430, 960] }),
+    draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
+      const inn = outCubic(prog(lt, 0.9, 2.2)), back = inOutSine(prog(lt, 2.4, 4.0)), edge = lerp(1180, 600, inn * (1 - back)), wetK = inOutSine(prog(lt, 2.4, 5.6));
+      const shore = y => edge + Math.sin(y * 0.012 + lt * 2.2) * 16 + Math.sin(y * 0.031 + lt * 1.3) * 7;
+      const reach = lerp(1180, 600, inn), wetA = 0.2 * (1 - wetK);
+      if (wetA > 0.002 && inn > 0) { c.save(); c.globalCompositeOperation = 'multiply'; c.filter = `blur(${30 * SCALE}px)`; c.fillStyle = `rgba(140,116,92,${wetA})`; c.beginPath(); c.moveTo(1240, -40); for (let y = -40; y <= H + 40; y += 30) c.lineTo(reach + 30 + Math.sin(y * 0.012) * 16, y); c.lineTo(1240, H + 40); c.closePath(); c.fill(); c.restore(); }
+      waterEdge(c, shore, 1);
+      [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]].forEach(([n, y], i) => { const p = inOutSine(prog(lt, 2.9 + i * 0.45, 3.8 + i * 0.45)); if (p <= 0) return;
+        c.save(); c.font = '400 58px Soft, sans-serif'; c.letterSpacing = '1px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
+        c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore(); }); },
+    out: { kind: 'wave' } },
+  { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
+    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 196, size: 72, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
+      // the buckle's heart lifts off in silver, turns once, and comes forward
+      const L = liftState(lt); if (L) silverHeart(c, L.x, L.y, L.s, L.spin); },
+    out: { kind: 'silver' } },
+  { key: 'tan', bg: '#9C6448', cam: lt => ({ z: 1 + 0.012 * lt, f: [540, 900] }),
+    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+      // PLACEHOLDER until S6-tan-reveal / S6-tan-strap arrive: a lighter strawberry tan mark on warm skin
+      const g = c.createRadialGradient(540, 820, 50, 540, 900, 1100); g.addColorStop(0, '#B37455'); g.addColorStop(1, '#8A553C'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+      const half = bez([540, 790], [640, 772], [672, 880], [540, 1040], 30), body = half.concat(half.slice().reverse().map(([x, y]) => [1080 - x, y]));
+      const a = outCubic(prog(lt, 0.4, 1.4)); c.save(); c.globalAlpha = a * 0.55; c.filter = `blur(${3 * SCALE}px)`; pathPts(c, body); c.fillStyle = '#E9B796'; c.fill(); c.restore();
+      c.save(); c.fillStyle = 'rgba(255,240,230,0.45)'; c.font = '400 26px Soft, sans-serif'; c.textAlign = 'center'; c.fillText('tan line photo goes here', W / 2, 330); c.restore();
+      words(c, 'Leave with proof.', lt, 1.2, { y: 1560, size: 72, col: CREAM, shadow: 'rgba(40,15,5,0.3)' }); },
+    out: { kind: 'circle', c: [540, 905], r: 150 } },
+  { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
+    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+      const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3), ex = 540, ey = lerp(-900, 300, drop);
+      c.save(); c.fillStyle = MAG; c.fillRect(ex - 22, -20, 44, ey + 20); c.restore();
+      c.save(); c.translate(ex, ey); c.rotate(th * DEG); c.shadowColor = 'rgba(42,10,28,0.16)'; c.shadowBlur = 40 * SCALE; c.shadowOffsetY = 18 * SCALE;
+      c.beginPath(); c.moveTo(-200, -70); c.lineTo(200, -70); c.lineTo(320, 50); c.lineTo(320, 1030); c.quadraticCurveTo(320, 1060, 290, 1060); c.lineTo(-290, 1060); c.quadraticCurveTo(-320, 1060, -320, 1030); c.lineTo(-320, 50); c.closePath(); c.fillStyle = CREAM; c.fill();
+      c.shadowColor = 'transparent'; c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.fillStyle = BLUSH; c.fill(); c.lineWidth = 9; c.strokeStyle = '#B98A3E'; c.stroke();
+      const border = [[-190, -50], [190, -50], [300, 60], [300, 1040], [-300, 1040], [-300, 60], [-190, -50]]; c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]);
+      const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
+      let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
+      const Lg = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (Lg) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * Lg.height / Lg.width; c.drawImage(Lg, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
+      tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 50, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
+      c.restore();
+      words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 50, stagger: 0.1 }); } },
+];
+const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 250, size: 50, out: 1.7 }); words(c, 'Trinidad & Tobago.', lt, 0.45, { y: 330, size: 76, out: 1.75 }); };
+function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09) {
+  c.save(); c.font = `400 ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+  const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = -tot / 2;
+  ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + 0.7)); if (a > 0.003) { c.save(); c.globalAlpha = a; c.filter = `blur(${(1 - a) * 12 * SCALE}px)`; c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.3); c.restore(); } px += wd[i] + sp; });
+  c.restore();
+}
+// silver heart lift inside the card shot (shot-local frame px): rises off the buckle, one turn, drifts to centre, grows a little
+const LIFT0 = 2.5, LIFT1 = SHOT.tan - SHOT.card;   // until the transition starts
+function liftState(lt) { if (lt < LIFT0) return null; const k = inOutSine(prog(lt, LIFT0, LIFT1)), e = outCubic(prog(lt, LIFT0, LIFT0 + 0.5));
+  return { x: lerp(BUCKLE[0], 540, k), y: lerp(BUCKLE[1], 960, k) - e * 6, s: BUCKLE_S * (1 + 0.25 * e + 1.8 * k * k), spin: TAU * inOutCubic(prog(lt, LIFT0 + 0.2, LIFT1 - 0.1)) }; }
+// the sea's edge: translucent water + a foam line (frame space)
+function waterEdge(c, shore, side) {
+  c.save(); c.beginPath(); c.moveTo(side > 0 ? 1300 : -300, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(side > 0 ? 1300 : -300, H + 20); c.closePath(); c.fillStyle = 'rgba(150,200,205,0.30)'; c.fill();
+  c.strokeStyle = 'rgba(255,255,255,0.92)'; c.lineWidth = 12; c.beginPath(); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y) - 4 * side, y); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,0.45)'; c.lineWidth = 4; c.beginPath(); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y) + (34 + Math.sin(y * 0.02) * 8) * side, y); c.stroke(); c.restore();
+}
+
+// ---------------- compositing ----------------
+const ORDER = SHOTS.map(s => s.key), START = ORDER.map(k => SHOT[k]), SH = SHOTS.map(() => mk());
+function drawShot(k, lt) { const c = SH[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.filter = 'none'; c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, cv.width, cv.height); SHOTS[k].draw(c, lt); return SH[k]; }
+function blit(c, can, cam, dy = 0, alpha = 1) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = alpha; c.translate(cam.f[0] * SCALE, (cam.f[1] + dy) * SCALE); c.scale(cam.z, cam.z); c.translate(-cam.f[0] * SCALE, -cam.f[1] * SCALE); c.drawImage(can, 0, 0); c.restore(); }
+const toScreen = (cam, x, y) => [cam.f[0] + (x - cam.f[0]) * cam.z, cam.f[1] + (y - cam.f[1]) * cam.z];
+function render(t) {
+  let k = 0; for (let i = 0; i < START.length; i++) if (t >= START[i]) k = i;
+  const nxKey = ORDER[k], inTr = k > 0 && t < START[k] + TRD[nxKey], cur = inTr ? k - 1 : k, lt = t - START[cur];
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const cc = SHOTS[cur].cam(lt);
+  if (!inTr) { blit(ctx, drawShot(cur, lt), cc); return; }
+  const nx = cur + 1, ln = t - START[nx], d = TRD[ORDER[nx]], p = prog(t, START[nx], START[nx] + d), kind = SHOTS[cur].out.kind, nc = SHOTS[nx].cam(ln);
+  if (kind === 'screen') {   // the seat screen opens out to the full frame, the map still running inside it
+    blit(ctx, drawShot(cur, lt), cc); const e = inOutCubic(p), Q = DATA.quads.front.map(([x, y]) => toScreen(cc, ...pp(x, y))), F = [[0, 0], [W, 0], [W, H], [0, H]];
+    const quad = Q.map((q0, i) => [lerp(q0[0], F[i][0], e), lerp(q0[1], F[i][1], e)]), mw = Math.round(lerp(960, 1080, e)), mh = Math.round(lerp(540, 1920, e));
+    drawMap(t, mw, mh); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); warp(ctx, MAPC, 0, 0, mw, mh, quad, 14); ctx.restore();
+    ctx.save(); ctx.globalAlpha = prog(e, 0.55, 1); mapText(ctx, ln); ctx.restore(); return; }
+  if (kind === 'land') {   // the dive ends inside the island; its land is the wall's colour, so the wall simply comes up
+    blit(ctx, drawShot(cur, lt), cc); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = WALL; ctx.globalAlpha = clamp01(p * 3); ctx.fillRect(0, 0, W, H); ctx.restore();
+    blit(ctx, drawShot(nx, ln), nc, 0, inOutSine(prog(p, 0.25, 1))); return; }
+  if (kind === 'tilt') {   // the camera tilts down off the wall onto the sand, with motion blur on the fast part
+    const e = inOutCubic(p), sp = Math.sin(Math.PI * p), A = drawShot(cur, lt), B = drawShot(nx, ln), n = 7;
+    for (let i = 0; i < n; i++) { const o = (i / (n - 1) - 0.5) * sp * 160; blit(ctx, A, cc, -e * H + o, i === 0 ? 1 : 1 / (i + 1)); blit(ctx, B, nc, H - e * H + o, i === 0 ? 1 : 1 / (i + 1)); } return; }
+  if (kind === 'wave') {   // a big wave rolls across the whole frame from the right; the card is underneath as it passes
+    blit(ctx, drawShot(cur, lt), cc); const e = inOutSine(p), edgeX = lerp(W + 160, -260, e), shore = y => edgeX + Math.sin(y * 0.010 + t * 2.4) * 26 + Math.sin(y * 0.027 + t * 1.5) * 10;
+    const B = drawShot(nx, ln); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.moveTo(W + 400, -20); for (let y = -20; y <= H + 20; y += 24) ctx.lineTo(shore(y), y); ctx.lineTo(W + 400, H + 20); ctx.closePath(); ctx.clip();
+    blit(ctx, B, nc); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); const g = ctx.createLinearGradient(edgeX, 0, edgeX + 520, 0); g.addColorStop(0, 'rgba(150,205,210,0.55)'); g.addColorStop(1, 'rgba(150,205,210,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); waterEdge(ctx, shore, 1); ctx.restore(); return; }
+  if (kind === 'silver') {   // the silver heart flies at the camera; its face opens onto the next shot, a polished rim passes us
+    blit(ctx, drawShot(cur, lt), cc); const L = liftState(lt), [hx, hy] = toScreen(cc, L.x, L.y), e = inExpo(p) * 0.85 + p * 0.15, s = lerp(L.s * cc.z, 2600, e), x = lerp(hx, 540, p), y = lerp(hy, 1060, p);
+    const B = drawShot(nx, ln); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); pathPts(ctx, heartPts(x, y, s)); ctx.clip(); ctx.fillStyle = SHOTS[nx].bg; ctx.fillRect(0, 0, W, H); blit(ctx, B, nc); ctx.restore();
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.globalAlpha = 1 - prog(p, 0.3, 0.45) * 0; ctx.globalAlpha = 1 - prog(p, 0.0, 0.35); silverHeart(ctx, x, y, s, 0); ctx.globalAlpha = 1; silverHeart(ctx, x, y, s, 0, Math.max(3, s * 0.06)); ctx.restore(); return; }
+  // circle: grows out of a shape in this shot, flooded with the next shot's colour, the next shot eases in
+  blit(ctx, drawShot(cur, lt), cc); const e = inOutCubic(p), o = SHOTS[cur].out, [x, y] = toScreen(cc, ...o.c), B = drawShot(nx, ln);
+  ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(lerp(x, W / 2, e), lerp(y, H / 2, e), lerp(o.r * cc.z, Math.hypot(W, H) * 0.62, e), 0, TAU); ctx.clip(); ctx.fillStyle = SHOTS[nx].bg; ctx.fillRect(0, 0, W, H);
+  if (e > 0.12) blit(ctx, B, { z: nc.z * lerp(0.93, 1, outCubic(prog(e, 0.12, 1))), f: nc.f }); ctx.restore();
+}
+START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
+for (let i = 0; i < 13; i++) ev('screen.on', 0.6 + i * 0.17); ev('screens.change', 3.4); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
+[0.9, 1.7, 2.5].forEach(a => ev('peg.cut', SHOT.pegs + a)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 0.9); ev('wave.out', SHOT.sand + 2.4); ev('wave.big', SHOT.card);
+ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
+window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
+window.ready = Promise.all([
+  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('mask', 'data/screen-mask.png'),
+  ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
+  loadJSON('tt', 'data/tt-outline.json'), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
+]).then(() => { ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+  if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
+</script></body></html>
