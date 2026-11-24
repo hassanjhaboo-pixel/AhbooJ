@@ -1,6 +1,6 @@
-# SM Threads ad: what to generate, in order
+# SM Threads ad: Gemini generation list
 
-**The video:** Plan A "Now Boarding", plus the peg-rail scene from Plan B. 9:16, about 18 seconds, cut to soca.
+**The video:** Plan A "Now Boarding", plus the peg-rail scene. 9:16, about 18 seconds, cut to soca.
 
 | Scene | Time | What happens |
 |---|---|---|
@@ -12,87 +12,164 @@
 | 6 | 12.5 to 15s | Tan line. The strap slides off and a strawberry tan mark shows |
 | 7 | 15 to 18s | SM Threads hang tag swings in. MADE IN TRINIDAD. MADE TO YOU. DM |
 
-**Rules for every image**
-- Vertical 9:16, the highest quality Gemini gives you. Download the image itself, don't screenshot it.
-- Name the files with the numbers below (e.g. `S1-cabin-empty.png`) so I know where each one goes.
-- If Gemini changes a garment (straps, print, mesh, cut-outs), regenerate it. Her real pieces have to look exactly like her real pieces.
-- Before you send one, check: no extra fingers, no text, no watermark, and the garment isn't floating.
+---
+
+## Which model to use
+
+- **Model:** Nano Banana 2 (Gemini 3.1 Flash Image) is Gemini's default image model now. Pick **Thinking** or **Pro** in the model menu, not Fast.
+- **For the garment shots (Steps 1, 3, 4 and 5), use Nano Banana Pro if you can.** On Google AI Pro or Ultra: generate the image, tap the **⋮ menu** on it and choose **Redo with Pro**. Pro holds small details best (prints, trims, straps). If you don't see that option, Nano Banana 2 in Thinking mode is fine.
+- **One new chat per prompt below.** Every prompt already contains the full style block, so each chat starts clean and every image still matches. Follow-ups marked "same chat" go in the chat you just used.
+- **Download the full-size image.** Long-press it and save the original. Don't screenshot it.
+- **If an image comes out square,** send in the same chat: `Make this exactly 9:16 vertical. Extend the scene naturally, change nothing else.`
+- **Name each file** with the code shown (e.g. `S1-cabin-empty.png`).
 
 ---
 
-## Step 0: Collect from her (before using Gemini)
-Get these from her camera roll, not as screenshots from Instagram:
-- [ ] **5 or 6 of her best pieces**, one clear photo each. Suggested: aqua floral set, red mesh set, purple set, black shimmer one-piece, black halter cut-out top, plus one more she loves.
-- [ ] **Her logo file**, if she has one. If not, I'll rebuild it.
-- [ ] **A name for each piece** (e.g. "Aqua Hibiscus"). If she hasn't named them, tell me and I'll suggest some.
-- [ ] **CTA:** Instagram DM or WhatsApp number?
-- [ ] **Faces:** OK to show, or outfits only?
+## Step 0: Collect from her first
+- [ ] 5 or 6 of her best pieces, one clear original photo each (aqua floral set, red mesh set, purple set, black shimmer one-piece, black halter cut-out top, plus one more)
+- [ ] Her logo file, if she has one
+- [ ] A name for each piece
+- [ ] CTA: Instagram DM or WhatsApp?
+- [ ] Faces OK to show, or outfits only?
 
-## Step 1: Clean product shots (one per piece)
-Everything else is built from these. Do one for each piece from Step 0, and attach that piece's photo.
+---
 
-**Files:** `P1-aqua.png`, `P2-red.png`, `P3-purple.png`, `P4-black-onepiece.png`, `P5-black-halter.png`, `P6-....png`
+## Step 1: Clean product shots (one chat per piece)
+**Attach:** one of her piece photos. **Save as:** `P1-aqua.png`, `P2-red.png`, `P3-purple.png`, `P4-black-onepiece.png`, `P5-black-halter.png`, `P6-....png`
 
-> Using the attached photo as the exact reference, create a clean e-commerce product photo of only this swimwear, shown as a ghost mannequin (no mannequin, no body, the garment keeps its natural worn shape as if on an invisible body). Pure white background, soft even studio light, a soft shadow under the garment, front view, centred, vertical 9:16. Keep the colours, fabric, print, trim, straps, ties and cut-outs exactly as in the reference. No text, no logo, no mannequin, no person.
+```
+Create a clean product photo of ONLY the swimwear in the attached photo, shown as a ghost mannequin: no mannequin, no body, no person, but the garment keeps its natural worn 3D shape as if on an invisible body. Front view, centred, filling about 70% of the frame. Pure seamless white background (#FFFFFF), soft even studio light from the front, one soft natural shadow directly under the garment. This is the only shot that uses studio light instead of sunlight; everything else in the style block below still applies.
 
-Check: compare it side by side with her photo. Same strap count, same trim, same cut-outs.
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. No HDR, no oversharpening, no glossy CGI, no plastic AI skin or fabric. Fabric shows its real texture: matte swim lycra, visible stitching, mesh that is see-through where it is mesh. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no watermarks anywhere in the image.
 
-## Step 2: Scene 1, the plane cabin
-**File:** `S1-cabin-empty.png` (no attachments)
+GARMENT LOCK:
+The garment must be an exact copy of the attached reference. Keep the same colours, fabric, print and print scale, trim, number and position of straps, ties, rings, knots, gathers and cut-outs. Do not add, remove, simplify or redesign anything. Ignore anything in the reference that is not the garment (mannequin, background, logos, app buttons).
+```
 
-> Realistic photo inside an airplane economy cabin, shot from behind a row of seats looking forward down the cabin. Five seatback entertainment screens are clearly visible at different depths: one large in the lower centre foreground, four smaller further back to the left and right. Every screen shows a plain flat light grey display with nothing on it. A few passengers' heads visible above the seats, one wearing over-ear headphones. Blue-grey fabric seats, soft natural cabin light, slight film photo look. Vertical 9:16. No text, no logos, no airline branding.
+**Check before saving:** put it next to her photo. Same number of straps, same trim, same cut-outs, mesh still see-through.
 
-The screens must be plain and evenly lit. I put her tops (from Step 1) onto the screens and animate the channel changes.
+---
 
-## Step 3: Scene 3, the peg rail
-Use the peg-rail prompt from before, with her aqua floral set attached.
-- [ ] `S3-pegs-full.png`: the aqua set hanging (top on peg 2, bottom on peg 5, skirt on peg 6)
-- [ ] `S3-pegs-empty.png`: follow-up in the same chat: *"Same photo, exactly the same light and angle, but remove all the garments. Keep only the empty pegs and their shadows."*
+## Step 2: Plane cabin (no attachments)
+**Save as:** `S1-cabin-empty.png`
 
-## Step 4: Scene 4, the sand
-Attach **three** of the Step 1 product shots (your pick, ideally three different colours).
+```
+Realistic photo inside an airplane economy cabin, shot from behind a row of seats looking forward down the aisle. Five seatback entertainment screens are clearly visible at different depths: one large screen in the lower centre foreground facing the camera straight on, and four smaller screens further back on the left and right. Every screen is switched on and shows a plain, flat, evenly lit very light grey display with nothing on it. A few passengers seen from behind above the seats: one with long dark braids, one wearing over-ear headphones. Blue-grey fabric seats. Warm late-afternoon Caribbean sunlight streams through the cabin windows on the left, laying soft warm patches of light across the seat backs. Calm, holiday mood.
 
-- [ ] `S4-sand-tops.png`
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange, with clean defined shadows. Rich, accurate deep brown skin tones wherever skin appears. No HDR, no oversharpening, no glossy CGI, no plastic AI skin or fabric. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no airline branding, no watermarks anywhere in the image.
+```
 
-> Top-down photo of fine pale Caribbean beach sand in bright midday sun. The three attached bikini tops lie flat on the sand, stacked in a vertical column on the left half of the frame, one under the other, straps and ties loose and relaxed on the sand. The right half of the frame is smooth empty sand. Real contact shadows, a few grains of sand on the fabric, soft footprints at the bottom edge. Keep each garment's colours, print and shape exactly as in the references. Vertical 9:16. No text, no writing in the sand.
+The screens must be plain and evenly lit with no glare. If a screen has an image on it, follow up: `Make every screen a plain flat light grey with nothing on it.`
 
-- [ ] `S4-sand-empty.png`: follow-up: *"Same photo, same sand and light, remove the bikini tops."*
+---
 
-The right half has to stay empty, because I'll animate her piece names being written there.
+## Step 3: Peg rail (two images, same chat)
+**Attach:** `P1-aqua.png` from Step 1 (or her original aqua photo). **Save as:** `S3-pegs-full.png`
 
-## Step 5: Scene 5, the tagline card
-Attach **one** Step 1 product shot (a bold one, like the red mesh).
+```
+Create a photo of the swimwear set in the attached image hanging on a wooden peg rail. The set has three pieces in pale aqua/mint matte swim fabric, with every edge bound in a narrow navy trim printed with small light-blue hibiscus flowers: (1) a bandeau top with two soft gathered cups, a twisted knot at centre front and two thin navy floral halter straps; (2) a low V-front bikini bottom with two thin floral straps on each hip forming open cut-outs; (3) a short fitted aqua mini skirt with a navy floral band at the waist and at the hem.
 
-- [ ] `S5-card.png`
+Scene: a teak wooden peg rail with six round wooden pegs, mounted on a warm off-white plaster wall, shot straight on at eye level. The top hangs from the second peg by its two halter straps looped over the peg. The bottom hangs from the fifth peg by one hip strap. The skirt hangs from the sixth peg by its waistband. Pegs one, three and four are empty.
 
-> Top-down photo on a grey speckled concrete floor. A plain white printed card, A4 size, lies slightly rotated in the centre. The card is completely blank, with an empty band at the top and an empty band at the bottom. The attached bikini top is laid across the middle of the card, its ties and straps spilling over the edges onto the concrete in loose curves. Natural daylight, soft shadows. Keep the garment exactly as in the reference. Vertical 9:16. No text anywhere.
+Physics: no body inside anything. The top's cups fold and flatten slightly, the centre twist sags a little and the strap ends hang straight down. The bottom falls into a loose uneven triangle with its other straps dangling. The skirt drops flat and narrow with soft vertical folds. Real adult swimwear scale: the rail is about 70 cm wide, the top is about as wide as the gap between two pegs, the skirt hangs about one and a half times longer than the top. Each piece has a contact shadow at its peg and a cast shadow on the wall.
 
-I put the tagline on the blank card.
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange, casting long, clean, defined diagonal shadows of the pegs and garments across the wall. No HDR, no oversharpening, no glossy CGI, no plastic AI fabric. Fabric shows real texture: matte swim lycra, visible stitching along the trim. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no watermarks anywhere in the image.
 
-## Step 6: Scene 6, the tan line (two images, same frame)
-Do these in the same chat, in this order.
+GARMENT LOCK:
+The garments must be exact copies of the attached reference. Keep the same colours, fabric, print and print scale, trim, number and position of straps, ties, knots, gathers and cut-outs. Do not add, remove, simplify or redesign anything. Ignore anything in the reference that is not the garment (mannequin, background, logos, app buttons). No mannequin, no body, no person.
+```
 
-- [ ] `S6-tan-reveal.png` (no attachment)
+**Same chat, then save as** `S3-pegs-empty.png`:
+```
+Same photo, exactly the same framing, wall, rail, light and shadows, but remove all three garments. Keep only the six empty pegs and their shadows. Change nothing else.
+```
 
-> Close-up photo of a woman's shoulder and upper chest, deep brown skin, warm late-afternoon sun. A pale thin bikini strap tan line runs over the shoulder, and just below the collarbone is a small, clearly visible tan mark in the shape of a strawberry, lighter than the skin around it, as if left by a sticker in the sun. Tasteful, no nudity, cropped from the chin down to just above the chest. Film photo look, soft grain. Vertical 9:16. No text, no jewellery.
+---
 
-- [ ] `S6-tan-strap.png`: follow-up: *"Same photo, same framing and light, but now she is wearing a thin magenta bikini strap that sits exactly on the tan line, and the strawberry mark is covered by a small magenta fabric sticker."*
+## Step 4: Sand (two images, same chat)
+**Attach:** three Step 1 product shots, ideally three different colours. **Save as:** `S4-sand-tops.png`
 
-I animate the strap and sticker sliding off to reveal the strawberry.
+```
+Top-down photo looking straight down at fine pale Caribbean beach sand. The three attached bikini tops lie flat on the sand, arranged in a neat vertical column on the LEFT half of the frame, one under the other with a small gap between them, straps and ties loose and relaxed in natural curves on the sand. The RIGHT half of the frame is smooth, empty, undisturbed sand with nothing on it. A few grains of sand on the fabric, real contact shadows under each top, soft footprints along the bottom edge.
 
-## Step 7: Optional, only if you want an extra beat
-- [ ] `S7-water.png`: the swimmer from above (prompt from before), with the black one-piece photo attached.
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange, with clean defined shadows falling to the lower right. No HDR, no oversharpening, no glossy CGI, no plastic AI fabric. Fabric shows real texture: matte swim lycra, visible stitching. Vertical 9:16 frame, highest resolution available. No text, no letters, no writing in the sand, no logos, no watermarks anywhere in the image.
+
+GARMENT LOCK:
+Each top must be an exact copy of its attached reference. Keep the same colours, fabric, print and print scale, trim, number and position of straps, ties, rings, knots, gathers and cut-outs. Do not add, remove, simplify or redesign anything. No mannequin, no body, no person.
+```
+
+**Same chat, then save as** `S4-sand-empty.png`:
+```
+Same photo, exactly the same framing, sand, light and footprints, but remove the three bikini tops. Change nothing else.
+```
+
+---
+
+## Step 5: Tagline card
+**Attach:** one bold Step 1 product shot (the red mesh works best). **Save as:** `S5-card.png`
+
+```
+Top-down photo looking straight down at a grey speckled polished concrete floor. A plain matte white card, A4 size, lies in the centre, rotated about 8 degrees. The card is completely blank, with an empty white band across its top quarter and an empty white band across its bottom quarter. The attached bikini top is laid across the middle of the card, its ties and straps spilling over the card's edges onto the concrete in loose natural curves. Real contact shadows under the fabric and the card.
+
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange, with clean defined shadows falling to the lower right. No HDR, no oversharpening, no glossy CGI, no plastic AI fabric. Fabric shows real texture: matte swim lycra or mesh, visible stitching. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no watermarks anywhere in the image, and nothing printed on the card.
+
+GARMENT LOCK:
+The top must be an exact copy of the attached reference. Keep the same colours, fabric, print, trim, number and position of straps, ties, rings, knots and cut-outs, and keep mesh see-through. Do not add, remove, simplify or redesign anything. No mannequin, no body, no person.
+```
+
+---
+
+## Step 6: Tan line (two images, same chat, in this order)
+**No attachments. Save as:** `S6-tan-reveal.png`
+
+```
+Close-up photo of a woman's shoulder and upper chest, cropped from just below the chin to just above the bust, three-quarter angle. Deep brown skin with a healthy sun-kissed glow. A thin, pale bikini strap tan line runs over her shoulder and down toward the chest. Just below the collarbone is one small, crisp tan mark in the shape of a strawberry (with its little leaf crown), a few shades lighter than the skin around it, as if left by a sticker in the sun. Tasteful and editorial, no nudity, no jewellery.
+
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange, with clean defined shadows. Rich, accurate deep brown skin with real skin texture and pores, no airbrushing, no plastic AI skin. No HDR, no oversharpening, no glossy CGI. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no watermarks anywhere in the image.
+```
+
+**Same chat, then save as** `S6-tan-strap.png`:
+```
+Same photo, exactly the same framing, skin, pose and light. Now she is wearing a thin magenta (#CB0870) matte bikini strap that sits exactly on top of the tan line, and the strawberry tan mark is fully covered by a small round magenta fabric sticker. Change nothing else.
+```
+
+---
+
+## Step 7 (optional): Underwater swimmer
+**Attach:** her black shimmer one-piece photo. **Save as:** `S7-water.png`
+
+```
+Top-down photo looking straight down into clear turquoise Caribbean water. A woman with deep brown skin and long dark hair swims face-down across the frame from left to right, arms stretched forward, wearing the swimsuit from the attached photo. Sunlight ripples and caustic light patterns across her body and the white sandy bottom, small bubbles around her hands. Her face is not visible.
+
+STYLE BLOCK (SM THREADS LOOK):
+Real photograph, not a render. 35mm film look like Kodak Portra 400: true-to-life colour, gentle contrast, slightly lifted blacks, creamy warm highlights, very fine natural film grain. Light is warm late-afternoon sun from the upper left, around 4pm, golden but not orange. Rich, accurate deep brown skin with real texture, no plastic AI skin. No HDR, no oversharpening, no glossy CGI. Vertical 9:16 frame, highest resolution available. No text, no letters, no logos, no watermarks anywhere in the image.
+
+GARMENT LOCK:
+The swimsuit must be an exact copy of the attached reference. Keep the same colour, shimmer, mesh panels, straps and cut-outs. Do not add, remove, simplify or redesign anything.
+```
+
+---
+
+## Fix-ups (paste in the same chat when needed)
+- Garment changed: `The garment no longer matches the reference. Regenerate it as an exact copy: same straps, trim, print and cut-outs.`
+- Looks pasted on: `Make the fabric drape naturally under gravity and add stronger contact shadows where it touches the surface.`
+- Too glossy or AI-looking: `Make it look like a real 35mm film photo: softer contrast, fine grain, matte fabric, real texture.`
+- Light doesn't match: `Change the light to warm late-afternoon sun from the upper left with clean diagonal shadows, like the rest of the set.`
+- Square image: `Make this exactly 9:16 vertical. Extend the scene naturally, change nothing else.`
+
+---
 
 ## Step 8: Music
-- [ ] Send me the **soca track** you want (the file, or the song name and artist). I cut every scene to its beat. If you'd rather add a trending sound inside Instagram, tell me the BPM or send the song anyway so the cuts still land.
+- [ ] The soca track you want (the file, or the song name and artist). I cut every scene to its beat.
 
----
-
-## What I make myself (nothing needed from you)
-- The SM Threads hang tag and the end card, in her magenta, blush and white
-- All the type: TOBAGO, the piece names in the sand, the tagline, the CTA
-- All the animation: screen flicks, push-in, pegs dropping, sand writing, strap slide, tag swing
-- The render: MP4, 1080x1920, ready for Reels and TikTok
+## What I make myself
+The hang tag and end card, all the type, all the animation, and the final MP4 at 1080x1920.
 
 ## Send checklist
 `P1`–`P6` · `S1-cabin-empty` · `S3-pegs-full` · `S3-pegs-empty` · `S4-sand-tops` · `S4-sand-empty` · `S5-card` · `S6-tan-reveal` · `S6-tan-strap` · (optional `S7-water`) · logo · piece names · CTA · faces yes/no · song
