@@ -18,9 +18,10 @@
 
 // ---------------- timing (one place to re-time everything) ----------------
 const BPM = 117.45, BT = 60 / BPM, PH = 0.115;   // her song: shots change on its bars, the moves breathe with it rather than snap to it
-const SHOT = { cabin: 0, map: PH + 11 * BT, pegs: PH + 20 * BT, sand: PH + 32 * BT, water: PH + 44 * BT, card: PH + 52 * BT, tan: PH + 60 * BT, end: PH + 66 * BT }, END = 40.7;
+const SHOT = { cabin: 0, map: PH + 10 * BT, pegs: PH + 19 * BT, sand: PH + 30 * BT, water: PH + 42 * BT, card: PH + 49 * BT, tan: PH + 57 * BT, end: PH + 63 * BT, outro: PH + 71 * BT }, END = 40.7;
+const ALT = new URLSearchParams(location.search).has('alt');   // version B: match-cut transitions instead of the flip and the whip
 let ENV = null; const kick = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.kick[f] || 0; }, energy = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.energy[f] || 0; };
-const TRD = { map: 1.2, pegs: 1.3, sand: 0.9, water: 1.4, card: 0.9, tan: 1.1, end: 1.3 };   // transition into each shot
+const TRD = { map: 1.2, pegs: 1.3, sand: 0.9, water: 1.4, card: 0.9, tan: 1.1, end: 1.3, outro: 1.2 };   // transition into each shot
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
 const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
 
@@ -91,7 +92,7 @@ function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries 
   const c = MAPC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h);
   const [ax, ay] = DATA.tt.aspect, port = h > w, TW = DATA.tt.towns;
   const s0 = Math.min(w * 0.86 / ax, h * (port ? 0.52 : 0.76) / ay);
-  const push = inOutCubic(prog(T, SHOT.map + 2.3, SHOT.pegs + TRD.pegs)), Z = 1 + push * 1.6;          // one slow push towards the studio
+  const push = inOutSine(prog(T, SHOT.map - 0.2, SHOT.pegs + TRD.pegs)), Z = 1 + push * 1.25 + inCubic(prog(T, SHOT.pegs - 1.2, SHOT.pegs + TRD.pegs)) * 0.9;   // one continuous push in, as the deliveries spread
   const fx = lerp(ax / 2, AROUCA[0], push), fy = lerp(ay / 2, AROUCA[1], push), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.54 : 0.5);
   const M = ([u, v]) => [cxp + (u - fx) * s, cyp + (v - fy) * s];
   c.fillStyle = '#F7E4E8'; c.fillRect(0, 0, w, h);
@@ -102,15 +103,15 @@ function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries 
     const [tx, ty] = M([0.45, 0.62]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.165]); c.fillText('TOBAGO', bx, by); c.restore(); }
   const A = M(AROUCA), lw = Math.max(2.5, s0 * 0.0055);
   // deliveries: a route draws out of Arouca to each town, a little car rides its tip, the town pin pops when it arrives
-  TOWNS_ORDER.forEach((name, i) => { const t0 = 1.5 + i * BT * 0.5, k = inOutSine(prog(T, t0, t0 + 1.5)); if (k <= 0) return;
+  TOWNS_ORDER.forEach((name, i) => { const t0 = SHOT.map + 0.15 + i * BT * 0.42, k = inOutSine(prog(T, t0, t0 + 1.4)); if (k <= 0) return;
     const B = TW[name], mx = (AROUCA[0] + B[0]) / 2, my = (AROUCA[1] + B[1]) / 2, dx = B[0] - AROUCA[0], dy = B[1] - AROUCA[1], bend = (i % 2 ? 1 : -1) * 0.22;
     const pts = bez(AROUCA, [mx - dy * bend, my + dx * bend], [mx - dy * bend * 0.6, my + dx * bend * 0.6], B, 50).map(M), n = Math.max(1, Math.floor(k * (pts.length - 1)));
     c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...pts[j]) : c.moveTo(...pts[j]); c.stroke(); c.restore();
     if (k < 1) { const j = Math.min(pts.length - 2, n); CAR(c, pts[j][0], pts[j][1], Math.atan2(pts[j + 1][1] - pts[j][1], pts[j + 1][0] - pts[j][0]), s0 * 0.013); }
-    const arr = prog(T, t0 + 1.5, t0 + 1.9); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
+    const arr = prog(T, t0 + 1.4, t0 + 1.8); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
       c.beginPath(); c.arc(px, py, s0 * 0.0095 * pop, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004 * pop, 0, TAU); c.fillStyle = CREAM; c.fill(); } });
   // and a plane over to Tobago
-  const pr = inOutSine(prog(T, 2.6, 5.4)); if (pr > 0) { const B = TW['Scarborough'], route = bez(PIARCO, [PIARCO[0] + 0.1, PIARCO[1] - 0.28], [B[0] - 0.2, B[1] - 0.1], B, 90).map(M), n = Math.max(1, Math.floor(pr * (route.length - 1)));
+  const pr = inOutSine(prog(T, SHOT.map + 0.5, SHOT.map + 3.4)); if (pr > 0) { const B = TW['Scarborough'], route = bez(PIARCO, [PIARCO[0] + 0.1, PIARCO[1] - 0.28], [B[0] - 0.2, B[1] - 0.1], B, 90).map(M), n = Math.max(1, Math.floor(pr * (route.length - 1)));
     c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.setLineDash([lw * 3, lw * 2.4]); c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...route[j]) : c.moveTo(...route[j]); c.stroke(); c.restore();
     if (pr < 1) { const j = Math.min(route.length - 2, n); PLANE(c, route[j][0], route[j][1], Math.atan2(route[j + 1][1] - route[j][1], route[j + 1][0] - route[j][0]), s0 * 0.04); }
     else { const [px, py] = M(B); c.beginPath(); c.arc(px, py, s0 * 0.0095, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004, 0, TAU); c.fillStyle = CREAM; c.fill(); } }
@@ -128,12 +129,14 @@ const PIECES = ['sand-purple', 'sand-red', 'sand-orange', 'peg-top'], PSIZE = { 
 const TILE = {}; function tile(k) {   // a piece on the screen's white UI, as a texture
   if (TILE[k]) return TILE[k]; const c = mk(640, 400), x = c.getContext('2d'), [w, h] = PSIZE[k], s = Math.min(640 * 0.74 / w, 400 * 0.82 / h);
   x.fillStyle = '#F6F3F1'; x.fillRect(0, 0, 640, 400); x.drawImage(IMG[k], 320 - w * s / 2, 200 - h * s / 2, w * s, h * s); return TILE[k] = c; }
-const SCRN = mk(), SCRX = SCRN.getContext('2d');
+const SCRN = mk(), SCRX = SCRN.getContext('2d'), SLIDE = mk(640, 400);
 function screens(c, lt) {
   const Q = DATA.quads, keys = Object.keys(Q).filter(k => k !== 'front');
   SCRX.setTransform(1, 0, 0, 1, 0, 0); SCRX.globalCompositeOperation = 'source-over'; SCRX.clearRect(0, 0, SCRN.width, SCRN.height); plateSpace(SCRX);
-  keys.forEach((k, i) => { const on = BT + i * BT / 2; if (lt < on) return; const idx = (i + (lt > 6 * BT ? 1 : 0)) % 4; warp(SCRX, tile(PIECES[idx]), 0, 0, 640, 400, Q[k], 6);
-    const fl = 1 - prog(lt, on, on + 0.12); if (fl > 0) { SCRX.save(); SCRX.globalAlpha = fl * 0.9; SCRX.fillStyle = '#FFFFFF'; pathPts(SCRX, Q[k]); SCRX.fill(); SCRX.restore(); } });
+  keys.forEach((k, i) => { const on = BT + i * BT / 2; if (lt < on) return;
+    const per = 4 * BT, ph = (lt - on) / per, n = Math.floor(ph), u = inOutCubic(prog(ph - n, 0.78, 1)), a0 = PIECES[(i + n) % 4], a1 = PIECES[(i + n + 1) % 4];   // each screen glides to the next piece every bar
+    const T2 = SLIDE.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.drawImage(tile(a0), -u * 640, 0); T2.drawImage(tile(a1), (1 - u) * 640, 0); warp(SCRX, SLIDE, 0, 0, 640, 400, Q[k], 6);
+    const dk = 1 - outCubic(prog(lt, on, on + 0.45)); if (dk > 0) { SCRX.save(); SCRX.globalAlpha = dk; SCRX.fillStyle = '#1C1F24'; pathPts(SCRX, Q[k]); SCRX.fill(); SCRX.restore(); } });
   if (lt > 0.9) { const [x0, y0, x1, y1] = [0, 0, 960, 540]; drawMap(lt + SHOT.cabin, 960, 540); warp(SCRX, MAPC, 0, 0, 960, 540, Q.front, 14); }
   // glass: a soft diagonal sheen across every screen
   SCRX.save(); SCRX.globalCompositeOperation = 'source-atop'; const g = SCRX.createLinearGradient(0, 400, 1438, 1900); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.48, 'rgba(255,255,255,0.10)'); g.addColorStop(0.52, 'rgba(255,255,255,0.0)'); SCRX.fillStyle = g; SCRX.fillRect(0, 0, 1438, 2576); SCRX.restore();
@@ -178,7 +181,7 @@ const SHOTS = [
     out: { kind: 'screen' } },
   { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
-    out: { kind: 'flip' } },
+    out: ALT ? { kind: 'match', a: () => MAPPIN, za: 26, b: [303, 624], zb: 9 } : { kind: 'flip' } },
   { key: 'pegs', bg: WALL, cam: lt => ({ z: 1.06 + 0.01 * lt, f: [lerp(420, 660, inOutSine(lt / 6)), 1000] }),
     draw(c, lt) { plate(c, 'S3-pegs-empty');
       // each piece is simply there on its bar, shadow and all, then sways: the cloth and its shadow move together, anchored at the peg
@@ -200,9 +203,9 @@ const SHOTS = [
     out: { kind: 'swell' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.0 + 0.008 * lt, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
-    out: { kind: 'whip' } },
+    out: ALT ? { kind: 'match', a: [600, 960], za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
-    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 200, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
+    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: CREAM, shadow: 'rgba(30,20,10,0.4)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: CREAM, shadow: 'rgba(30,20,10,0.4)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
       const L = liftState(lt); if (L) silverHeart(c, L.x, L.y, L.s, L.spin); },
     out: { kind: 'silver' } },
@@ -213,11 +216,11 @@ const SHOTS = [
         T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'destination-in'; const x = lerp(-200, 1300, p) * SCALE, g = T2.createLinearGradient(x - 220 * SCALE, 0, x, 0); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); T2.fillStyle = g; T2.fillRect(0, 0, TANL.width, TANL.height);
         c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(TANL, 0, 0); c.restore();
         const band = Math.sin(Math.PI * p); if (band > 0.01) { frameSpace(c); c.save(); c.globalCompositeOperation = 'soft-light'; const bx = lerp(-200, 1300, p), gg = c.createLinearGradient(bx - 260, 0, bx + 80, 0); gg.addColorStop(0, 'rgba(255,214,150,0)'); gg.addColorStop(0.75, `rgba(255,214,150,${0.75 * band})`); gg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore(); } }
-      words(c, 'Leave with proof.', lt, 2.0, { y: 1190, col: CREAM, shadow: 'rgba(30,12,4,0.45)' }); },
+      words(c, 'Leave with proof.', lt, 2.0, { x: 623, y: 1175, size: 70, col: CREAM, shadow: 'rgba(30,12,4,0.5)' }); },
     out: { kind: 'logo' } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
-      const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3), ex = 540, ey = lerp(-900, 300, drop);
+      const { th, ey } = tagPose(lt), ex = 540;
       c.save(); c.fillStyle = MAG; c.fillRect(ex - 22, -20, 44, ey + 20); c.restore();
       c.save(); c.translate(ex, ey); c.rotate(th * DEG); c.shadowColor = 'rgba(42,10,28,0.16)'; c.shadowBlur = 40 * SCALE; c.shadowOffsetY = 18 * SCALE;
       c.beginPath(); c.moveTo(-200, -70); c.lineTo(200, -70); c.lineTo(320, 50); c.lineTo(320, 1030); c.quadraticCurveTo(320, 1060, 290, 1060); c.lineTo(-290, 1060); c.quadraticCurveTo(-320, 1060, -320, 1030); c.lineTo(-320, 50); c.closePath(); c.fillStyle = CREAM; c.fill();
@@ -225,12 +228,25 @@ const SHOTS = [
       const border = [[-190, -50], [190, -50], [300, 60], [300, 1040], [-300, 1040], [-300, 60], [-190, -50]]; c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]);
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
-      const Lg = IMG.logo, la = prog(lt, TRD.end, TRD.end + 0.35); if (Lg && lt >= TRD.end) { const lw = 460, lh = lw * Lg.height / Lg.width; c.save(); c.globalAlpha = la; c.drawImage(Lg, -lw / 2, 300 - lh / 2, lw, lh); c.restore(); if (la < 1) { const S2 = IMG['logo-script'], sw = 392, shh = sw * S2.height / S2.width; c.drawImage(S2, -sw / 2, 286 - shh / 2, sw, shh); } }
+      const Lg = IMG.logo, la = inOutSine(prog(lt, TRD.end, TRD.end + 0.6)); if (Lg && lt >= TRD.end) { const lw = 460, lh = lw * Lg.height / Lg.width; c.save(); c.globalAlpha = la; c.drawImage(Lg, -lw / 2, 300 - lh / 2, lw, lh); c.restore(); if (la < 1) { const S2 = IMG['logo-script'], sw = 392, shh = sw * S2.height / S2.width; c.drawImage(S2, -sw / 2, 286 - shh / 2, sw, shh); } }
       tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 52, PLUM, 0.09, 'Head', 600); tagWords(c, 'Made to you.', lt, 2.0, 724, 52, MAG, 0.09, 'Head', 400); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 28, 'rgba(42,10,28,0.78)', 0.05, 'Ui', 500);
       c.restore();
-      words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 42, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1 }); } },
+      } ,
+    out: { kind: 'rise' } },
+  { key: 'outro', bg: BLUSH, cam: lt => ({ z: 1 + 0.006 * lt, f: [540, 960] }),
+    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+      // the last thing she needs you to know: her ordering policies (placeholder lines until her own policy text arrives)
+      const S2 = IMG['logo-script'], lw = 300, lh = lw * S2.height / S2.width; c.drawImage(S2, 540 - lw / 2, 330 - lh / 2, lw, lh);
+      words(c, 'Before you order', lt, 0.25, { y: 560, size: 76 });
+      POLICIES.forEach((ln, i) => { const y = 700 + i * 118, a = outCubic(prog(lt, 0.7 + i * 0.32, 1.3 + i * 0.32)); if (a <= 0) return;
+        frameSpace(c); c.save(); c.globalAlpha = a; c.translate(0, (1 - a) * 18); c.fillStyle = MAG; c.beginPath(); c.arc(214, y - 12, 7, 0, TAU); c.fill();
+        c.strokeStyle = 'rgba(203,8,112,0.35)'; c.lineWidth = 2; c.setLineDash([8, 7]); if (i < POLICIES.length - 1) { c.beginPath(); c.moveTo(214, y + 8); c.lineTo(214, y + 86); c.stroke(); } c.setLineDash([]);
+        c.font = '500 38px Ui, sans-serif'; c.letterSpacing = '0.4px'; c.fillStyle = PLUM; c.textAlign = 'left'; c.fillText(ln, 252, y); c.restore(); });
+      words(c, 'DM @sm.threads_ to order', lt, 0.9 + POLICIES.length * 0.32, { y: 1500, size: 46, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1, col: MAG }); } },
 ];
 const mapText = (c, lt) => { words(c, 'Wherever you are,', lt, 0.25, { y: 250, out: 2.3 }); words(c, 'we\u2019ll get it to you.', lt, 0.7, { y: 330, size: 56, weight: 400, track: -0.01, out: 2.35 }); };
+const POLICIES = ['50% deposit to book your order', 'Ready in 7 to 14 days', 'Custom fit, XS to XXL', 'Pick up in Arouca', 'Islandwide delivery, small fee'];
+function tagPose(lt) { const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3); return { th, ey: lerp(-900, 300, drop) }; }
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
   c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * (face === 'Ui' ? 0.02 : -0.01)) + 'px';
   const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = -tot / 2;
@@ -293,10 +309,20 @@ function render(t) {
     const A = framed(FA, drawShot(cur, lt), cc), B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(p), sp = Math.sin(Math.PI * p), n = 8, off = -e * W;
     for (let i = 0; i < n; i++) { const o = (i / (n - 1) - 0.5) * sp * 240, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, (off + o) * SCALE, 0); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, (off + W + o) * SCALE, 0); ctx.drawImage(B, 0, 0); ctx.restore(); }
     return; }
+  if (kind === 'rise') {   // the camera rises past the tag on its ribbon, the policies come up from below on the same blush wall
+    const A = framed(FA, drawShot(cur, lt), cc), B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(p), sp = Math.sin(Math.PI * e);
+    for (let i = 0; i < 6; i++) { const o = (i / 5 - 0.5) * sp * 90, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, (-e * H + o) * SCALE); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, ((1 - e) * H + o) * SCALE); ctx.drawImage(B, 0, 0); ctx.restore(); }
+    return; }
+  if (kind === 'match') {   // match cut on a shared shape: push into it until it fills the frame, cut on the darkest frame, pull back out of its twin
+    const o = SHOTS[cur].out, e = p < 0.5 ? inCubic(p * 2) : 1 - outCubic(1 - (p - 0.5) * 2), first = p < 0.5;
+    const src = first ? framed(FA, drawShot(cur, lt), cc) : framed(FB, drawShot(nx, ln), nc), [px, py] = first ? (typeof o.a === 'function' ? o.a() : o.a) : o.b, zf = first ? lerp(1, o.za, e) : lerp(o.zb, 1, 1 - (1 - e));
+    const z = first ? lerp(1, o.za, inCubic(p * 2)) : lerp(o.zb, 1, outCubic((p - 0.5) * 2)), n = 7, spd = Math.sin(Math.PI * p) * 0.12;
+    for (let i = 0; i < n; i++) { const zz = z * (1 + (i / (n - 1) - 0.5) * spd), al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.translate(px * SCALE, py * SCALE); ctx.scale(zz, zz); ctx.translate(-px * SCALE, -py * SCALE); ctx.drawImage(src, 0, 0); ctx.restore(); }
+    return; }
   if (kind === 'logo') {   // her tanned logo lifts off the skin and turns magenta as it rises; the photo drops away and the tag comes down to catch it
     LIFT = prog(p, 0, 0.25); const A = framed(FA, drawShot(cur, lt), cc); LIFT = 0; const B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(prog(p, 0.1, 1)), sp = Math.sin(Math.PI * e);
     for (let i = 0; i < 6; i++) { const o = (i / 5 - 0.5) * sp * 120, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, (e * H + o) * SCALE); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, (-(1 - e) * H + o) * SCALE); ctx.drawImage(B, 0, 0); ctx.restore(); }
-    const [mx, my] = toScreen(cc, 623, 991), drop = outQuint(prog(ln, 0, 1.5)), ey = lerp(-900, 300, drop) - (1 - e) * H, th = 0.7 * Math.sin(ln * 1.3) * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
+    const TP = tagPose(ln), [mx, my] = toScreen(cc, 623, 991), ey = TP.ey - (1 - e) * H, th = TP.th * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
     const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 412 * cc.z, ww = lerp(w0, 392, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
     ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.translate(x, y); ctx.rotate(rot); ctx.shadowColor = `rgba(42,10,28,${0.25 * Math.sin(Math.PI * k)})`; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18;
     ctx.globalAlpha = 1 - k; ctx.drawImage(TANLOGO, -ww / 2, -hh / 2, ww, hh); ctx.globalAlpha = k; ctx.drawImage(S2, -ww / 2, -hh / 2, ww, hh); ctx.restore(); return; }

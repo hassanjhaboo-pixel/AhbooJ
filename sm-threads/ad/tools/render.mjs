@@ -50,7 +50,7 @@ const done = code => { try { ws.close(); } catch {} chrome.kill(); server.close(
 
 try {
   const sc = mode === 'stills' ? 1 : SCALE;
-  await send('Page.navigate', { url: `${HTTP}/${rel}?t=0&scale=${sc}` });
+  await send("Page.navigate", { url: `${HTTP}/${rel}?t=0&scale=${sc}${process.env.QS ? "&" + process.env.QS : ""}` });
   for (let i = 0; i < 80; i++) { await wait(400); if (await ev('typeof window.renderAt === "function" && typeof window.ready !== "undefined"')) break; }
   await ev('Promise.resolve(window.ready).then(() => true)');
   if (mode === 'events') { const evs = await ev('JSON.stringify(window.EVENTS || [])'); writeFileSync(out, evs); console.log(`${JSON.parse(evs).length} events -> ${out}`); done(0); }
