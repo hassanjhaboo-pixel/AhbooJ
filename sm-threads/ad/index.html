@@ -237,12 +237,15 @@ const SHOTS = [
     draw(c, lt) { brandBg(c, lt + (this.key === 'outro' ? 6 : 0));
       // the last thing she needs you to know: her ordering policies (placeholder lines until her own policy text arrives)
       const Lg = IMG.logo, lw = 330, lh = lw * Lg.height / Lg.width; c.save(); c.shadowColor = 'rgba(42,10,28,0.12)'; c.shadowBlur = 24; c.shadowOffsetY = 8; c.drawImage(Lg, 540 - lw / 2, 330 - lh / 2, lw, lh); c.restore();
-      words(c, 'Before you order', lt, 0.25, { y: 560, size: 76 });
-      POLICIES.forEach((ln, i) => { const y = 700 + i * 118, a = outCubic(prog(lt, 0.5 + i * 0.22, 1.0 + i * 0.22)); if (a <= 0) return;
-        frameSpace(c); c.save(); c.globalAlpha = a; c.translate(0, (1 - a) * 18); c.fillStyle = MAG; c.beginPath(); c.arc(214, y - 12, 7, 0, TAU); c.fill();
-        c.strokeStyle = 'rgba(203,8,112,0.35)'; c.lineWidth = 2; c.setLineDash([8, 7]); if (i < POLICIES.length - 1) { c.beginPath(); c.moveTo(214, y + 8); c.lineTo(214, y + 86); c.stroke(); } c.setLineDash([]);
-        c.font = '500 38px Ui, sans-serif'; c.letterSpacing = '0.4px'; c.fillStyle = PLUM; c.textAlign = 'left'; c.fillText(ln, 252, y); c.restore(); });
-      words(c, 'Bank transfer, bank deposit or cash on collection.', lt, 0.6 + POLICIES.length * 0.22, { y: 1340, size: 28, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.7)' });
+      words(c, 'Before you order', lt, 0.2, { y: 560, size: 80 });
+      // each policy is a big soft-serif keyword in magenta with the detail beside it, rows divided by a stitched seam
+      POLICIES.forEach(([big, l1, l2], i) => { const y = 690 + i * 132, a = outCubic(prog(lt, 0.45 + i * 0.22, 1.05 + i * 0.22)); if (a <= 0) return;
+        frameSpace(c); c.save(); c.globalAlpha = a; c.filter = `blur(${(1 - a) * 8 * SCALE}px)`; c.translate(0, (1 - a) * 16);
+        c.textAlign = 'right'; c.font = '600 64px Head, sans-serif'; c.letterSpacing = '-1.2px'; c.fillStyle = MAG; c.fillText(big, 470, y + 22);
+        c.textAlign = 'left'; c.font = '500 31px Ui, sans-serif'; c.letterSpacing = '0.3px'; c.fillStyle = PLUM; c.fillText(l1, 500, y - 4); c.fillStyle = 'rgba(42,10,28,0.66)'; c.fillText(l2, 500, y + 34);
+        c.filter = 'none'; if (i < POLICIES.length - 1) { const sp = inOutSine(prog(lt, 0.7 + i * 0.22, 1.3 + i * 0.22)); c.strokeStyle = 'rgba(203,8,112,0.32)'; c.lineWidth = 2.5; c.setLineDash([12, 9]); c.beginPath(); c.moveTo(150, y + 68); c.lineTo(150 + 780 * sp, y + 68); c.stroke(); }
+        c.restore(); });
+      words(c, 'Bank transfer, bank deposit or cash on collection.', lt, 0.6 + POLICIES.length * 0.22, { y: 1395, size: 28, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.7)' });
       words(c, 'DM @sm.threads_ to order', lt, 0.75 + POLICIES.length * 0.22, { y: 1500, size: 46, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1, col: MAG });
       words(c, 'Replies within 24 hours, Monday to Friday.', lt, 1.0 + POLICIES.length * 0.22, { y: 1565, size: 26, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.6)' }); } },
 ];
@@ -251,7 +254,7 @@ function brandBg(c, t) { frameSpace(c); c.fillStyle = BLUSH; c.fillRect(0, 0, W,
   const sc = 0.62, dx = (t * 9) % (IMG.pattern.width * sc), dy = (t * 5) % (IMG.pattern.height * sc); c.save(); c.globalAlpha = 0.6; c.translate(-dx, -dy); c.scale(sc, sc); c.fillStyle = PAT; c.fillRect(0, 0, (W + 400) / sc, (H + 400) / sc); c.restore(); }
 let PAT = null;
 const SCRIPT_W = 426.3, SCRIPT_Y = 284.4;   // the script inside the clean logo, when the logo is 460 wide on the tag
-const POLICIES = ['50% non-refundable deposit to book', 'Ready in 7 to 14 days', 'XS to XXL, or made to your measurements', 'Collect within 14 days of completion', 'Delivery available at an extra cost'];
+const POLICIES = [['50%', 'non-refundable deposit', 'to book your order'], ['7–14', 'days to make,', 'rush orders available'], ['XS–XXL', 'or made to', 'your measurements'], ['14 days', 'to collect once', 'your order is ready'], ['Delivery', 'islandwide,', 'at an extra cost']];
 function tagPose(lt) { const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3); return { th, ey: lerp(-900, 300, drop) }; }
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
   c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * (face === 'Ui' ? 0.02 : -0.01)) + 'px';
