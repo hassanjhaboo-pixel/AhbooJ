@@ -87,41 +87,47 @@ const PLANE = (c, x, y, ang, ps) => { c.save(); c.translate(x, y); c.rotate(ang 
   c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); };
 const CAR = (c, x, y, ang, sz) => { c.save(); c.translate(x, y); c.rotate(ang); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 5; c.shadowOffsetY = 2; c.fillStyle = PLUM; c.beginPath(); c.roundRect(-sz, -sz * 0.5, sz * 2, sz, sz * 0.32); c.fill(); c.shadowColor = 'transparent';
   c.fillStyle = 'rgba(255,240,245,0.85)'; c.beginPath(); c.roundRect(sz * 0.25, -sz * 0.36, sz * 0.42, sz * 0.72, sz * 0.12); c.fill(); c.restore(); };
-const TOWNS_ORDER = ['Arima', 'Port of Spain', 'Chaguanas', 'Sangre Grande', 'Diego Martin', 'Couva', 'San Fernando', 'Toco', 'Princes Town', 'Rio Claro', 'Mayaro', 'Point Fortin', 'Siparia'];
+const TOWNS_ORDER = ['Tunapuna', 'Port of Spain', 'Chaguanas', 'Sangre Grande', 'Couva', 'Toco', 'San Fernando', 'Mayaro'];
+const TOWN_SIDE = { 'Tunapuna': [0, -1], 'Port of Spain': [-1, 0], 'Chaguanas': [1, 0], 'Sangre Grande': [0, -1], 'Couva': [1, 0], 'Toco': [-1, 0], 'San Fernando': [1, 0], 'Mayaro': [-1, 0], 'Scarborough': [1, 0] };
+function townLabel(c, name, x, y, s0, a) { if (a <= 0) return; const [sx, sy] = TOWN_SIDE[name] || [1, 0], fs = Math.round(s0 * 0.027), e = outCubic(a);
+  c.save(); c.globalAlpha = e; c.font = `700 ${fs}px Ui, sans-serif`; c.letterSpacing = '0.3px'; c.fillStyle = PLUM; c.textBaseline = 'middle';
+  c.textAlign = sx < 0 ? 'right' : sx > 0 ? 'left' : 'center'; const lx = x + sx * s0 * 0.022 + (1 - e) * sx * 8, ly = y + sy * s0 * 0.03 + (sx === 0 ? -(1 - e) * 6 : 0);
+  c.lineJoin = 'round'; c.strokeStyle = WALL; c.lineWidth = fs * 0.42; c.strokeText(name, lx, ly); c.fillText(name, lx, ly); c.restore(); }
 function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries leaving her studio in Arouca for the whole country
   const c = MAPC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h);
   const [ax, ay] = DATA.tt.aspect, port = h > w, TW = DATA.tt.towns;
   const s0 = Math.min(w * 0.86 / ax, h * (port ? 0.52 : 0.76) / ay);
-  const push = inOutSine(prog(T, SHOT.map - 0.2, SHOT.pegs + TRD.pegs)), Z = 1 + push * 1.25 + inCubic(prog(T, SHOT.pegs - 1.2, SHOT.pegs + TRD.pegs)) * 0.9;   // one continuous push in, as the deliveries spread
-  const fx = lerp(ax / 2, AROUCA[0], push), fy = lerp(ay / 2, AROUCA[1], push), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.54 : 0.5);
+  const push = inOutSine(prog(T, SHOT.map - 0.2, SHOT.pegs - 1.0)), dive = inCubic(prog(T, SHOT.pegs - 1.0, SHOT.pegs + TRD.pegs)), Z = 1 + push * 0.3 + dive * 2.4;   // all the deliveries stay in frame, then the dive into her studio
+  const fx = lerp(ax * 0.52, AROUCA[0], dive), fy = lerp(ay * 0.5, AROUCA[1], dive), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.54 : 0.5);
   const M = ([u, v]) => [cxp + (u - fx) * s, cyp + (v - fy) * s];
   c.fillStyle = '#F7E4E8'; c.fillRect(0, 0, w, h);
   c.save(); c.strokeStyle = 'rgba(203,8,112,0.07)'; c.lineWidth = 1.5; for (let g = -2; g <= 3; g += 0.25) { const [x0, y0] = M([g, -2]), [x1, y1] = M([g, 3]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); const [a0, b0] = M([-2, g]), [a1, b1] = M([3, g]); c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.stroke(); } c.restore();
   DATA.tt.islands.forEach(isl => { const pts = isl.pts.map(M); c.save(); c.shadowColor = 'rgba(160,60,90,0.18)'; c.shadowBlur = 18; c.shadowOffsetY = 6; pathPts(c, pts); c.fillStyle = WALL; c.fill(); c.restore();
     pathPts(c, pts); c.lineWidth = Math.max(2, Math.min(4, 2.2 * Math.sqrt(Z))); c.strokeStyle = MAG; c.lineJoin = 'round'; c.stroke(); });
-  const la = outCubic(prog(T, 1.2, 2.0)); if (la > 0) { c.save(); c.globalAlpha = la * 0.75; c.fillStyle = PLUM; c.font = `500 ${Math.round(s0 * 0.036)}px Ui, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
-    const [tx, ty] = M([0.45, 0.62]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.165]); c.fillText('TOBAGO', bx, by); c.restore(); }
+  const la = outCubic(prog(T, 1.2, 2.0)); if (la > 0) { c.save(); c.globalAlpha = la * 0.5; c.fillStyle = PLUM; c.font = `600 ${Math.round(s0 * 0.052)}px Head, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.003}px`;
+    const [tx, ty] = M([0.42, 0.74]); c.fillText('Trinidad', tx, ty); const [bx, by] = M([0.87, 0.165]); c.fillText('Tobago', bx, by); c.restore(); }
   const A = M(AROUCA), lw = Math.max(2.5, s0 * 0.0055);
   // deliveries: a route draws out of Arouca to each town, a little car rides its tip, the town pin pops when it arrives
   TOWNS_ORDER.forEach((name, i) => { const t0 = SHOT.map + 0.15 + i * BT * 0.42, k = inOutSine(prog(T, t0, t0 + 1.4)); if (k <= 0) return;
-    const B = TW[name], mx = (AROUCA[0] + B[0]) / 2, my = (AROUCA[1] + B[1]) / 2, dx = B[0] - AROUCA[0], dy = B[1] - AROUCA[1], bend = (i % 2 ? 1 : -1) * 0.22;
+    const B = TW[name], mx = (AROUCA[0] + B[0]) / 2, my = (AROUCA[1] + B[1]) / 2, dx = B[0] - AROUCA[0], dy = B[1] - AROUCA[1], bend = (i % 2 ? 1 : -1) * 0.12;
     const pts = bez(AROUCA, [mx - dy * bend, my + dx * bend], [mx - dy * bend * 0.6, my + dx * bend * 0.6], B, 50).map(M), n = Math.max(1, Math.floor(k * (pts.length - 1)));
     c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...pts[j]) : c.moveTo(...pts[j]); c.stroke(); c.restore();
     if (k < 1) { const j = Math.min(pts.length - 2, n); CAR(c, pts[j][0], pts[j][1], Math.atan2(pts[j + 1][1] - pts[j][1], pts[j + 1][0] - pts[j][0]), s0 * 0.013); }
     const arr = prog(T, t0 + 1.4, t0 + 1.8); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
-      c.beginPath(); c.arc(px, py, s0 * 0.0095 * pop, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004 * pop, 0, TAU); c.fillStyle = CREAM; c.fill(); } });
+      c.beginPath(); c.arc(px, py, s0 * 0.0095 * pop, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004 * pop, 0, TAU); c.fillStyle = CREAM; c.fill(); townLabel(c, name, px, py, s0, arr); } });
   // and a plane over to Tobago
   const pr = inOutSine(prog(T, SHOT.map + 0.5, SHOT.map + 3.4)); if (pr > 0) { const B = TW['Scarborough'], route = bez(PIARCO, [PIARCO[0] + 0.1, PIARCO[1] - 0.28], [B[0] - 0.2, B[1] - 0.1], B, 90).map(M), n = Math.max(1, Math.floor(pr * (route.length - 1)));
     c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.setLineDash([lw * 3, lw * 2.4]); c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...route[j]) : c.moveTo(...route[j]); c.stroke(); c.restore();
     if (pr < 1) { const j = Math.min(route.length - 2, n); PLANE(c, route[j][0], route[j][1], Math.atan2(route[j + 1][1] - route[j][1], route[j + 1][0] - route[j][0]), s0 * 0.04); }
-    else { const [px, py] = M(B); c.beginPath(); c.arc(px, py, s0 * 0.0095, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004, 0, TAU); c.fillStyle = CREAM; c.fill(); } }
+    else { const [px, py] = M(B); c.beginPath(); c.arc(px, py, s0 * 0.0095, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004, 0, TAU); c.fillStyle = CREAM; c.fill(); townLabel(c, 'Scarborough', px, py, s0, prog(T, SHOT.map + 3.4, SHOT.map + 3.8)); } }
   // her studio: the bigger pin everything leaves from
   const ar = outCubic(prog(T, 0.9, 1.5)); if (ar > 0) { c.save(); c.globalAlpha = ar; const pr2 = s0 * 0.017 * (1 + 0.12 * kick(T));
     for (let k = 0; k < 2; k++) { const ph = (T * 0.7 + k * 0.5) % 1; c.beginPath(); c.arc(A[0], A[1], pr2 + ph * s0 * 0.05, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.45 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
     c.beginPath(); c.arc(A[0], A[1], pr2, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(A[0], A[1], pr2 * 0.42, 0, TAU); c.fillStyle = CREAM; c.fill();
-    c.font = `500 ${Math.round(s0 * 0.032)}px Ui, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', A[0] - s0 * 0.035, A[1] - s0 * 0.028); c.restore(); MAPPIN = A; MAPPIN_R = pr2; }
-  const hb = 1 - prog(T, SHOT.map + 2.2, SHOT.map + 2.8); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.032); c.font = `500 ${fs}px Ui, sans-serif`; c.fillStyle = PLUM;
-    c.textAlign = 'left'; c.fillText('Delivering islandwide', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('SM Threads', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
+    c.textAlign = 'center'; c.lineJoin = 'round'; c.strokeStyle = WALL; c.font = `600 ${Math.round(s0 * 0.036)}px Head, sans-serif`; c.lineWidth = s0 * 0.014; c.strokeText('SM Threads', A[0] + s0 * 0.01, A[1] + s0 * 0.062); c.fillStyle = MAG; c.fillText('SM Threads', A[0] + s0 * 0.01, A[1] + s0 * 0.062);
+    c.font = `500 ${Math.round(s0 * 0.023)}px Ui, sans-serif`; c.lineWidth = s0 * 0.01; c.strokeText('Arouca studio', A[0] + s0 * 0.01, A[1] + s0 * 0.09); c.fillStyle = PLUM; c.fillText('Arouca studio', A[0] + s0 * 0.01, A[1] + s0 * 0.09); c.restore(); MAPPIN = A; MAPPIN_R = pr2; }
+  const hb = 1 - prog(T, SHOT.map + 2.2, SHOT.map + 2.8); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.032); const fy2 = h * (port ? 0.925 : 0.915); c.font = `600 ${Math.round(fs * 1.5)}px Head, sans-serif`; c.letterSpacing = `${-fs * 0.02}px`; c.textAlign = 'left'; c.fillStyle = PLUM; c.fillText('Delivering', w * 0.06, fy2); const dw = c.measureText('Delivering ').width; c.fillStyle = MAG; c.fillText('islandwide', w * 0.06 + dw, fy2);
+    c.font = `500 ${fs}px Ui, sans-serif`; c.letterSpacing = '0px'; c.fillStyle = 'rgba(42,10,28,0.65)'; c.textAlign = 'right'; c.fillText('Trinidad & Tobago', w * 0.94, fy2); c.restore(); }
 }
 
 // ---------------- cabin screens ----------------
@@ -201,9 +207,9 @@ const SHOTS = [
         const ey = lerp(lerp(1780, REACH[i], up), 2700, back) * K + OY; seaEdge(c, x => ey + Math.sin(x * 0.012 + lt * 2.1) * 18 + Math.sin(x * 0.031 + lt * 1.3) * 8, 1 - back); });
     },
     out: { kind: 'swell' } },
-  { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.0 + 0.008 * lt, f: [540, 960] }),
+  { key: 'water', bg: '#7FD3CF', cam: lt => { const k = inOutSine(lt / 4.4); return { z: lerp(1.42, 1.28, k), f: [lerp(640, 470, k), lerp(735, 1185, k)] }; },   // the frame drifts back and across, so she swims up through it
     draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
-    out: ALT ? { kind: 'match', a: [655, 815], za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
+    out: ALT ? { kind: 'match', a: () => toScreen(SHOTS.find(x => x.key === 'water').cam(SHOT.card - SHOT.water + 0.3), 655, 815), za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: CREAM, shadow: 'rgba(30,20,10,0.4)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: CREAM, shadow: 'rgba(30,20,10,0.4)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
