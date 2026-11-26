@@ -16,13 +16,13 @@
 // evening to golden afternoon, and the next line is waiting underneath. The last frame flows straight into the first.
 const SETS = [
   { pal: { name: '#F4EBDC', desc: '#E6D3B9', accent: '#D9A57A', dim: '#A98B6C', panel: '#2E1A10' }, title: 'Coquito season', sub: 'Three new iced drinks, here until the holidays.', end: 'Coquito, three ways.', cups: [
-    { img: 'coq1', name: ['Iced Coquito', 'Latte'], desc: 'Our house coquito, coconut milk spiced with cinnamon, nutmeg and vanilla, shaken cold and poured over ice with a double shot of espresso.', notes: ['House coquito', 'Espresso', 'Nutmeg'] },
-    { img: 'coq2', name: ['Coquito', 'Cold Brew'], desc: 'Cold brew steeped slowly overnight, finished with a thick layer of whipped coconut cream and toasted coconut.', notes: ['Cold brew', 'Coconut cream', 'Toasted coconut'] },
-    { img: 'coq3', name: ['Coquito', 'Frappé'], desc: 'Coquito blended with ice until thick and frosty, crowned with whipped cream and a dusting of cinnamon.', notes: ['Coquito', 'Whipped cream', 'Cinnamon'] }] },
+    { img: 'coq1_real', name: ['Iced Coquito', 'Latte'], desc: 'Our house coquito, coconut milk spiced with cinnamon, nutmeg and vanilla, shaken cold and poured over ice with a double shot of espresso.', notes: ['House coquito', 'Espresso', 'Nutmeg'] },
+    { img: 'coq2_real', name: ['Coquito Iced', 'Americano'], desc: 'Espresso and cold water over ice, with our house coquito poured in so it marbles down through the coffee.', notes: ['Cold brew', 'Coconut cream', 'Toasted coconut'] },
+    { img: 'coq3_real', name: ['Coquito', 'Frappé'], desc: 'Coquito blended with ice until thick and frosty, crowned with whipped cream and a dusting of cinnamon.', notes: ['Coquito', 'Whipped cream', 'Cinnamon'] }] },
   { pal: { name: '#F59A4A', desc: '#F5E1C6', accent: '#F2B56A', dim: '#C58A55', panel: '#3A1808' }, title: 'Pumpkin season', sub: 'Three new iced drinks, all autumn long.', end: 'Pumpkin spice, three ways.', cups: [
-    { img: 'pmk1', name: ['Iced Pumpkin', 'Spice Latte'], desc: 'Pumpkin, cinnamon and clove stirred into cold milk, with espresso poured over the top so it swirls down through the ice.', notes: ['Pumpkin spice', 'Espresso', 'Milk'] },
-    { img: 'pmk2', name: ['Pumpkin Cream', 'Cold Brew'], desc: 'Smooth cold brew over ice under a velvety pumpkin cold foam that slowly sinks into the coffee as you drink.', notes: ['Cold brew', 'Pumpkin foam', 'Spice'] },
-    { img: 'pmk3', name: ['Iced Pumpkin', 'Chai'], desc: 'Spiced chai and milk over ice with a ribbon of pumpkin at the bottom, topped with whipped cream and a cinnamon stick.', notes: ['Chai', 'Pumpkin', 'Cinnamon'] }] },
+    { img: 'pmk1_real', name: ['Iced Pumpkin', 'Spice Latte'], desc: 'Pumpkin spice and cold milk over ice, espresso poured over the top, finished with whipped cream and cinnamon.', notes: ['Pumpkin spice', 'Espresso', 'Milk'] },
+    { img: 'pmk2_real', name: ['Pumpkin Spice', 'Iced Americano'], desc: 'Espresso and cold water over ice under a velvety pumpkin spice cream that slowly drifts down into the coffee.', notes: ['Cold brew', 'Pumpkin foam', 'Spice'] },
+    { img: 'pmk3_real', name: ['Iced Pumpkin', 'Chai'], desc: 'Spiced chai and pumpkin shaken with cold milk and poured over ice, topped with whipped cream and cinnamon.', notes: ['Chai', 'Pumpkin', 'Cinnamon'] }] },
 ];
 const HALF = 28.4, LOOP = HALF * 2;
 const W = 1920, H = 1080, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1'), MB = parseInt(q.get('mb') || '1');
@@ -141,7 +141,7 @@ function frame(t) {
 function render(t) { out.setTransform(1, 0, 0, 1, 0, 0); if (MB <= 1) { frame(t); out.drawImage(work, 0, 0); return; }
   for (let i = 0; i < MB; i++) { frame(t + (i / (MB - 1) - 0.5) * 0.0167); out.globalAlpha = 1 / (i + 1); out.drawImage(work, 0, 0); } out.globalAlpha = 1; }
 const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
-const NAMES = ['counter_night.jpg', 'counter_golden.jpg', 'dome_clear.png', 'dome_frost.png', 'mist.png', 'coq1.png', 'coq2.png', 'coq3.png', 'pmk1.png', 'pmk2.png', 'pmk3.png', 'logo_rays.png', 'logo_line.png', 'logo_globe.png', 'logo_word.png', 'logo_coffee.png', 'logo_leaves.png'];
+const NAMES = ['counter_night.jpg', 'counter_golden.jpg', 'dome_clear.png', 'dome_frost.png', 'mist.png', 'coq1.png', 'coq1_real.png', 'coq2.png', 'coq2_real.png', 'coq3.png', 'coq3_real.png', 'pmk1.png', 'pmk1_real.png', 'pmk2_real.png', 'pmk3_real.png', 'pmk2.png', 'pmk3.png', 'logo_rays.png', 'logo_line.png', 'logo_globe.png', 'logo_word.png', 'logo_coffee.png', 'logo_leaves.png'];
 window.TOTAL = LOOP; window.renderAt = t => render(t);
 window.ready = Promise.all([document.fonts.load('800 80px Brico'), document.fonts.load('600 40px Brico'), document.fonts.load('400 40px Arch'), document.fonts.load('500 40px Arch'), document.fonts.load('600 40px Arch'), ...NAMES.map(n => img('hi/' + n))]).then(([, , , , , ...ims]) => {
   NAMES.forEach((n, i) => I[n.split('.')[0]] = ims[i]);
