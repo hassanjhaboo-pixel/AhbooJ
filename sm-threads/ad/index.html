@@ -20,7 +20,7 @@
 const BPM = 112, BT = 60 / BPM;   // everything sits on the soca score's beat grid
 const SHOT = { cabin: 0, map: 10 * BT, pegs: 18 * BT, sand: 30 * BT, water: 40 * BT, card: 48 * BT, tan: 56 * BT, end: 62 * BT }, END = 72 * BT + 0.6;
 let ENV = null; const kick = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.kick[f] || 0; }, energy = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.energy[f] || 0; };
-const TRD = { map: 1.2, pegs: 0.55, sand: 0.85, water: 1.4, card: 1.1, tan: 1.1, end: 0.9 };   // transition into each shot
+const TRD = { map: 1.2, pegs: 1.1, sand: 0.9, water: 1.4, card: 1.1, tan: 1.1, end: 1.4 };   // transition into each shot
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
 const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
 
@@ -81,40 +81,46 @@ function tri(c, img, s0, s1, s2, d0, d1, d2) {
 // ---------------- the in-flight map (one function for the seat screen and the full frame, driven by absolute time) ----------------
 const MAPC = mk(1080, 1920);
 let PIARCO, AROUCA, CROWN, DIVE;   // traced-map coords, set from the real lon/lat once the outline loads
-function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothing
+let MAPPIN = [540, 960], MAPPIN_R = 10;   // where the Arouca pin sits in the full-frame map (for the pin transition)
+const PLANE = (c, x, y, ang, ps) => { c.save(); c.translate(x, y); c.rotate(ang + Math.PI / 2); c.scale(ps / 20, ps / 20); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 8; c.shadowOffsetY = 4; c.fillStyle = PLUM; c.beginPath();
+  c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); };
+const CAR = (c, x, y, ang, sz) => { c.save(); c.translate(x, y); c.rotate(ang); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 5; c.shadowOffsetY = 2; c.fillStyle = PLUM; c.beginPath(); c.roundRect(-sz, -sz * 0.5, sz * 2, sz, sz * 0.32); c.fill(); c.shadowColor = 'transparent';
+  c.fillStyle = 'rgba(255,240,245,0.85)'; c.beginPath(); c.roundRect(sz * 0.25, -sz * 0.36, sz * 0.42, sz * 0.72, sz * 0.12); c.fill(); c.restore(); };
+const TOWNS_ORDER = ['Arima', 'Port of Spain', 'Chaguanas', 'Sangre Grande', 'Diego Martin', 'Couva', 'San Fernando', 'Toco', 'Princes Town', 'Rio Claro', 'Mayaro', 'Point Fortin', 'Siparia'];
+function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries leaving her studio in Arouca for the whole country
   const c = MAPC.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, h);
-  const [ax, ay] = DATA.tt.aspect, port = h > w;
-  const s0 = Math.min(w * 0.84 / ax, h * (port ? 0.5 : 0.74) / ay);
-  const dive = inExpo(prog(T, SHOT.map + 1.6, SHOT.pegs + 0.05)), Z = Math.exp(lerp(0, Math.log(150), dive));
-  const dk = Math.pow(dive, 0.2), fx = lerp(ax / 2, DIVE[0], dk), fy = lerp(ay / 2, DIVE[1], dk), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.53 : 0.5);
+  const [ax, ay] = DATA.tt.aspect, port = h > w, TW = DATA.tt.towns;
+  const s0 = Math.min(w * 0.86 / ax, h * (port ? 0.52 : 0.76) / ay);
+  const push = inOutCubic(prog(T, SHOT.map + 2.3, SHOT.pegs + TRD.pegs)), Z = 1 + push * 1.6;          // one slow push towards the studio
+  const fx = lerp(ax / 2, AROUCA[0], push), fy = lerp(ay / 2, AROUCA[1], push), s = s0 * Z, cxp = w / 2, cyp = h * (port ? 0.54 : 0.5);
   const M = ([u, v]) => [cxp + (u - fx) * s, cyp + (v - fy) * s];
   c.fillStyle = '#F7E4E8'; c.fillRect(0, 0, w, h);
-  // faint latitude / longitude grid, like a real flight map
   c.save(); c.strokeStyle = 'rgba(203,8,112,0.07)'; c.lineWidth = 1.5; for (let g = -2; g <= 3; g += 0.25) { const [x0, y0] = M([g, -2]), [x1, y1] = M([g, 3]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); const [a0, b0] = M([-2, g]), [a1, b1] = M([3, g]); c.beginPath(); c.moveTo(a0, b0); c.lineTo(a1, b1); c.stroke(); } c.restore();
-  // islands: soft drop under the land, cream fill (the wall colour of the next shot), fine magenta coast
   DATA.tt.islands.forEach(isl => { const pts = isl.pts.map(M); c.save(); c.shadowColor = 'rgba(160,60,90,0.18)'; c.shadowBlur = 18; c.shadowOffsetY = 6; pathPts(c, pts); c.fillStyle = WALL; c.fill(); c.restore();
-    pathPts(c, pts); c.lineWidth = Math.max(2, Math.min(4, 2.2 * Math.sqrt(Z))); c.strokeStyle = MAG; c.lineJoin = 'round'; c.globalAlpha = 1 - dive * 0.6; c.stroke(); c.globalAlpha = 1; });
-  // map labels
-  const la = outCubic(prog(T, 1.6, 2.4)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.3)); if (la > 0) { c.save(); c.globalAlpha = la; c.fillStyle = PLUM; c.font = `500 ${Math.round(s0 * 0.04)}px Ui, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
-    const [tx, ty] = M([0.5, 0.67]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.16]); c.fillText('TOBAGO', bx, by); c.restore(); }
-  // route: a solid magenta arc that fills in as the plane flies it
-  const route = bez(PIARCO, [PIARCO[0] + 0.06, PIARCO[1] - 0.2], [CROWN[0] - 0.16, CROWN[1] - 0.04], CROWN, 120).map(M), rp = inOutSine(prog(T, 1.2, SHOT.map + 1.5));
-  c.save(); c.globalAlpha = 1 - dive; c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.22)'; c.lineWidth = Math.max(3, s0 * 0.012); c.setLineDash([s0 * 0.02, s0 * 0.02]); c.beginPath(); route.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
-  c.setLineDash([]); c.strokeStyle = MAG; c.lineWidth = Math.max(3, s0 * 0.012); c.beginPath(); const nI = Math.max(1, Math.floor(rp * (route.length - 1))); for (let i = 0; i <= nI; i++) i ? c.lineTo(...route[i]) : c.moveTo(...route[i]); c.stroke();
-  // the plane
-  const i0 = Math.min(route.length - 2, nI), [x0, y0] = route[i0], [x1, y1] = route[i0 + 1], ang = Math.atan2(y1 - y0, x1 - x0), ps = s0 * 0.05 * (1 - 0.25 * prog(T, SHOT.map + 1.0, SHOT.map + 1.5));
-  if (rp > 0) { c.save(); c.translate(x0, y0); c.rotate(ang + Math.PI / 2); c.scale(ps / 20, ps / 20); c.shadowColor = 'rgba(42,10,28,0.25)'; c.shadowBlur = 8; c.shadowOffsetY = 4; c.fillStyle = PLUM; c.beginPath();
-    c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); }
-  // arrival pin with a soft pulse
-  // her studio, next to the airport
-  const ar = outCubic(prog(T, 1.0, 1.6)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.2)); if (ar > 0) { const [ax2, ay2] = M(AROUCA); c.save(); c.globalAlpha = ar; c.beginPath(); c.arc(ax2, ay2, s0 * 0.014, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(ax2, ay2, s0 * 0.006, 0, TAU); c.fillStyle = CREAM; c.fill();
-    c.font = `500 ${Math.round(s0 * 0.032)}px Ui, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', ax2 - s0 * 0.03, ay2 - s0 * 0.02); c.restore(); }
-  const pa = outCubic(prog(T, SHOT.map + 1.3, SHOT.map + 1.7)); if (pa > 0) { const [px, py] = M(CROWN); for (let k = 0; k < 2; k++) { const ph = ((T - SHOT.map - 1.3) * 0.8 + k * 0.5) % 1; c.beginPath(); c.arc(px, py, s0 * 0.02 + ph * s0 * 0.07, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
-    c.beginPath(); c.arc(px, py, s0 * 0.018 * pa, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.007 * pa, 0, TAU); c.fillStyle = CREAM; c.fill(); }
-  c.restore();
-  // header bar, like the airline's map page
-  const hb = 1 - prog(T, SHOT.map + 1.8, SHOT.map + 2.4); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.034); c.font = `500 ${fs}px Ui, sans-serif`; c.fillStyle = PLUM;
-    const mins = Math.max(0, Math.round(18 - 17 * prog(T, 0.9, SHOT.map + 1.5))); c.textAlign = 'left'; c.fillText(mins > 0 ? `Piarco to Tobago  ·  ${mins} min` : 'Landed  ·  Tobago', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('29°C', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
+    pathPts(c, pts); c.lineWidth = Math.max(2, Math.min(4, 2.2 * Math.sqrt(Z))); c.strokeStyle = MAG; c.lineJoin = 'round'; c.stroke(); });
+  const la = outCubic(prog(T, 1.2, 2.0)); if (la > 0) { c.save(); c.globalAlpha = la * 0.75; c.fillStyle = PLUM; c.font = `500 ${Math.round(s0 * 0.036)}px Ui, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
+    const [tx, ty] = M([0.45, 0.62]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.165]); c.fillText('TOBAGO', bx, by); c.restore(); }
+  const A = M(AROUCA), lw = Math.max(2.5, s0 * 0.0055);
+  // deliveries: a route draws out of Arouca to each town, a little car rides its tip, the town pin pops when it arrives
+  TOWNS_ORDER.forEach((name, i) => { const t0 = 1.5 + i * BT * 0.5, k = inOutSine(prog(T, t0, t0 + 1.5)); if (k <= 0) return;
+    const B = TW[name], mx = (AROUCA[0] + B[0]) / 2, my = (AROUCA[1] + B[1]) / 2, dx = B[0] - AROUCA[0], dy = B[1] - AROUCA[1], bend = (i % 2 ? 1 : -1) * 0.22;
+    const pts = bez(AROUCA, [mx - dy * bend, my + dx * bend], [mx - dy * bend * 0.6, my + dx * bend * 0.6], B, 50).map(M), n = Math.max(1, Math.floor(k * (pts.length - 1)));
+    c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...pts[j]) : c.moveTo(...pts[j]); c.stroke(); c.restore();
+    if (k < 1) { const j = Math.min(pts.length - 2, n); CAR(c, pts[j][0], pts[j][1], Math.atan2(pts[j + 1][1] - pts[j][1], pts[j + 1][0] - pts[j][0]), s0 * 0.013); }
+    const arr = prog(T, t0 + 1.5, t0 + 1.9); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
+      c.beginPath(); c.arc(px, py, s0 * 0.0095 * pop, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004 * pop, 0, TAU); c.fillStyle = CREAM; c.fill(); } });
+  // and a plane over to Tobago
+  const pr = inOutSine(prog(T, 2.6, 5.4)); if (pr > 0) { const B = TW['Scarborough'], route = bez(PIARCO, [PIARCO[0] + 0.1, PIARCO[1] - 0.28], [B[0] - 0.2, B[1] - 0.1], B, 90).map(M), n = Math.max(1, Math.floor(pr * (route.length - 1)));
+    c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.setLineDash([lw * 3, lw * 2.4]); c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...route[j]) : c.moveTo(...route[j]); c.stroke(); c.restore();
+    if (pr < 1) { const j = Math.min(route.length - 2, n); PLANE(c, route[j][0], route[j][1], Math.atan2(route[j + 1][1] - route[j][1], route[j + 1][0] - route[j][0]), s0 * 0.04); }
+    else { const [px, py] = M(B); c.beginPath(); c.arc(px, py, s0 * 0.0095, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004, 0, TAU); c.fillStyle = CREAM; c.fill(); } }
+  // her studio: the bigger pin everything leaves from
+  const ar = outCubic(prog(T, 0.9, 1.5)); if (ar > 0) { c.save(); c.globalAlpha = ar; const pr2 = s0 * 0.017 * (1 + 0.12 * kick(T));
+    for (let k = 0; k < 2; k++) { const ph = (T * 0.7 + k * 0.5) % 1; c.beginPath(); c.arc(A[0], A[1], pr2 + ph * s0 * 0.05, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.45 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
+    c.beginPath(); c.arc(A[0], A[1], pr2, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(A[0], A[1], pr2 * 0.42, 0, TAU); c.fillStyle = CREAM; c.fill();
+    c.font = `500 ${Math.round(s0 * 0.032)}px Ui, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', A[0] - s0 * 0.035, A[1] - s0 * 0.028); c.restore(); MAPPIN = A; MAPPIN_R = pr2; }
+  const hb = 1 - prog(T, SHOT.map + 2.2, SHOT.map + 2.8); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.032); c.font = `500 ${fs}px Ui, sans-serif`; c.fillStyle = PLUM;
+    c.textAlign = 'left'; c.fillText('Delivering islandwide', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('SM Threads', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
 }
 
 // ---------------- cabin screens ----------------
@@ -139,7 +145,7 @@ function screens(c, lt) {
 // ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
 const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
 const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
-const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk();
+const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(); const SWIM_N = 144; let LIFT = 0; const TANLOGO = document.createElement('canvas');
 function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
   PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
 const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
@@ -172,7 +178,7 @@ const SHOTS = [
     out: { kind: 'screen' } },
   { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
-    out: { kind: 'land' } },
+    out: { kind: 'pin' } },
   { key: 'pegs', bg: WALL, cam: lt => ({ z: 1.07 + 0.012 * lt, f: [lerp(380, 700, inOutSine(lt / 6)), 900] }),
     draw(c, lt) { plate(c, 'S3-pegs-empty');
       frameSpace(c); c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.15; c.filter = `blur(${9 * SCALE}px)`; c.fillStyle = '#5A3C22';
@@ -182,25 +188,23 @@ const SHOTS = [
       hangPiece(c, 'peg-top', lt, 2 * BT, 0.0); hangPiece(c, 'peg-bottom', lt, 4 * BT, 1.7); hangPiece(c, 'peg-skirt', lt, 6 * BT, 3.1);
     },
     out: { kind: 'tilt' } },
-  { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [430, 960] }),
-    draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
-      const inn = outCubic(prog(lt, 2 * BT, 4.5 * BT)), back = inOutSine(prog(lt, 5 * BT, 8 * BT)), edge = lerp(1180, 600, inn * (1 - back)), wetK = inOutSine(prog(lt, 2.4, 5.6));
-      const shore = y => edge + Math.sin(y * 0.012 + lt * 2.2) * 16 + Math.sin(y * 0.031 + lt * 1.3) * 7;
-      const reach = lerp(1180, 600, inn), wetA = 0.2 * (1 - wetK);
-      if (wetA > 0.002 && inn > 0) { c.save(); c.globalCompositeOperation = 'multiply'; c.filter = `blur(${30 * SCALE}px)`; c.fillStyle = `rgba(140,116,92,${wetA})`; c.beginPath(); c.moveTo(1240, -40); for (let y = -40; y <= H + 40; y += 30) c.lineTo(reach + 30 + Math.sin(y * 0.012) * 16, y); c.lineTo(1240, H + 40); c.closePath(); c.fill(); c.restore(); }
-      waterEdge(c, shore, 1);
-      [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]].forEach(([n, y], i) => { const p = inOutSine(prog(lt, (6 + i) * BT, (7.6 + i) * BT)); if (p <= 0) return;
-        c.save(); c.font = '400 60px Head, sans-serif'; c.letterSpacing = '0px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
-        c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore(); }); },
+  { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [540, 930] }),
+    draw(c, lt) { plate(c, 'S4-sand-empty'); frameSpace(c);
+      // the tide brings them in: each wave washes across the frame and leaves a different piece behind it, centred
+      const SEQ = ['sand-purple', 'sand-red', 'sand-orange', 'trio'], WAVES = [2.5 * BT, 4.5 * BT, 6.5 * BT];
+      const stage = WAVES.filter(w => lt >= w).length, cur = SEQ[stage], prev = SEQ[Math.max(0, stage - 1)];
+      const wt = stage > 0 ? WAVES[stage - 1] : -99, adv = outCubic(prog(lt, wt, wt + 0.75)), back = inOutSine(prog(lt, wt + 0.95, wt + 1.8));
+      const edgeIn = lerp(W + 220, -260, adv), edge = adv < 1 ? edgeIn : lerp(-260, W + 220, back);
+      const shore = y => edge + Math.sin(y * 0.011 + lt * 2.3) * 24 + Math.sin(y * 0.029 + lt * 1.4) * 9;
+      if (stage > 0 && adv < 1) { c.save(); c.beginPath(); c.moveTo(-400, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(-400, H + 20); c.closePath(); c.clip(); sandPiece(c, prev, lt); c.restore();
+        c.save(); c.beginPath(); c.moveTo(W + 400, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(W + 400, H + 20); c.closePath(); c.clip(); sandPiece(c, cur, lt); c.restore(); }
+      else sandPiece(c, cur, lt);
+      if (stage > 0 && back < 1) { const wet = 0.16 * (1 - back); c.save(); c.globalCompositeOperation = 'multiply'; c.fillStyle = `rgba(140,116,92,${wet})`; c.fillRect(0, 0, W, H); c.restore(); waterEdge(c, shore, 1); }
+    },
     out: { kind: 'wave' } },
-  { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.04 + 0.018 * lt, f: [lerp(560, 700, inOutSine(lt / 5)), lerp(1000, 820, inOutSine(lt / 5))] }),
-    draw(c, lt) { // the pool photo moves like water: thin bands drift side to side, and caustic light slides over it
-      frameSpace(c); const img = IMG['S7-water'], sh = 1934.7, n = 48;
-      for (let i = 0; i < n; i++) { const y0 = i / n * 2576, y1 = (i + 1) / n * 2576, dx = Math.sin(i * 0.55 + lt * 2.1) * 2.2 + Math.sin(i * 0.21 - lt * 1.3) * 1.6;
-        c.drawImage(img, 0, y0, 1438, y1 - y0 + 1, dx, OY + y0 * K, 1080, (y1 - y0) * K + 1); }
-      c.save(); c.globalCompositeOperation = 'soft-light'; c.globalAlpha = 0.35; for (let k = 0; k < 3; k++) { const g = c.createLinearGradient(0, 0, W, H); const p0 = (lt * 0.12 + k * 0.33) % 1;
-        g.addColorStop(clamp01(p0 - 0.06), 'rgba(255,255,255,0)'); g.addColorStop(p0, 'rgba(255,255,255,0.9)'); g.addColorStop(clamp01(p0 + 0.06), 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); } c.restore(); },
-    out: { kind: 'circle', c: [929, 496], r: 60, ring: true } },
+  { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.0 + 0.008 * lt, f: [540, 960] }),
+    draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
+    out: { kind: 'circle', c: [880, 410], r: 50, ring: true } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 200, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
@@ -209,12 +213,12 @@ const SHOTS = [
   { key: 'tan', bg: '#8A553C', cam: lt => ({ z: 1.0 + 0.014 * lt, f: [631, 994] }),
     draw(c, lt) { plate(c, 'S6-tan-nomark');
       // the sun writes her logo into the skin: a warm band sweeps across and the tan line is there behind it
-      const p = inOutSine(prog(lt, 0.6, 2.2)); if (p > 0) { const T2 = TANL.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'source-over'; T2.clearRect(0, 0, TANL.width, TANL.height); plateSpace(T2); T2.drawImage(IMG['S6-tan-reveal'], 0, 0, 1438, 2576);
+      const p = inOutSine(prog(lt, 0.6, 2.2)) * (1 - LIFT); if (p > 0) { const T2 = TANL.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'source-over'; T2.clearRect(0, 0, TANL.width, TANL.height); plateSpace(T2); T2.drawImage(IMG['S6-tan-reveal'], 0, 0, 1438, 2576);
         T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'destination-in'; const x = lerp(-200, 1300, p) * SCALE, g = T2.createLinearGradient(x - 220 * SCALE, 0, x, 0); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); T2.fillStyle = g; T2.fillRect(0, 0, TANL.width, TANL.height);
         c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(TANL, 0, 0); c.restore();
         const band = Math.sin(Math.PI * p); if (band > 0.01) { frameSpace(c); c.save(); c.globalCompositeOperation = 'soft-light'; const bx = lerp(-200, 1300, p), gg = c.createLinearGradient(bx - 260, 0, bx + 80, 0); gg.addColorStop(0, 'rgba(255,214,150,0)'); gg.addColorStop(0.75, `rgba(255,214,150,${0.75 * band})`); gg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore(); } }
       words(c, 'Leave with proof.', lt, 2.0, { y: 1190, col: CREAM, shadow: 'rgba(30,12,4,0.45)' }); },
-    out: { kind: 'circle', c: [631, 994], r: 150 } },
+    out: { kind: 'logo' } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
       const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3), ex = 540, ey = lerp(-900, 300, drop);
@@ -225,12 +229,12 @@ const SHOTS = [
       const border = [[-190, -50], [190, -50], [300, 60], [300, 1040], [-300, 1040], [-300, 60], [-190, -50]]; c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]);
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
-      const Lg = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (Lg) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * Lg.height / Lg.width; c.drawImage(Lg, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
+      const Lg = IMG.logo, la = prog(lt, TRD.end, TRD.end + 0.35); if (Lg && lt >= TRD.end) { const lw = 460, lh = lw * Lg.height / Lg.width; c.save(); c.globalAlpha = la; c.drawImage(Lg, -lw / 2, 300 - lh / 2, lw, lh); c.restore(); if (la < 1) { const S2 = IMG['logo-script'], sw = 392, shh = sw * S2.height / S2.width; c.drawImage(S2, -sw / 2, 286 - shh / 2, sw, shh); } }
       tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 52, PLUM, 0.09, 'Head', 600); tagWords(c, 'Made to you.', lt, 2.0, 724, 52, MAG, 0.09, 'Head', 400); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 28, 'rgba(42,10,28,0.78)', 0.05, 'Ui', 500);
       c.restore();
       words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 42, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1 }); } },
 ];
-const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 246, size: 56, weight: 400, track: -0.01, out: 1.7 }); words(c, 'Tobago.', lt, 0.45, { y: 336, out: 1.75 }); };
+const mapText = (c, lt) => { words(c, 'Wherever you are,', lt, 0.25, { y: 250, out: 2.3 }); words(c, 'we\u2019ll get it to you.', lt, 0.7, { y: 330, size: 56, weight: 400, track: -0.01, out: 2.35 }); };
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
   c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * (face === 'Ui' ? 0.02 : -0.01)) + 'px';
   const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = -tot / 2;
@@ -241,6 +245,16 @@ function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', w
 const LIFT0 = 4.5 * BT, LIFT1 = SHOT.tan - SHOT.card;   // until the transition starts
 function liftState(lt) { if (lt < LIFT0) return null; const k = inOutSine(prog(lt, LIFT0, LIFT1)), e = outCubic(prog(lt, LIFT0, LIFT0 + 0.5));
   return { x: lerp(BUCKLE[0], 540, k), y: lerp(BUCKLE[1], 960, k) - e * 6, s: BUCKLE_S * (1 + 0.25 * e + 1.8 * k * k), spin: TAU * inOutCubic(prog(lt, LIFT0 + 0.2, LIFT1 - 0.1)) }; }
+// a piece lying on the sand, centred, with a soft shadow to the lower right (the cut-outs come from this same beach shot)
+const SANDP = { 'sand-purple': [615, 732], 'sand-red': [608, 582], 'sand-orange': [557, 762] };
+function sandPiece(c, k, lt) {
+  const one = (key, cx, cy, sc) => { const [w, h] = SANDP[key], dw = w * K * sc, dh = h * K * sc, img = IMG[key];
+    c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.28; c.filter = `blur(${7 * SCALE}px) brightness(0)`; c.drawImage(img, cx - dw / 2 + 14, cy - dh / 2 + 16, dw, dh); c.restore();
+    c.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh); };
+  frameSpace(c);
+  if (k === 'trio') { one('sand-purple', 250, 930, 0.62); one('sand-red', 540, 930, 0.62); one('sand-orange', 830, 930, 0.62); }
+  else one(k, 540, 930, 1.25);
+}
 // the sea's edge: translucent water + a foam line (frame space)
 function waterEdge(c, shore, side) {
   c.save(); c.beginPath(); c.moveTo(side > 0 ? 1300 : -300, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(side > 0 ? 1300 : -300, H + 20); c.closePath(); c.fillStyle = 'rgba(150,200,205,0.30)'; c.fill();
@@ -265,6 +279,18 @@ function render(t) {
     const quad = Q.map((q0, i) => [lerp(q0[0], F[i][0], e), lerp(q0[1], F[i][1], e)]), mw = Math.round(lerp(960, 1080, e)), mh = Math.round(lerp(540, 1920, e));
     drawMap(t, mw, mh); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); warp(ctx, MAPC, 0, 0, mw, mh, quad, 14); ctx.restore();
     ctx.save(); ctx.globalAlpha = prog(e, 0.8, 1); mapText(ctx, ln); ctx.restore(); return; }
+  if (kind === 'logo') {   // her tanned logo lifts off the skin, turns magenta as it rises, and lands on the tag while blush floods in
+    const e = inOutCubic(p); LIFT = prog(p, 0, 0.25); blit(ctx, drawShot(cur, lt), cc); LIFT = 0;
+    const [mx, my] = toScreen(cc, 623, 991), B = drawShot(nx, ln);
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(lerp(mx, W / 2, e), lerp(my, H / 2, e), lerp(30, Math.hypot(W, H) * 0.62, inCubic(prog(p, 0.15, 1)) * 0.5 + prog(p, 0.15, 1) * 0.5), 0, TAU); ctx.clip(); ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, W, H); blit(ctx, B, nc); ctx.restore();
+    const drop = outQuint(prog(ln, 0, 1.5)), ey = lerp(-900, 300, drop), th = 0.7 * Math.sin(ln * 1.3) * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
+    const k = inOutCubic(prog(p, 0.12, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 160, w0 = 412 * cc.z, ww = lerp(w0, 392, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.translate(x, y); ctx.rotate(rot); ctx.shadowColor = `rgba(42,10,28,${0.25 * Math.sin(Math.PI * k)})`; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18;
+    ctx.globalAlpha = 1 - k; ctx.drawImage(TANLOGO, -ww / 2, -hh / 2, ww, hh); ctx.globalAlpha = k; ctx.drawImage(S2, -ww / 2, -hh / 2, ww, hh); ctx.restore(); return; }
+  if (kind === 'pin') {   // her studio pin swells into the wall: magenta ring first, flooded with the wall colour, the rail settles in inside it
+    blit(ctx, drawShot(cur, lt), cc); const e = inOutCubic(p), [x, y] = MAPPIN, R = lerp(MAPPIN_R, Math.hypot(W, H) * 0.62, inCubic(p) * 0.6 + e * 0.4), B = drawShot(nx, ln);
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(lerp(x, W / 2, e), lerp(y, H / 2, e), R, 0, TAU); ctx.save(); ctx.clip(); ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H); if (e > 0.1) blit(ctx, B, { z: nc.z * lerp(0.93, 1, outCubic(prog(e, 0.1, 1))), f: nc.f }); ctx.restore();
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.lineWidth = lerp(8, 2, e); ctx.strokeStyle = `rgba(203,8,112,${1 - e})`; ctx.stroke(); ctx.restore(); return; }
   if (kind === 'land') {   // the dive ends inside the island; its land is the wall's colour, so the wall simply comes up
     blit(ctx, drawShot(cur, lt), cc); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = WALL; ctx.globalAlpha = clamp01(p * 3); ctx.fillRect(0, 0, W, H); ctx.restore();
     blit(ctx, drawShot(nx, ln), nc, 0, inOutSine(prog(p, 0.25, 1))); return; }
@@ -288,13 +314,13 @@ function render(t) {
 }
 START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
 for (let i = 0; i < 13; i++) ev('screen.on', BT + i * BT / 2); ev('screens.change', 6 * BT); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
-[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 2 * BT); ev('wave.out', SHOT.sand + 5 * BT); ev('wave.big', SHOT.water); ev('ripple', SHOT.card); ev('tan.sun', SHOT.tan + 0.6);
+[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); [2.5, 4.5, 6.5].forEach(b => ev('wave.in', SHOT.sand + b * BT)); ev('wave.big', SHOT.water); ev('ripple', SHOT.card); ev('tan.sun', SHOT.tan + 0.6);
 ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
-  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
+  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
-]).then(() => { const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#E9C6A4'; tg.fillRect(0, 0, S2.width, S2.height); const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>

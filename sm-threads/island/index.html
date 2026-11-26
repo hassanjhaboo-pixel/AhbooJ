@@ -288,15 +288,23 @@ function arouca(t, cam) { if (!PLACES) return; const a = outCubic(prog(t, 0.9, 1
   ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.globalAlpha = a; for (let k = 0; k < 2; k++) { const ph = (t * 0.8 + k * 0.5) % 1; ctx.beginPath(); ctx.arc(sx, sy, 10 + ph * 34, 0, TAU); ctx.strokeStyle = `rgba(203,8,112,${0.6 * (1 - ph)})`; ctx.lineWidth = 3; ctx.stroke(); }
   ctx.beginPath(); ctx.arc(sx, sy, 11, 0, TAU); ctx.fillStyle = MAG; ctx.fill(); ctx.beginPath(); ctx.arc(sx, sy, 4.5, 0, TAU); ctx.fillStyle = CREAM; ctx.fill();
   ctx.font = '500 30px Ui, sans-serif'; ctx.fillStyle = CREAM; ctx.shadowColor = 'rgba(30,20,10,0.45)'; ctx.shadowBlur = 10; ctx.textAlign = 'left'; ctx.fillText('SM Threads, Arouca', sx + 22, sy + 10); ctx.restore(); }
+// flying through a cloud: soft puffs swell in from all sides until the frame is white, then part outward onto the beach
+const PUFFS = (() => { let s = 5; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647); return Array.from({ length: 46 }, () => ({ x: r() * 1080, y: r() * 1920, r: 260 + r() * 420, a: r() * TAU, d: 0.6 + r() * 0.8 })); })();
+function cloudWipe(p) { if (p <= 0 || p >= 1) return; const cover = outCubic(prog(p, 0, 0.5)), part = inCubic(prog(p, 0.5, 1));
+  ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+  PUFFS.forEach(q => { const dx = q.x - 540, dy = q.y - 960, l = Math.hypot(dx, dy) || 1, out = part * 1500 * q.d, x = q.x + dx / l * out, y = q.y + dy / l * out, rr = q.r * cover * (1 + part * 0.4);
+    if (rr < 2) return; const g = ctx.createRadialGradient(x, y, 0, x, y, rr); g.addColorStop(0, 'rgba(255,246,241,0.95)'); g.addColorStop(0.55, 'rgba(255,240,236,0.8)'); g.addColorStop(1, 'rgba(255,240,236,0)'); ctx.fillStyle = g; ctx.fillRect(x - rr, y - rr, rr * 2, rr * 2); });
+  ctx.restore(); }
 function render(t) {
   const cam = drawScene(Math.min(t, T.end + 3));
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.drawImage(glc, 0, 0);
   if (t < T.beach) { arouca(t, cam); words(ctx, 'Island time.', t, 1.6, { y: 300, out: 4.2 });
-    const wo = inOutSine(prog(t, T.beach - 0.75, T.beach)); if (wo > 0) { ctx.save(); ctx.globalAlpha = wo; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
-  else if (t < T.end) { const wi = 1 - inOutSine(prog(t, T.beach, T.beach + 0.7)); if (wi > 0) { ctx.save(); ctx.globalAlpha = wi; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
+    cloudWipe(prog(t, T.beach - 0.55, T.beach + 0.6)); }
+  else if (t < T.end) { cloudWipe(prog(t, T.beach - 0.55, T.beach + 0.6));
     words(ctx, 'Made to you.', t - T.beach, 4.6, { y: 300, out: 9.0 }); words(ctx, 'XS to XXL. Custom fit.', t - T.beach, 5.4, { y: 368, size: 32, face: 'Ui', weight: 500, track: 0.02, out: 9.0 });
-    const hand = inOutSine(prog(t, T.end - 0.5, T.end)); if (hand > 0) { ctx.save(); ctx.globalAlpha = hand; ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
-  else { endCard(t); const fi = 1 - inOutSine(prog(t, T.end, T.end + 0.6)); if (fi > 0) { ctx.save(); ctx.globalAlpha = fi; ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
+    const hand = inOutCubic(prog(t, T.end - 0.7, T.end)); if (hand > 0) { ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(540, 980, lerp(20, 1300, hand), 0, TAU); ctx.clip(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, cv.width, cv.height); endCard(t); ctx.restore();
+      ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(540, 980, lerp(20, 1300, hand), 0, TAU); ctx.lineWidth = lerp(8, 2, hand); ctx.strokeStyle = `rgba(255,255,255,${0.8 * (1 - hand)})`; ctx.stroke(); ctx.restore(); } }
+  else { endCard(t); }
 }
 const EVENTS = [{ name: 'start', t: 0 }, { name: 'cloud', t: +(T.beach - 0.75).toFixed(3) }, { name: 'beach', t: +T.beach.toFixed(3) }, ...PIECES.map((p, i) => ({ name: 'land', t: +(T.beach + 0.9 + i * 2 * B).toFixed(3) })), { name: 'push', t: +T.push.toFixed(3) }, { name: 'end', t: +T.end.toFixed(3) }];
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
