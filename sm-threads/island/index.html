@@ -258,7 +258,7 @@ function drawTagTexture(lt) { const c = TAGC.getContext('2d'); c.setTransform(1,
   c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.fillStyle = 'rgba(0,0,0,0)'; c.save(); c.globalCompositeOperation = 'destination-out'; c.fill(); c.restore(); c.beginPath(); c.arc(0, 0, 32, 0, TAU); c.lineWidth = 9; c.strokeStyle = '#B98A3E'; c.stroke();
   c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(-190, -50); c.lineTo(190, -50); c.lineTo(300, 60); c.lineTo(300, 1040); c.lineTo(-300, 1040); c.lineTo(-300, 60); c.closePath(); c.stroke(); c.restore();
   const L = IMG.logo; if (L) { const lw = 460, lh = lw * L.height / L.width; c.drawImage(L, -lw / 2, 300 - lh / 2, lw, lh); }
-  c.textAlign = 'center'; c.fillStyle = PLUM; c.font = '400 50px Soft, sans-serif'; c.font = '400 44px Soft, sans-serif'; c.fillText('Made in Arouca, Trinidad.', 0, 650); c.font = '400 50px Soft, sans-serif'; c.fillStyle = MAG; c.fillText('Made to you.', 0, 722);
+  c.textAlign = 'center'; c.fillStyle = PLUM; c.font = '400 50px Soft, sans-serif'; c.fillText('Made in Trinidad.', 0, 650); c.fillStyle = MAG; c.fillText('Made to you.', 0, 722);
   c.fillStyle = 'rgba(42,10,28,0.72)'; c.font = '400 30px Soft, sans-serif'; c.fillText('XS to XXL.  Custom fit.  7 to 14 days.', 0, 840); }
 const BG = document.createElement('canvas'); BG.width = cv.width; BG.height = cv.height;
 function endCard(t) { const lt = t - T.end;
@@ -288,7 +288,7 @@ function arouca(t, cam) { if (!PLACES) return; const a = outCubic(prog(t, 0.9, 1
 function render(t) {
   const cam = drawScene(Math.min(t, T.end + 3));
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.drawImage(glc, 0, 0);
-  if (t < T.beach) { arouca(t, cam); words(ctx, 'Sewn in Arouca.', t, 1.6, { y: 300, size: 70, out: 4.2 });
+  if (t < T.beach) { arouca(t, cam); words(ctx, 'Island time.', t, 1.6, { y: 300, size: 70, out: 4.2 });
     const wo = inOutSine(prog(t, T.beach - 0.75, T.beach)); if (wo > 0) { ctx.save(); ctx.globalAlpha = wo; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); } }
   else if (t < T.end) { const wi = 1 - inOutSine(prog(t, T.beach, T.beach + 0.7)); if (wi > 0) { ctx.save(); ctx.globalAlpha = wi; ctx.fillStyle = '#FFF4EF'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }
     words(ctx, 'Made to you.', t - T.beach, 4.6, { y: 300, size: 72, out: 9.0 }); words(ctx, 'XS to XXL. Custom fit.', t - T.beach, 5.4, { y: 372, size: 40, out: 9.0 });

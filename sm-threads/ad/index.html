@@ -16,9 +16,9 @@
 
 // ---------------- timing (one place to re-time everything) ----------------
 const BPM = 112, BT = 60 / BPM;   // everything sits on the soca score's beat grid
-const SHOT = { cabin: 0, map: 10 * BT, pegs: 18 * BT, sand: 30 * BT, card: 40 * BT, tan: 48 * BT, end: 54 * BT }, END = 64 * BT + 0.6;
+const SHOT = { cabin: 0, map: 10 * BT, pegs: 18 * BT, sand: 30 * BT, water: 40 * BT, card: 48 * BT, tan: 56 * BT, end: 62 * BT }, END = 72 * BT + 0.6;
 let ENV = null; const kick = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.kick[f] || 0; }, energy = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.energy[f] || 0; };
-const TRD = { map: 1.2, pegs: 0.55, sand: 0.85, card: 1.4, tan: 1.1, end: 0.9 };   // transition into each shot
+const TRD = { map: 1.2, pegs: 0.55, sand: 0.85, water: 1.4, card: 1.1, tan: 1.1, end: 0.9 };   // transition into each shot
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
 const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
 
@@ -137,7 +137,7 @@ function screens(c, lt) {
 // ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
 const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
 const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
-const PUP = {}, TMP = mk(), SHD = mk();
+const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk();
 function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
   PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
 const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
@@ -178,7 +178,7 @@ const SHOTS = [
       for (let i = 0; i < 9; i++) { c.save(); c.translate(0, i * 46); c.rotate((i % 2 ? 1 : -1) * (0.9 + Math.sin(lt * 1.6 + i) * 0.06)); c.beginPath(); c.ellipse(70, 0, 80, 11, 0, 0, TAU); c.fill(); c.restore(); }
       c.fillRect(-4, -20, 8, 440); c.restore();
       hangPiece(c, 'peg-top', lt, 2 * BT, 0.0); hangPiece(c, 'peg-bottom', lt, 4 * BT, 1.7); hangPiece(c, 'peg-skirt', lt, 6 * BT, 3.1);
-      words(c, 'Sewn in Arouca.', lt, 8 * BT, { y: 1700, size: 68 }); },
+    },
     out: { kind: 'tilt' } },
   { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [430, 960] }),
     draw(c, lt) { plate(c, 'S4-sand-tops'); frameSpace(c);
@@ -191,20 +191,28 @@ const SHOTS = [
         c.save(); c.font = '400 58px Soft, sans-serif'; c.letterSpacing = '1px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
         c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore(); }); },
     out: { kind: 'wave' } },
+  { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.04 + 0.018 * lt, f: [lerp(560, 700, inOutSine(lt / 5)), lerp(1000, 820, inOutSine(lt / 5))] }),
+    draw(c, lt) { // the pool photo moves like water: thin bands drift side to side, and caustic light slides over it
+      frameSpace(c); const img = IMG['S7-water'], sh = 1934.7, n = 48;
+      for (let i = 0; i < n; i++) { const y0 = i / n * 2576, y1 = (i + 1) / n * 2576, dx = Math.sin(i * 0.55 + lt * 2.1) * 2.2 + Math.sin(i * 0.21 - lt * 1.3) * 1.6;
+        c.drawImage(img, 0, y0, 1438, y1 - y0 + 1, dx, OY + y0 * K, 1080, (y1 - y0) * K + 1); }
+      c.save(); c.globalCompositeOperation = 'soft-light'; c.globalAlpha = 0.35; for (let k = 0; k < 3; k++) { const g = c.createLinearGradient(0, 0, W, H); const p0 = (lt * 0.12 + k * 0.33) % 1;
+        g.addColorStop(clamp01(p0 - 0.06), 'rgba(255,255,255,0)'); g.addColorStop(p0, 'rgba(255,255,255,0.9)'); g.addColorStop(clamp01(p0 + 0.06), 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); } c.restore(); },
+    out: { kind: 'circle', c: [929, 496], r: 60, ring: true } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 196, size: 72, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
       const L = liftState(lt); if (L) silverHeart(c, L.x, L.y, L.s, L.spin); },
     out: { kind: 'silver' } },
-  { key: 'tan', bg: '#9C6448', cam: lt => ({ z: 1 + 0.012 * lt, f: [540, 900] }),
-    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
-      // PLACEHOLDER until S6-tan-reveal / S6-tan-strap arrive: a lighter strawberry tan mark on warm skin
-      const g = c.createRadialGradient(540, 820, 50, 540, 900, 1100); g.addColorStop(0, '#B37455'); g.addColorStop(1, '#8A553C'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-      const half = bez([540, 790], [640, 772], [672, 880], [540, 1040], 30), body = half.concat(half.slice().reverse().map(([x, y]) => [1080 - x, y]));
-      const a = outCubic(prog(lt, 0.4, 1.4)); c.save(); c.globalAlpha = a * 0.55; c.filter = `blur(${3 * SCALE}px)`; pathPts(c, body); c.fillStyle = '#E9B796'; c.fill(); c.restore();
-      c.save(); c.fillStyle = 'rgba(255,240,230,0.45)'; c.font = '400 26px Soft, sans-serif'; c.textAlign = 'center'; c.fillText('tan line photo goes here', W / 2, 330); c.restore();
-      words(c, 'Leave with proof.', lt, 1.2, { y: 1560, size: 72, col: CREAM, shadow: 'rgba(40,15,5,0.3)' }); },
-    out: { kind: 'circle', c: [540, 905], r: 150 } },
+  { key: 'tan', bg: '#8A553C', cam: lt => ({ z: 1.0 + 0.014 * lt, f: [631, 994] }),
+    draw(c, lt) { plate(c, 'S6-tan-nomark');
+      // the sun writes her logo into the skin: a warm band sweeps across and the tan line is there behind it
+      const p = inOutSine(prog(lt, 0.6, 2.2)); if (p > 0) { const T2 = TANL.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'source-over'; T2.clearRect(0, 0, TANL.width, TANL.height); plateSpace(T2); T2.drawImage(IMG['S6-tan-reveal'], 0, 0, 1438, 2576);
+        T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'destination-in'; const x = lerp(-200, 1300, p) * SCALE, g = T2.createLinearGradient(x - 220 * SCALE, 0, x, 0); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); T2.fillStyle = g; T2.fillRect(0, 0, TANL.width, TANL.height);
+        c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(TANL, 0, 0); c.restore();
+        const band = Math.sin(Math.PI * p); if (band > 0.01) { frameSpace(c); c.save(); c.globalCompositeOperation = 'soft-light'; const bx = lerp(-200, 1300, p), gg = c.createLinearGradient(bx - 260, 0, bx + 80, 0); gg.addColorStop(0, 'rgba(255,214,150,0)'); gg.addColorStop(0.75, `rgba(255,214,150,${0.75 * band})`); gg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore(); } }
+      words(c, 'Leave with proof.', lt, 2.0, { y: 1180, size: 70, col: CREAM, shadow: 'rgba(30,12,4,0.45)' }); },
+    out: { kind: 'circle', c: [631, 994], r: 150 } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
       const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3), ex = 540, ey = lerp(-900, 300, drop);
@@ -216,7 +224,7 @@ const SHOTS = [
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
       const Lg = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (Lg) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * Lg.height / Lg.width; c.drawImage(Lg, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
-      tagWords(c, 'Made in Arouca, Trinidad.', lt, 1.7, 650, 44, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
+      tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 50, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
       c.restore();
       words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 50, stagger: 0.1 }); } },
 ];
@@ -274,14 +282,15 @@ function render(t) {
   blit(ctx, drawShot(cur, lt), cc); const e = inOutCubic(p), o = SHOTS[cur].out, [x, y] = toScreen(cc, ...o.c), B = drawShot(nx, ln);
   ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(lerp(x, W / 2, e), lerp(y, H / 2, e), lerp(o.r * cc.z, Math.hypot(W, H) * 0.62, e), 0, TAU); ctx.clip(); ctx.fillStyle = SHOTS[nx].bg; ctx.fillRect(0, 0, W, H);
   if (e > 0.12) blit(ctx, B, { z: nc.z * lerp(0.93, 1, outCubic(prog(e, 0.12, 1))), f: nc.f }); ctx.restore();
+  if (o.ring) { ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); for (let k = 0; k < 3; k++) { const r = lerp(o.r * cc.z, Math.hypot(W, H) * 0.62, e) + k * 26; ctx.beginPath(); ctx.arc(lerp(x, W / 2, e), lerp(y, H / 2, e), r, 0, TAU); ctx.strokeStyle = `rgba(255,255,255,${(0.75 - k * 0.22) * (1 - e * 0.6)})`; ctx.lineWidth = 10 - k * 3; ctx.stroke(); } ctx.restore(); }
 }
 START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
 for (let i = 0; i < 13; i++) ev('screen.on', BT + i * BT / 2); ev('screens.change', 6 * BT); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
-[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 2 * BT); ev('wave.out', SHOT.sand + 5 * BT); ev('wave.big', SHOT.card);
+[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); ev('wave.in', SHOT.sand + 2 * BT); ev('wave.out', SHOT.sand + 5 * BT); ev('wave.big', SHOT.water); ev('ripple', SHOT.card); ev('tan.sun', SHOT.tan + 0.6);
 ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
-  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('mask', 'data/screen-mask.png'),
+  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
 ]).then(() => { const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);

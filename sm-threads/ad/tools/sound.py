@@ -51,6 +51,8 @@ for e in ev:
     elif n == 'map.land': pluck(a, 81, 0.1); pluck(a + 0.15, 88, 0.07)
     elif n in ('dive', 'heart.fly'): whoosh(a + 0.5, 1.4, 0.06)
     elif n == 'tilt': whoosh(a + 0.4, 0.9, 0.06)
+    elif n == 'ripple': pluck(a + 0.1, 76, 0.07); pluck(a + 0.3, 83, 0.05)
+    elif n == 'tan.sun': whoosh(a + 0.8, 1.6, 0.04); pluck(a + 1.5, 88, 0.06)
     elif n == 'wave.big': whoosh(a + 0.6, 1.8, 0.09)
     elif n == 'heart.lift': [pluck(a + i * 0.09, m, 0.06) for i, m in enumerate([84, 88, 91, 96])]
 fade = np.minimum(1, (L - t) / 2.0)[:, None] * np.minimum(1, t / 0.4)[:, None]; mix *= fade
