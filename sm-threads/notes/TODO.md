@@ -15,3 +15,6 @@
 ## Was
 - Policy page logo looks off: it is the magenta script alone, keyed out of a screenshot. Use the clean logo PNG (with its white cloud) instead.
 - Tag and policy pages: add the brand pattern behind them, very low contrast.
+
+## Brand exceptions (written down per CLAUDE.md)
+- "the standard." on the card uses a silver metallic fill. Reason: it echoes the silver heart buckle that lifts off the same frame; Hassan asked for white and silver.

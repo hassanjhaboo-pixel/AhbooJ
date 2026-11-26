@@ -46,6 +46,7 @@ const heartPts = (x, y, s, n = 120) => Array.from({ length: n + 1 }, (_, i) => {
 const pathPts = (c, pts) => { c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); };
 
 // words fade up from blurred to sharp with a small rise (frame space)
+const SILVER = (c, y, size) => { const g = c.createLinearGradient(0, y - size * 0.78, 0, y + size * 0.12); g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.42, '#E9EBEF'); g.addColorStop(0.6, '#A7ADB6'); g.addColorStop(0.78, '#EEF0F3'); g.addColorStop(1, '#C4C9D0'); return g; };
 function words(c, str, lt, t0, o = {}) {
   const { x = W / 2, y = 200, size = 84, col = PLUM, weight = 600, face = 'Head', track = -0.02, stagger = 0.09, dur = 0.75, out = null, shadow = null } = o;
   frameSpace(c); c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * track) + 'px';
@@ -53,7 +54,7 @@ function words(c, str, lt, t0, o = {}) {
   let px = x - tot / 2;
   ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + dur)), b = out == null ? 0 : inOutSine(prog(lt, out + i * stagger * 0.5, out + i * stagger * 0.5 + 0.5)), v = a * (1 - b);
     if (v > 0.003) { c.save(); c.globalAlpha = v; c.filter = `blur(${((1 - a) * 14 + b * 10) * SCALE}px)`; if (shadow) { c.shadowColor = shadow; c.shadowBlur = 18 * SCALE; c.shadowOffsetY = 3 * SCALE; }
-      c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.32 - b * size * 0.2); c.restore(); } px += wd[i] + sp; });
+      const yy = y + (1 - a) * size * 0.32 - b * size * 0.2; c.fillStyle = typeof col === 'function' ? col(c, yy, size) : col; c.fillText(w, px, yy); if (o.glow) { c.shadowColor = 'transparent'; } c.restore(); } px += wd[i] + sp; });
   c.restore();
 }
 
@@ -87,7 +88,7 @@ const PLANE = (c, x, y, ang, ps) => { c.save(); c.translate(x, y); c.rotate(ang 
   c.moveTo(0, -20); c.bezierCurveTo(2.2, -18, 2.4, -12, 2.4, -6); c.lineTo(19, 3); c.lineTo(19, 6.5); c.lineTo(2.4, 2.5); c.lineTo(2.2, 12); c.lineTo(7, 16.5); c.lineTo(7, 19); c.lineTo(0, 17); c.lineTo(-7, 19); c.lineTo(-7, 16.5); c.lineTo(-2.2, 12); c.lineTo(-2.4, 2.5); c.lineTo(-19, 6.5); c.lineTo(-19, 3); c.lineTo(-2.4, -6); c.bezierCurveTo(-2.4, -12, -2.2, -18, 0, -20); c.fill(); c.restore(); };
 const CAR = (c, x, y, ang, sz) => { c.save(); c.translate(x, y); c.rotate(ang); c.shadowColor = 'rgba(42,10,28,0.18)'; c.shadowBlur = 4; c.shadowOffsetY = 1.5; c.fillStyle = '#E04A97'; c.beginPath(); c.roundRect(-sz, -sz * 0.5, sz * 2, sz, sz * 0.32); c.fill(); c.shadowColor = 'transparent';
   c.fillStyle = 'rgba(255,240,245,0.85)'; c.beginPath(); c.roundRect(sz * 0.25, -sz * 0.36, sz * 0.42, sz * 0.72, sz * 0.12); c.fill(); c.restore(); };
-const TOWNS_ORDER = ['Tunapuna', 'Port of Spain', 'Chaguanas', 'Sangre Grande', 'Couva', 'Toco', 'San Fernando', 'Mayaro'];
+const TOWNS_ORDER = ['Tunapuna', 'Port of Spain', 'Maracas', 'Chaguanas', 'Sangre Grande', 'Couva', 'Toco', 'San Fernando', 'Mayaro', 'La Brea', 'Moruga', 'Point Fortin', 'Guayaguayare'];
 const TOWN_SIDE = { 'Tunapuna': [0, -1], 'Port of Spain': [-1, 0], 'Chaguanas': [1, 0], 'Sangre Grande': [0, -1], 'Couva': [1, 0], 'Toco': [-1, 0], 'San Fernando': [1, 0], 'Mayaro': [-1, 0], 'Scarborough': [1, 0] };
 function townLabel(c, name, x, y, s0, a) { if (a <= 0) return; const [sx, sy] = TOWN_SIDE[name] || [1, 0], fs = Math.round(s0 * 0.027), e = outCubic(a);
   c.save(); c.globalAlpha = e; c.font = `700 ${fs}px Ui, sans-serif`; c.letterSpacing = '0.3px'; c.fillStyle = PLUM; c.textBaseline = 'middle';
@@ -108,12 +109,12 @@ function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries 
     const [tx, ty] = M([0.42, 0.74]); c.fillText('Trinidad', tx, ty); const [bx, by] = M([0.87, 0.165]); c.fillText('Tobago', bx, by); c.restore(); }
   const A = M(AROUCA), lw = Math.max(2.5, s0 * 0.0055);
   // deliveries: a route draws out of Arouca to each town, a little car rides its tip, the town pin pops when it arrives
-  TOWNS_ORDER.forEach((name, i) => { const t0 = SHOT.map + 0.15 + i * BT * 0.42, k = inOutSine(prog(T, t0, t0 + 1.4)); if (k <= 0) return;
+  TOWNS_ORDER.forEach((name, i) => { const t0 = SHOT.map + 0.1 + i * BT * 0.3, k = inOutSine(prog(T, t0, t0 + 1.3)); if (k <= 0) return;
     const B = TW[name], mx = (AROUCA[0] + B[0]) / 2, my = (AROUCA[1] + B[1]) / 2, dx = B[0] - AROUCA[0], dy = B[1] - AROUCA[1], bend = (i % 2 ? 1 : -1) * 0.12;
     const pts = bez(AROUCA, [mx - dy * bend, my + dx * bend], [mx - dy * bend * 0.6, my + dx * bend * 0.6], B, 50).map(M), n = Math.max(1, Math.floor(k * (pts.length - 1)));
     c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(203,8,112,0.85)'; c.lineWidth = lw; c.beginPath(); for (let j = 0; j <= n; j++) j ? c.lineTo(...pts[j]) : c.moveTo(...pts[j]); c.stroke(); c.restore();
     if (k < 1) { const j = Math.min(pts.length - 2, n); CAR(c, pts[j][0], pts[j][1], Math.atan2(pts[j + 1][1] - pts[j][1], pts[j + 1][0] - pts[j][0]), s0 * 0.0085); }
-    const arr = prog(T, t0 + 1.4, t0 + 1.8); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
+    const arr = prog(T, t0 + 1.3, t0 + 1.7); if (arr > 0) { const [px, py] = M(B), pop = arr < 1 ? 1 + Math.sin(arr * Math.PI) * 0.5 : 1; if (arr < 1) { c.beginPath(); c.arc(px, py, s0 * (0.012 + arr * 0.04), 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - arr)})`; c.lineWidth = 2.5; c.stroke(); }
       c.beginPath(); c.arc(px, py, s0 * 0.0095 * pop, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.004 * pop, 0, TAU); c.fillStyle = CREAM; c.fill(); } });
   // and a plane over to Tobago
   const pr = inOutSine(prog(T, SHOT.map + 0.5, SHOT.map + 3.4)); if (pr > 0) { const B = TW['Scarborough'], route = bez(PIARCO, [PIARCO[0] + 0.1, PIARCO[1] - 0.28], [B[0] - 0.2, B[1] - 0.1], B, 90).map(M), n = Math.max(1, Math.floor(pr * (route.length - 1)));
@@ -125,7 +126,7 @@ function drawMap(T, w, h) {   // the seat-screen and full-frame map: deliveries 
     for (let k = 0; k < 2; k++) { const ph = (T * 0.7 + k * 0.5) % 1; c.beginPath(); c.arc(A[0], A[1], pr2 + ph * s0 * 0.05, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.45 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
     c.beginPath(); c.arc(A[0], A[1], pr2, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(A[0], A[1], pr2 * 0.42, 0, TAU); c.fillStyle = CREAM; c.fill();
     c.textAlign = 'center'; c.lineJoin = 'round'; c.strokeStyle = WALL; c.font = `600 ${Math.round(s0 * 0.036)}px Head, sans-serif`; c.lineWidth = s0 * 0.014; c.strokeText('SM Threads', A[0] + s0 * 0.01, A[1] + s0 * 0.062); c.fillStyle = MAG; c.fillText('SM Threads', A[0] + s0 * 0.01, A[1] + s0 * 0.062);
-    c.font = `500 ${Math.round(s0 * 0.023)}px Ui, sans-serif`; c.lineWidth = s0 * 0.01; c.strokeText('Arouca studio', A[0] + s0 * 0.01, A[1] + s0 * 0.09); c.fillStyle = PLUM; c.fillText('Arouca studio', A[0] + s0 * 0.01, A[1] + s0 * 0.09); c.restore(); MAPPIN = A; MAPPIN_R = pr2; }
+     c.restore(); MAPPIN = A; MAPPIN_R = pr2; }
   const hb = 1 - prog(T, SHOT.map + 2.2, SHOT.map + 2.8); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.032); const fy2 = h * (port ? 0.925 : 0.915); c.font = `600 ${Math.round(fs * 1.5)}px Head, sans-serif`; c.letterSpacing = `${-fs * 0.02}px`; c.textAlign = 'left'; c.fillStyle = PLUM; c.fillText('Delivering', w * 0.06, fy2); const dw = c.measureText('Delivering ').width; c.fillStyle = MAG; c.fillText('islandwide', w * 0.06 + dw, fy2);
     c.font = `500 ${fs}px Ui, sans-serif`; c.letterSpacing = '0px'; c.fillStyle = 'rgba(42,10,28,0.65)'; c.textAlign = 'right'; c.fillText('Trinidad & Tobago', w * 0.94, fy2); c.restore(); }
 }
@@ -154,7 +155,7 @@ function screens(c, lt) {
 // ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
 const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
 const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
-const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(); const SWIM_N = 144; let LIFT = 0; const SANDL = {}, SANDL2 = {}, PEGL = {}; const TANLOGO = document.createElement('canvas');
+const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(), TANMARK = mk(); const SWIM_N = 144; let LIFT = 0; const SANDL = {}, SANDL2 = {}, PEGL = {}; const TANLOGO = document.createElement('canvas');
 function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
   PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
 const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
@@ -183,7 +184,7 @@ function silverHeart(c, x, y, s, spin, rim = null, asp = 1, rot = 0) {
 // ---------------- shots ----------------
 const SHOTS = [
   { key: 'cabin', bg: '#1A1A1A', cam: lt => ({ z: 1 + 0.02 * lt, f: pp(716, 1752) }),
-    draw(c, lt) { plate(c, 'S1-cabin-empty'); screens(c, lt); words(c, 'Now boarding.', lt, 0.3, { y: 236 }); },
+    draw(c, lt) { plate(c, 'S1-cabin-empty'); screens(c, lt); words(c, 'Now boarding.', lt, 0.3, { y: 262, size: 112, col: MAG, shadow: 'rgba(255,255,255,0.95)' }); },
     out: { kind: 'screen' } },
   { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
@@ -211,18 +212,18 @@ const SHOTS = [
     draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
     out: ALT ? { kind: 'match', a: () => toScreen(SHOTS.find(x => x.key === 'water').cam(SHOT.card - SHOT.water + 0.3), 655, 815), za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
-    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: CREAM, shadow: 'rgba(30,20,10,0.4)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: CREAM, shadow: 'rgba(30,20,10,0.4)' });
+    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: '#FFFFFF', shadow: 'rgba(20,16,12,0.45)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: SILVER, shadow: 'rgba(20,16,12,0.5)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
       const L = liftState(lt); if (L) { c.save(); c.globalAlpha = L.a; silverHeart(c, L.x, L.y, L.s, L.spin, null, L.asp, L.rot); c.restore(); } },
     out: { kind: 'silver' } },
   { key: 'tan', bg: '#8A553C', cam: lt => ({ z: 1.0 + 0.014 * lt, f: [631, 994] }),
     draw(c, lt) { plate(c, 'S6-tan-nomark');
       // the sun writes her logo into the skin: a warm band sweeps across and the tan line is there behind it
-      const p = inOutSine(prog(lt, 0.6, 2.2)) * (1 - LIFT); if (p > 0) { const T2 = TANL.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'source-over'; T2.clearRect(0, 0, TANL.width, TANL.height); plateSpace(T2); T2.drawImage(IMG['S6-tan-reveal'], 0, 0, 1438, 2576);
+      const p = inOutSine(prog(lt, 0.6, 2.2)) * (1 - LIFT); if (p > 0) { const T2 = TANL.getContext('2d'); T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'source-over'; T2.clearRect(0, 0, TANL.width, TANL.height); T2.drawImage(TANMARK, 0, 0);
         T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'destination-in'; const x = lerp(-200, 1300, p) * SCALE, g = T2.createLinearGradient(x - 220 * SCALE, 0, x, 0); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); T2.fillStyle = g; T2.fillRect(0, 0, TANL.width, TANL.height);
         c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(TANL, 0, 0); c.restore();
         const band = Math.sin(Math.PI * p); if (band > 0.01) { frameSpace(c); c.save(); c.globalCompositeOperation = 'soft-light'; const bx = lerp(-200, 1300, p), gg = c.createLinearGradient(bx - 260, 0, bx + 80, 0); gg.addColorStop(0, 'rgba(255,214,150,0)'); gg.addColorStop(0.75, `rgba(255,214,150,${0.75 * band})`); gg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore(); } }
-      words(c, 'Leave with proof.', lt, 2.0, { x: 623, y: 1175, size: 70, col: CREAM, shadow: 'rgba(30,12,4,0.5)' }); },
+      words(c, 'Leave with proof.', lt, 2.3, { y: 1640, size: 66, col: CREAM, shadow: 'rgba(30,12,4,0.55)' }); },
     out: { kind: 'logo' } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { brandBg(c, lt + (this.key === 'outro' ? 6 : 0));
@@ -341,8 +342,8 @@ function render(t) {
   if (kind === 'logo') {   // her tanned logo lifts off the skin and turns magenta as it rises; the photo drops away and the tag comes down to catch it
     LIFT = prog(p, 0, 0.25); const A = framed(FA, drawShot(cur, lt), cc); LIFT = 0; const B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(prog(p, 0.1, 1)), sp = Math.sin(Math.PI * e);
     for (let i = 0; i < 6; i++) { const o = (i / 5 - 0.5) * sp * 120, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, (e * H + o) * SCALE); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, (-(1 - e) * H + o) * SCALE); ctx.drawImage(B, 0, 0); ctx.restore(); }
-    const TP = tagPose(ln), [mx, my] = toScreen(cc, 623, 991), ey = TP.ey - (1 - e) * H, th = TP.th * DEG, tx = 540 - SCRIPT_Y * Math.sin(th), ty = ey + SCRIPT_Y * Math.cos(th);
-    const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 412 * cc.z, ww = lerp(w0, SCRIPT_W, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
+    const TP = tagPose(ln), [mx, my] = toScreen(cc, 633.9, 968.6), ey = TP.ey - (1 - e) * H, th = TP.th * DEG, tx = 540 - SCRIPT_Y * Math.sin(th), ty = ey + SCRIPT_Y * Math.cos(th);
+    const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 372.9 * cc.z, ww = lerp(w0, SCRIPT_W, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
     ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.translate(x, y); ctx.rotate(rot); ctx.shadowColor = `rgba(42,10,28,${0.25 * Math.sin(Math.PI * k)})`; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18;
     ctx.globalAlpha = 1 - k; ctx.drawImage(TANLOGO, -ww / 2, -hh / 2, ww, hh); ctx.globalAlpha = k; ctx.drawImage(S2, -ww / 2, -hh / 2, ww, hh); ctx.restore(); return; }
   if (kind === 'pin') {   // her studio pin swells into the wall: magenta ring first, flooded with the wall colour, the rail settles in inside it
@@ -384,7 +385,10 @@ window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), load('S4-sand2-empty', '../assets/S4-sand2-empty.jpg'), load('S4-sand2-full', '../assets/S4-sand2-full.jpg'), load('S3-pegs-pink-full', '../assets/S3-pegs-pink-full.jpg'), ...['red', 'orange', 'purple'].map(k => load('s2mask-' + k, `data/sand2-mask-${k}.png`)), ...['top', 'bottom', 'skirt'].map(k => load('pgmask-' + k, `data/peg-pink-mask-${k}.png`)), ...['purple', 'red', 'orange'].map(k => load('smask-' + k, `data/sand-mask-${k}.png`)), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'), load('pattern', 'cut/pattern.jpg'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-song.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
-]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#E9C6A4'; tg.fillRect(0, 0, S2.width, S2.height); ['purple', 'red', 'orange'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand-tops'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['smask-' + k], 0, 0, 1438, 2576); SANDL[k] = L; }); ['red', 'orange', 'purple'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand2-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['s2mask-' + k], 0, 0, 1438, 2576); SANDL2[k] = L; });
-  ['top', 'bottom', 'skirt'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S3-pegs-pink-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['pgmask-' + k], 0, 0, 1438, 2576); PEGL[k] = L; }); const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#C69675'; tg.fillRect(0, 0, S2.width, S2.height); ['purple', 'red', 'orange'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand-tops'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['smask-' + k], 0, 0, 1438, 2576); SANDL[k] = L; }); ['red', 'orange', 'purple'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand2-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['s2mask-' + k], 0, 0, 1438, 2576); SANDL2[k] = L; });
+  ['top', 'bottom', 'skirt'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S3-pegs-pink-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['pgmask-' + k], 0, 0, 1438, 2576); PEGL[k] = L; }); { const g = TANMARK.getContext('2d'); plateSpace(g); g.drawImage(IMG['S6-tan-nomark'], 0, 0, 1438, 2576);   // her real logo, needle and all, tanned into the skin
+    const L = document.createElement('canvas'); L.width = S2.width; L.height = S2.height; const lg = L.getContext('2d'); lg.drawImage(S2, 0, 0); lg.globalCompositeOperation = 'source-in'; lg.fillStyle = 'rgb(112,84,64)'; lg.fillRect(0, 0, L.width, L.height);
+    g.globalCompositeOperation = 'screen'; g.filter = `blur(${0.7 * SCALE}px)`; g.drawImage(L, 595.8, 1178.5, 496.5, 242.1); g.filter = 'none'; g.globalCompositeOperation = 'source-over'; }
+  const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>
