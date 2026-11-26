@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SM Threads storyboard</title>
+<style>
+  @font-face { font-family: Brand; src: url("Outfit-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: Brand; src: url("Outfit-Bold.ttf"); font-weight: 700; }
+  * { box-sizing: border-box; } html, body { margin: 0; background: #1A0D14; color: #FBF6EE; font-family: Brand, system-ui, sans-serif; }
+  .board { width: 1920px; padding: 44px 40px 50px; }
+  h1 { margin: 0 0 8px; font-size: 44px; font-weight: 700; letter-spacing: -1px; } h1 span { color: #E9A9C4; font-weight: 400; }
+  .sub { font-size: 19px; color: #D8C6CF; margin-bottom: 14px; line-height: 1.5; max-width: 1800px; }
+  .rules { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; } .rules div { background: #2E1823; padding: 8px 14px; border-radius: 8px; font-size: 16px; color: #F3DCE6; }
+  .grid { display: grid; grid-template-columns: repeat(4, 440px); gap: 34px 26px; }
+  .card { display: flex; gap: 16px; }
+  .frame { position: relative; flex: 0 0 180px; height: 320px; border-radius: 10px; overflow: hidden; background: #111; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .num { position: absolute; left: 8px; top: 8px; width: 34px; height: 34px; border-radius: 50%; background: #CB0870; color: #fff; font-weight: 700; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .t { font-size: 14px; color: #B69AA8; } .b { font-size: 21px; font-weight: 700; margin: 2px 0 6px; }
+  .hl { font-size: 15px; color: #FFD6E6; margin-bottom: 6px; } .d { font-size: 14.5px; color: #E6D7DE; line-height: 1.42; }
+  .mv { margin-top: 7px; font-size: 14px; color: #F7D27A; line-height: 1.4; } .tr { margin-top: 7px; font-size: 14px; color: #7FE0C2; line-height: 1.4; }
+</style></head><body>
+<div class="board"><h1>SM Threads <span>· Now Boarding v5 · storyboard</span></h1>
+  <div class="sub">9:16 Reel, about 39 s on the 112 BPM soca score. One journey: board at Piarco, land in Tobago, her pieces everywhere you look, leave with the tan line, end on the tag. Pink = on-screen line, yellow = what moves, green = how this shot becomes the next.</div>
+  <div class="rules"><div>The subject sits dead centre in every shot</div><div>Something is always moving, never a held still</div><div>No cross dissolves: every change is an object or a camera move</div><div>Unhurried: 4 to 6 s per shot, 1 to 1.4 s per transition</div><div>One soft font family, words fade up from blurred</div></div>
+  <div class="grid" id="g"></div></div>
+<script>
+// [time, frame, on-screen line, title, what we see, what moves, transition into the next shot]
+const S = [
+  ['0.0 to 5.4 s', 'frames/1.jpg', '“Now boarding.”', 'Cabin', 'The plane at golden hour, the front seat screen dead centre. The seat screens switch on down the aisle, each showing one of her pieces, fitted corner to corner.', 'Screens wake on the half beat from back to front; a slow push towards the front screen, where the flight map is running.', 'The front screen opens out to fill the frame: its four corners travel to the frame corners, the map keeps playing inside it.'],
+  ['5.4 to 9.6 s', 'frames/2.jpg', '“Next stop, Tobago.”', 'Flight map', 'Her own in-flight map: the traced islands, a pin on SM Threads in Arouca beside Piarco, the route arcing to Crown Point.', 'The plane flies the last of the route and lands; the arrival pin pulses on the beat.', 'NEW: the arrival pin swells, ring first, into a circle that floods with the wall colour and grows to fill the frame; the peg rail settles in inside it (93% to 100%). No fade.'],
+  ['9.6 to 16.1 s', 'frames/3.jpg', '(no line)', 'Peg rail', 'Sunlit wall, empty teak rail centred. A palm shadow drifts across the wall.', 'The camera tracks slowly along the rail; on the beat, the top, bottom and skirt are simply there, each with its shadow, then sway in the breeze.', 'The camera tilts down off the wall onto the sand in one eased move, with motion blur only on the fast middle.'],
+  ['16.1 to 21.4 s', 'frames/4.jpg', 'Her piece names', 'Sand', 'Three tops on the sand. NEW: framed so the column of tops sits centre, then the camera eases right as the names appear.', 'A wave washes in and pulls back; each name is written into the wet sand on the beat.', 'A bigger wave rolls across the whole frame and leaves the pool behind it.'],
+  ['21.4 to 25.7 s', 'frames/5.jpg', '(no line)', 'Swimmer', 'Her black shimmer one-piece, swimming through clear water, centred.', 'The water surface ripples, light patterns slide over it, the camera glides with her direction of travel.', 'A ripple ring spreads from her hands and opens onto the next shot inside it.'],
+  ['25.7 to 30.0 s', 'frames/6.jpg', '“Sexy is the standard.”', 'Card', 'The one-piece on the white card, heart buckle dead centre.', 'A slow push towards the buckle; the line fades up word by word.', 'The heart buckle lifts off in polished silver, turns once, flies at the lens, and its face opens onto her chest.'],
+  ['30.0 to 33.2 s', 'frames/7.jpg', '“Leave with proof.”', 'Tan line', 'NEW centring: the camera holds the SM Threads tan mark dead centre on her chest.', 'A band of warm sunlight sweeps across and leaves the logo tanned into her skin.', 'NEW: the tanned logo lifts off the skin, turns magenta as it rises, and lands on the hang tag as its logo, while blush floods in behind it.'],
+  ['33.2 to 39.2 s', 'frames/8.jpg', '“DM @sm.threads_ to order”', 'Hang tag', 'The tag on its magenta ribbon, centred, over blush. Made in Trinidad. Made to you. XS to XXL, custom fit, 7 to 14 days.', 'It comes down with the logo, settles with a soft swing and keeps swaying; the stitched border sews itself on; the call to action fades up last.', 'Ends on the tag swaying, the score rings out.'],
+];
+document.getElementById('g').innerHTML = S.map(([t, img, hl, b, d, mv, tr], i) => `<div class="card"><div class="frame"><div class="num">${i + 1}</div><img src="${img}"></div>
+  <div><div class="t">${t}</div><div class="b">${b}</div><div class="hl">${hl}</div><div class="d">${d}</div><div class="mv">${mv}</div><div class="tr">→ ${tr}</div></div></div>`).join('');
+</script></body></html>
