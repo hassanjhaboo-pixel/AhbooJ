@@ -1,8 +1,10 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>SM Threads: Now Boarding</title>
 <style>
-  @font-face { font-family: Soft; src: url("fonts/Outfit-Regular.ttf"); font-weight: 400; }
-  @font-face { font-family: Soft; src: url("fonts/Outfit-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: Head; src: url("fonts/Fraunces-SuperSoft-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: Head; src: url("fonts/Fraunces-SuperSoft-SemiBold.ttf"); font-weight: 600; }
+  @font-face { font-family: Ui; src: url("fonts/PlusJakartaSans-Medium.ttf"); font-weight: 500; }
+  @font-face { font-family: Ui; src: url("fonts/PlusJakartaSans-Bold.ttf"); font-weight: 700; }
   html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center}
   canvas{height:min(100vh,calc(100vw*16/9));aspect-ratio:9/16;display:block}
 </style></head><body><canvas id="c"></canvas>
@@ -44,8 +46,8 @@ const pathPts = (c, pts) => { c.beginPath(); pts.forEach(([x, y], i) => i ? c.li
 
 // words fade up from blurred to sharp with a small rise (frame space)
 function words(c, str, lt, t0, o = {}) {
-  const { x = W / 2, y = 200, size = 64, col = PLUM, weight = 400, stagger = 0.09, dur = 0.75, out = null, shadow = null } = o;
-  frameSpace(c); c.save(); c.font = `${weight} ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+  const { x = W / 2, y = 200, size = 84, col = PLUM, weight = 600, face = 'Head', track = -0.02, stagger = 0.09, dur = 0.75, out = null, shadow = null } = o;
+  frameSpace(c); c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * track) + 'px';
   const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
   let px = x - tot / 2;
   ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + dur)), b = out == null ? 0 : inOutSine(prog(lt, out + i * stagger * 0.5, out + i * stagger * 0.5 + 0.5)), v = a * (1 - b);
@@ -93,7 +95,7 @@ function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothi
   DATA.tt.islands.forEach(isl => { const pts = isl.pts.map(M); c.save(); c.shadowColor = 'rgba(160,60,90,0.18)'; c.shadowBlur = 18; c.shadowOffsetY = 6; pathPts(c, pts); c.fillStyle = WALL; c.fill(); c.restore();
     pathPts(c, pts); c.lineWidth = Math.max(2, Math.min(4, 2.2 * Math.sqrt(Z))); c.strokeStyle = MAG; c.lineJoin = 'round'; c.globalAlpha = 1 - dive * 0.6; c.stroke(); c.globalAlpha = 1; });
   // map labels
-  const la = outCubic(prog(T, 1.6, 2.4)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.3)); if (la > 0) { c.save(); c.globalAlpha = la; c.fillStyle = PLUM; c.font = `400 ${Math.round(s0 * 0.045)}px Soft, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
+  const la = outCubic(prog(T, 1.6, 2.4)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.3)); if (la > 0) { c.save(); c.globalAlpha = la; c.fillStyle = PLUM; c.font = `500 ${Math.round(s0 * 0.04)}px Ui, sans-serif`; c.textAlign = 'center'; c.letterSpacing = `${s0 * 0.006}px`;
     const [tx, ty] = M([0.5, 0.67]); c.fillText('TRINIDAD', tx, ty); const [bx, by] = M([0.87, 0.16]); c.fillText('TOBAGO', bx, by); c.restore(); }
   // route: a solid magenta arc that fills in as the plane flies it
   const route = bez(PIARCO, [PIARCO[0] + 0.06, PIARCO[1] - 0.2], [CROWN[0] - 0.16, CROWN[1] - 0.04], CROWN, 120).map(M), rp = inOutSine(prog(T, 1.2, SHOT.map + 1.5));
@@ -106,12 +108,12 @@ function drawMap(T, w, h) {   // draws into MAPC's top-left w x h, returns nothi
   // arrival pin with a soft pulse
   // her studio, next to the airport
   const ar = outCubic(prog(T, 1.0, 1.6)) * (1 - prog(T, SHOT.map + 1.7, SHOT.map + 2.2)); if (ar > 0) { const [ax2, ay2] = M(AROUCA); c.save(); c.globalAlpha = ar; c.beginPath(); c.arc(ax2, ay2, s0 * 0.014, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(ax2, ay2, s0 * 0.006, 0, TAU); c.fillStyle = CREAM; c.fill();
-    c.font = `400 ${Math.round(s0 * 0.034)}px Soft, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', ax2 - s0 * 0.03, ay2 - s0 * 0.02); c.restore(); }
+    c.font = `500 ${Math.round(s0 * 0.032)}px Ui, sans-serif`; c.fillStyle = PLUM; c.textAlign = 'right'; c.fillText('SM Threads, Arouca', ax2 - s0 * 0.03, ay2 - s0 * 0.02); c.restore(); }
   const pa = outCubic(prog(T, SHOT.map + 1.3, SHOT.map + 1.7)); if (pa > 0) { const [px, py] = M(CROWN); for (let k = 0; k < 2; k++) { const ph = ((T - SHOT.map - 1.3) * 0.8 + k * 0.5) % 1; c.beginPath(); c.arc(px, py, s0 * 0.02 + ph * s0 * 0.07, 0, TAU); c.strokeStyle = `rgba(203,8,112,${0.5 * (1 - ph)})`; c.lineWidth = 3; c.stroke(); }
     c.beginPath(); c.arc(px, py, s0 * 0.018 * pa, 0, TAU); c.fillStyle = MAG; c.fill(); c.beginPath(); c.arc(px, py, s0 * 0.007 * pa, 0, TAU); c.fillStyle = CREAM; c.fill(); }
   c.restore();
   // header bar, like the airline's map page
-  const hb = 1 - prog(T, SHOT.map + 1.8, SHOT.map + 2.4); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.034); c.font = `400 ${fs}px Soft, sans-serif`; c.fillStyle = PLUM;
+  const hb = 1 - prog(T, SHOT.map + 1.8, SHOT.map + 2.4); if (hb > 0.01) { c.save(); c.globalAlpha = hb; const fs = Math.round(Math.min(w, h * 1.6) * 0.034); c.font = `500 ${fs}px Ui, sans-serif`; c.fillStyle = PLUM;
     const mins = Math.max(0, Math.round(18 - 17 * prog(T, 0.9, SHOT.map + 1.5))); c.textAlign = 'left'; c.fillText(mins > 0 ? `Piarco to Tobago  ·  ${mins} min` : 'Landed  ·  Tobago', w * 0.06, h * (port ? 0.93 : 0.92)); c.textAlign = 'right'; c.fillText('29°C', w * 0.94, h * (port ? 0.93 : 0.92)); c.restore(); }
 }
 
@@ -166,7 +168,7 @@ function silverHeart(c, x, y, s, spin, rim = null) {
 // ---------------- shots ----------------
 const SHOTS = [
   { key: 'cabin', bg: '#1A1A1A', cam: lt => ({ z: 1 + 0.02 * lt, f: pp(716, 1752) }),
-    draw(c, lt) { plate(c, 'S1-cabin-empty'); screens(c, lt); words(c, 'Now boarding.', lt, 0.3, { y: 236, size: 76 }); },
+    draw(c, lt) { plate(c, 'S1-cabin-empty'); screens(c, lt); words(c, 'Now boarding.', lt, 0.3, { y: 236 }); },
     out: { kind: 'screen' } },
   { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
@@ -188,7 +190,7 @@ const SHOTS = [
       if (wetA > 0.002 && inn > 0) { c.save(); c.globalCompositeOperation = 'multiply'; c.filter = `blur(${30 * SCALE}px)`; c.fillStyle = `rgba(140,116,92,${wetA})`; c.beginPath(); c.moveTo(1240, -40); for (let y = -40; y <= H + 40; y += 30) c.lineTo(reach + 30 + Math.sin(y * 0.012) * 16, y); c.lineTo(1240, H + 40); c.closePath(); c.fill(); c.restore(); }
       waterEdge(c, shore, 1);
       [['purple twist', 444], ['red viper', 907], ['orange crush', 1410]].forEach(([n, y], i) => { const p = inOutSine(prog(lt, (6 + i) * BT, (7.6 + i) * BT)); if (p <= 0) return;
-        c.save(); c.font = '400 58px Soft, sans-serif'; c.letterSpacing = '1px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
+        c.save(); c.font = '400 60px Head, sans-serif'; c.letterSpacing = '0px'; const tw = c.measureText(n).width; c.beginPath(); c.rect(600, y - 70, tw * p + 10, 100); c.clip();
         c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(n, 602, y + 3); c.globalCompositeOperation = 'multiply'; c.fillStyle = SANDINK; c.globalAlpha = 0.6; c.fillText(n, 600, y); c.restore(); }); },
     out: { kind: 'wave' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.04 + 0.018 * lt, f: [lerp(560, 700, inOutSine(lt / 5)), lerp(1000, 820, inOutSine(lt / 5))] }),
@@ -200,7 +202,7 @@ const SHOTS = [
         g.addColorStop(clamp01(p0 - 0.06), 'rgba(255,255,255,0)'); g.addColorStop(p0, 'rgba(255,255,255,0.9)'); g.addColorStop(clamp01(p0 + 0.06), 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); } c.restore(); },
     out: { kind: 'circle', c: [929, 496], r: 60, ring: true } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
-    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 196, size: 72, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
+    draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 200, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
       const L = liftState(lt); if (L) silverHeart(c, L.x, L.y, L.s, L.spin); },
     out: { kind: 'silver' } },
@@ -211,7 +213,7 @@ const SHOTS = [
         T2.setTransform(1, 0, 0, 1, 0, 0); T2.globalCompositeOperation = 'destination-in'; const x = lerp(-200, 1300, p) * SCALE, g = T2.createLinearGradient(x - 220 * SCALE, 0, x, 0); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); T2.fillStyle = g; T2.fillRect(0, 0, TANL.width, TANL.height);
         c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(TANL, 0, 0); c.restore();
         const band = Math.sin(Math.PI * p); if (band > 0.01) { frameSpace(c); c.save(); c.globalCompositeOperation = 'soft-light'; const bx = lerp(-200, 1300, p), gg = c.createLinearGradient(bx - 260, 0, bx + 80, 0); gg.addColorStop(0, 'rgba(255,214,150,0)'); gg.addColorStop(0.75, `rgba(255,214,150,${0.75 * band})`); gg.addColorStop(1, 'rgba(255,214,150,0)'); c.fillStyle = gg; c.fillRect(0, 0, W, H); c.restore(); } }
-      words(c, 'Leave with proof.', lt, 2.0, { y: 1180, size: 70, col: CREAM, shadow: 'rgba(30,12,4,0.45)' }); },
+      words(c, 'Leave with proof.', lt, 2.0, { y: 1190, col: CREAM, shadow: 'rgba(30,12,4,0.45)' }); },
     out: { kind: 'circle', c: [631, 994], r: 150 } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
@@ -224,13 +226,13 @@ const SHOTS = [
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
       const Lg = IMG.logo, la = outCubic(prog(lt, 1.2, 1.9)); if (Lg) { c.save(); c.globalAlpha = la; c.filter = `blur(${(1 - la) * 10 * SCALE}px)`; const lw = 460, lh = lw * Lg.height / Lg.width; c.drawImage(Lg, -lw / 2, 300 - lh / 2 + (1 - la) * 20, lw, lh); c.restore(); }
-      tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 50, PLUM); tagWords(c, 'Made to you.', lt, 2.0, 722, 50, MAG); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 30, 'rgba(42,10,28,0.72)', 0.05);
+      tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 52, PLUM, 0.09, 'Head', 600); tagWords(c, 'Made to you.', lt, 2.0, 724, 52, MAG, 0.09, 'Head', 400); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 28, 'rgba(42,10,28,0.78)', 0.05, 'Ui', 500);
       c.restore();
-      words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 50, stagger: 0.1 }); } },
+      words(c, 'DM @sm.threads_ to order', lt, 2.9, { y: 1600, size: 42, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1 }); } },
 ];
-const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 250, size: 50, out: 1.7 }); words(c, 'Tobago.', lt, 0.45, { y: 330, size: 76, out: 1.75 }); };
-function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09) {
-  c.save(); c.font = `400 ${size}px Soft, sans-serif`; c.letterSpacing = (-size * 0.01) + 'px';
+const mapText = (c, lt) => { words(c, 'Next stop,', lt, 0.25, { y: 246, size: 56, weight: 400, track: -0.01, out: 1.7 }); words(c, 'Tobago.', lt, 0.45, { y: 336, out: 1.75 }); };
+function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
+  c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * (face === 'Ui' ? 0.02 : -0.01)) + 'px';
   const ws = str.split(' '), sp = c.measureText(' ').width, wd = ws.map(w => c.measureText(w).width), tot = wd.reduce((a, b) => a + b, 0) + sp * (ws.length - 1); let px = -tot / 2;
   ws.forEach((w, i) => { const a = outCubic(prog(lt, t0 + i * stagger, t0 + i * stagger + 0.7)); if (a > 0.003) { c.save(); c.globalAlpha = a; c.filter = `blur(${(1 - a) * 12 * SCALE}px)`; c.fillStyle = col; c.fillText(w, px, y + (1 - a) * size * 0.3); c.restore(); } px += wd[i] + sp; });
   c.restore();
@@ -292,7 +294,7 @@ window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
-  loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Soft'), document.fonts.load('700 60px Soft'),
+  loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
 ]).then(() => { const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>
