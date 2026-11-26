@@ -20,7 +20,7 @@
 const BPM = 112, BT = 60 / BPM;   // everything sits on the soca score's beat grid
 const SHOT = { cabin: 0, map: 10 * BT, pegs: 18 * BT, sand: 30 * BT, water: 40 * BT, card: 48 * BT, tan: 56 * BT, end: 62 * BT }, END = 72 * BT + 0.6;
 let ENV = null; const kick = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.kick[f] || 0; }, energy = t => { if (!ENV) return 0; const f = Math.floor(t * ENV.fps); return ENV.energy[f] || 0; };
-const TRD = { map: 1.2, pegs: 1.1, sand: 0.9, water: 1.4, card: 1.1, tan: 1.1, end: 1.4 };   // transition into each shot
+const TRD = { map: 1.2, pegs: 1.3, sand: 0.9, water: 1.4, card: 0.9, tan: 1.1, end: 1.3 };   // transition into each shot
 const W = 1080, H = 1920, q = new URLSearchParams(location.search), SCALE = parseFloat(q.get('scale') || '1');
 const K = 1080 / 1438, OY = (1920 - 2576 * K) / 2;   // Gemini plates are 1438 x 2576
 
@@ -145,7 +145,7 @@ function screens(c, lt) {
 // ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
 const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
 const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
-const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(); const SWIM_N = 144; let LIFT = 0; const TANLOGO = document.createElement('canvas');
+const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(); const SWIM_N = 144; let LIFT = 0; const SANDL = {}; const TANLOGO = document.createElement('canvas');
 function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
   PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
 const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
@@ -178,7 +178,7 @@ const SHOTS = [
     out: { kind: 'screen' } },
   { key: 'map', bg: '#F7E4E8', cam: () => ({ z: 1, f: [540, 960] }),
     draw(c, lt) { drawMap(lt + SHOT.map, 1080, 1920); frameSpace(c); c.drawImage(MAPC, 0, 0, 1080, 1920, 0, 0, 1080, 1920); mapText(c, lt); },
-    out: { kind: 'pin' } },
+    out: { kind: 'flip' } },
   { key: 'pegs', bg: WALL, cam: lt => ({ z: 1.07 + 0.012 * lt, f: [lerp(380, 700, inOutSine(lt / 6)), 900] }),
     draw(c, lt) { plate(c, 'S3-pegs-empty');
       frameSpace(c); c.save(); c.globalCompositeOperation = 'multiply'; c.globalAlpha = 0.15; c.filter = `blur(${9 * SCALE}px)`; c.fillStyle = '#5A3C22';
@@ -188,23 +188,25 @@ const SHOTS = [
       hangPiece(c, 'peg-top', lt, 2 * BT, 0.0); hangPiece(c, 'peg-bottom', lt, 4 * BT, 1.7); hangPiece(c, 'peg-skirt', lt, 6 * BT, 3.1);
     },
     out: { kind: 'tilt' } },
-  { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: 1.0 + 0.01 * lt, f: [540, 930] }),
-    draw(c, lt) { plate(c, 'S4-sand-empty'); frameSpace(c);
-      // the tide brings them in: each wave washes across the frame and leaves a different piece behind it, centred
-      const SEQ = ['sand-purple', 'sand-red', 'sand-orange', 'trio'], WAVES = [2.5 * BT, 4.5 * BT, 6.5 * BT];
-      const stage = WAVES.filter(w => lt >= w).length, cur = SEQ[stage], prev = SEQ[Math.max(0, stage - 1)];
-      const wt = stage > 0 ? WAVES[stage - 1] : -99, adv = outCubic(prog(lt, wt, wt + 0.75)), back = inOutSine(prog(lt, wt + 0.95, wt + 1.8));
-      const edgeIn = lerp(W + 220, -260, adv), edge = adv < 1 ? edgeIn : lerp(-260, W + 220, back);
-      const shore = y => edge + Math.sin(y * 0.011 + lt * 2.3) * 24 + Math.sin(y * 0.029 + lt * 1.4) * 9;
-      if (stage > 0 && adv < 1) { c.save(); c.beginPath(); c.moveTo(-400, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(-400, H + 20); c.closePath(); c.clip(); sandPiece(c, prev, lt); c.restore();
-        c.save(); c.beginPath(); c.moveTo(W + 400, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(W + 400, H + 20); c.closePath(); c.clip(); sandPiece(c, cur, lt); c.restore(); }
-      else sandPiece(c, cur, lt);
-      if (stage > 0 && back < 1) { const wet = 0.16 * (1 - back); c.save(); c.globalCompositeOperation = 'multiply'; c.fillStyle = `rgba(140,116,92,${wet})`; c.fillRect(0, 0, W, H); c.restore(); waterEdge(c, shore, 1); }
+  { key: 'sand', bg: '#E8DDCD', cam: lt => ({ z: lerp(1.6, 1.08, inOutSine(lt / (10 * BT))), f: [540, 960] }),
+    draw(c, lt) { const kk = inOutSine(lt / (10 * BT)), ox = 240, oy = 960 - lerp(450, 925, kk);   // slide the beach so the stack sits dead centre
+      const P0 = (g) => g.setTransform(SCALE * K, 0, 0, SCALE * K, ox * SCALE, (OY + oy) * SCALE), E = IMG['S4-sand-empty'];
+      P0(c); [[0, 0, 1, 1], [0, 0, -1, 1], [2876, 0, -1, 1], [0, 0, 1, -1], [0, 0, -1, -1], [2876, 0, -1, -1]].forEach(([tx, ty, sx, sy]) => { c.save(); c.translate(tx, ty); c.scale(sx, sy); c.drawImage(E, 0, 0, 1438, 2576); c.restore(); });   // sand mirrored out past every edge
+      // the tide builds the stack: each wave washes across and leaves the next piece in its place, shadow and all
+      const KEYS = ['purple', 'red', 'orange'], WAVES = [-0.2, 3 * BT, 5.5 * BT];
+      KEYS.forEach((k, i) => { const wt = WAVES[i]; if (lt < wt) return; const adv = outCubic(prog(lt, wt, wt + 0.8));
+        if (adv >= 1) { c.save(); c.setTransform(1, 0, 0, 1, ox * SCALE, oy * SCALE); c.drawImage(SANDL[k], 0, 0); c.restore(); return; }
+        const e = lerp(W + 240, -300, adv), shore = y => e + Math.sin(y * 0.011 + lt * 2.3) * 24 + Math.sin(y * 0.029 + lt * 1.4) * 9;
+        c.save(); frameSpace(c); c.beginPath(); c.moveTo(W + 400, -20); for (let y = -20; y <= H + 20; y += 24) c.lineTo(shore(y), y); c.lineTo(W + 400, H + 20); c.closePath(); c.clip(); c.setTransform(1, 0, 0, 1, ox * SCALE, oy * SCALE); c.drawImage(SANDL[k], 0, 0); c.restore(); });
+      // the water itself: it runs in, then slides back out, leaving the sand dark and wet for a moment
+      WAVES.slice(1).forEach(wt => { const adv = outCubic(prog(lt, wt, wt + 0.8)), back = inOutSine(prog(lt, wt + 0.95, wt + 1.9)); if (lt < wt || back >= 1) return;
+        const edge = adv < 1 ? lerp(W + 240, -300, adv) : lerp(-300, W + 240, back), shore = y => edge + Math.sin(y * 0.011 + lt * 2.3) * 24 + Math.sin(y * 0.029 + lt * 1.4) * 9;
+        frameSpace(c); c.save(); c.globalCompositeOperation = 'multiply'; c.fillStyle = `rgba(140,116,92,${0.14 * (1 - back)})`; c.fillRect(0, 0, W, H); c.restore(); waterEdge(c, shore, 1); });
     },
     out: { kind: 'wave' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.0 + 0.008 * lt, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
-    out: { kind: 'circle', c: [880, 410], r: 50, ring: true } },
+    out: { kind: 'whip' } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is the standard.', lt, 0.4, { y: 200, col: CREAM, shadow: 'rgba(30,20,10,0.35)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
@@ -265,8 +267,10 @@ function waterEdge(c, shore, side) {
 // ---------------- compositing ----------------
 const ORDER = SHOTS.map(s => s.key), START = ORDER.map(k => SHOT[k]), SH = SHOTS.map(() => mk());
 function drawShot(k, lt) { const c = SH[k].getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.filter = 'none'; c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, cv.width, cv.height); SHOTS[k].draw(c, lt); return SH[k]; }
-function blit(c, can, cam, dy = 0, alpha = 1) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = alpha; c.translate(cam.f[0] * SCALE, (cam.f[1] + dy) * SCALE); c.scale(cam.z, cam.z); c.translate(-cam.f[0] * SCALE, -cam.f[1] * SCALE); c.drawImage(can, 0, 0); c.restore(); }
-const toScreen = (cam, x, y) => [cam.f[0] + (x - cam.f[0]) * cam.z, cam.f[1] + (y - cam.f[1]) * cam.z];
+function blit(c, can, cam, dy = 0, alpha = 1, dx = 0) { const C0 = cam.c || cam.f; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = alpha; c.translate((C0[0] + dx) * SCALE, (C0[1] + dy) * SCALE); c.scale(cam.z, cam.z); c.translate(-cam.f[0] * SCALE, -cam.f[1] * SCALE); c.drawImage(can, 0, 0); c.restore(); }
+const toScreen = (cam, x, y) => { const C0 = cam.c || cam.f; return [C0[0] + (x - cam.f[0]) * cam.z, C0[1] + (y - cam.f[1]) * cam.z]; };
+const FA = mk(), FB = mk();   // a shot with its camera applied, for transitions that move whole frames
+function framed(dst, can, cam) { const g = dst.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, dst.width, dst.height); blit(g, can, cam); return dst; }
 function render(t) {
   let k = 0; for (let i = 0; i < START.length; i++) if (t >= START[i]) k = i;
   const nxKey = ORDER[k], inTr = k > 0 && t < START[k] + TRD[nxKey], cur = inTr ? k - 1 : k, lt = t - START[cur];
@@ -279,12 +283,21 @@ function render(t) {
     const quad = Q.map((q0, i) => [lerp(q0[0], F[i][0], e), lerp(q0[1], F[i][1], e)]), mw = Math.round(lerp(960, 1080, e)), mh = Math.round(lerp(540, 1920, e));
     drawMap(t, mw, mh); ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); warp(ctx, MAPC, 0, 0, mw, mh, quad, 14); ctx.restore();
     ctx.save(); ctx.globalAlpha = prog(e, 0.8, 1); mapText(ctx, ln); ctx.restore(); return; }
-  if (kind === 'logo') {   // her tanned logo lifts off the skin, turns magenta as it rises, and lands on the tag while blush floods in
-    const e = inOutCubic(p); LIFT = prog(p, 0, 0.25); blit(ctx, drawShot(cur, lt), cc); LIFT = 0;
-    const [mx, my] = toScreen(cc, 623, 991), B = drawShot(nx, ln);
-    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.beginPath(); ctx.arc(lerp(mx, W / 2, e), lerp(my, H / 2, e), lerp(30, Math.hypot(W, H) * 0.62, inCubic(prog(p, 0.15, 1)) * 0.5 + prog(p, 0.15, 1) * 0.5), 0, TAU); ctx.clip(); ctx.fillStyle = BLUSH; ctx.fillRect(0, 0, W, H); blit(ctx, B, nc); ctx.restore();
-    const drop = outQuint(prog(ln, 0, 1.5)), ey = lerp(-900, 300, drop), th = 0.7 * Math.sin(ln * 1.3) * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
-    const k = inOutCubic(prog(p, 0.12, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 160, w0 = 412 * cc.z, ww = lerp(w0, 392, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
+  if (kind === 'flip') {   // the map turns over like a card; the peg wall is on its back
+    const A = framed(FA, drawShot(cur, lt), cc), B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(p), ang = e * Math.PI, back = ang > Math.PI / 2, a = back ? ang - Math.PI : ang;
+    const f = 2600, corners = [[-W / 2, -H / 2], [W / 2, -H / 2], [W / 2, H / 2], [-W / 2, H / 2]].map(([X, Y]) => { const z = X * Math.sin(a), s = f / (f + z) * (1 - 0.08 * Math.sin(ang)); return [W / 2 + X * Math.cos(a) * s, H / 2 + Y * s]; });
+    ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.fillStyle = '#2A0A1C'; ctx.fillRect(0, 0, W, H); ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 50;
+    warp(ctx, back ? B : A, 0, 0, cv.width, cv.height, corners, 12); ctx.shadowColor = 'transparent';
+    const shade = Math.sin(ang) * 0.35; ctx.globalAlpha = shade; ctx.fillStyle = '#000'; pathPts(ctx, corners); ctx.fill(); ctx.restore(); return; }
+  if (kind === 'whip') {   // the camera whips right, the way she is swimming; the card swings in with the same motion blur
+    const A = framed(FA, drawShot(cur, lt), cc), B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(p), sp = Math.sin(Math.PI * p), n = 8, off = -e * W;
+    for (let i = 0; i < n; i++) { const o = (i / (n - 1) - 0.5) * sp * 240, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, (off + o) * SCALE, 0); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, (off + W + o) * SCALE, 0); ctx.drawImage(B, 0, 0); ctx.restore(); }
+    return; }
+  if (kind === 'logo') {   // her tanned logo lifts off the skin and turns magenta as it rises; the photo drops away and the tag comes down to catch it
+    LIFT = prog(p, 0, 0.25); const A = framed(FA, drawShot(cur, lt), cc); LIFT = 0; const B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(prog(p, 0.1, 1)), sp = Math.sin(Math.PI * e);
+    for (let i = 0; i < 6; i++) { const o = (i / 5 - 0.5) * sp * 120, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, (e * H + o) * SCALE); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, (-(1 - e) * H + o) * SCALE); ctx.drawImage(B, 0, 0); ctx.restore(); }
+    const [mx, my] = toScreen(cc, 623, 991), drop = outQuint(prog(ln, 0, 1.5)), ey = lerp(-900, 300, drop) - (1 - e) * H, th = 0.7 * Math.sin(ln * 1.3) * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
+    const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 412 * cc.z, ww = lerp(w0, 392, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
     ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.translate(x, y); ctx.rotate(rot); ctx.shadowColor = `rgba(42,10,28,${0.25 * Math.sin(Math.PI * k)})`; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18;
     ctx.globalAlpha = 1 - k; ctx.drawImage(TANLOGO, -ww / 2, -hh / 2, ww, hh); ctx.globalAlpha = k; ctx.drawImage(S2, -ww / 2, -hh / 2, ww, hh); ctx.restore(); return; }
   if (kind === 'pin') {   // her studio pin swells into the wall: magenta ring first, flooded with the wall colour, the rail settles in inside it
@@ -314,13 +327,13 @@ function render(t) {
 }
 START.forEach((s, i) => ev(`shot.${ORDER[i]}`, s));
 for (let i = 0; i < 13; i++) ev('screen.on', BT + i * BT / 2); ev('screens.change', 6 * BT); ev('map.land', SHOT.map + 1.3); ev('dive', SHOT.map + 1.7);
-[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); [2.5, 4.5, 6.5].forEach(b => ev('wave.in', SHOT.sand + b * BT)); ev('wave.big', SHOT.water); ev('ripple', SHOT.card); ev('tan.sun', SHOT.tan + 0.6);
+[2, 4, 6].forEach(a => ev('peg.cut', SHOT.pegs + a * BT)); ev('tilt', SHOT.sand); [3, 5.5].forEach(b => ev('wave.in', SHOT.sand + b * BT)); ev('wave.big', SHOT.water); ev('ripple', SHOT.card); ev('tan.sun', SHOT.tan + 0.6);
 ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', SHOT.end); ev('tag.land', SHOT.end + 1.1); ev('cta', SHOT.end + 2.9);
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
-  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
+  load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), ...['purple', 'red', 'orange'].map(k => load('smask-' + k, `data/sand-mask-${k}.png`)), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-boarding.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
-]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#E9C6A4'; tg.fillRect(0, 0, S2.width, S2.height); const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
+]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#E9C6A4'; tg.fillRect(0, 0, S2.width, S2.height); ['purple', 'red', 'orange'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand-tops'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['smask-' + k], 0, 0, 1438, 2576); SANDL[k] = L; }); const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
   if (q.has('t')) render(parseFloat(q.get('t'))); else (function tick(n) { render((n / 1000) % END); requestAnimationFrame(tick); })(0); return true; });
 </script></body></html>
