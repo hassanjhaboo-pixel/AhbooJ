@@ -162,9 +162,9 @@ function hangPiece(c, k, lt, on, ph) {
 }
 
 // ---------------- the silver heart: the buckle's heart, lifted off in polished metal ----------------
-const BUCKLE = [541, 1018], BUCKLE_S = 21;   // card shot, frame px (before camera), heart half-width
-function silverHeart(c, x, y, s, spin, rim = null) {
-  const sx = Math.cos(spin); c.save(); c.translate(x, y); c.scale(Math.max(0.04, Math.abs(sx)), 1);
+const BUCKLE = [548.3, 981.8], BUCKLE_S = 20.28, BUCKLE_ASP = 1.296, BUCKLE_ROT = 10 * DEG;   // the real heart ring on the one-piece, measured from the photo (frame px, before camera)
+function silverHeart(c, x, y, s, spin, rim = null, asp = 1, rot = 0) {
+  const sx = Math.cos(spin); c.save(); c.translate(x, y); c.rotate(rot); c.scale(Math.max(0.04, Math.abs(sx)), asp);
   const pts = heartPts(0, 0, s); const g = c.createLinearGradient(-s, -s, s * 0.9, s * 1.1), sh = (Math.sin(spin * 1.3) + 1) / 2;
   g.addColorStop(0, '#FFFFFF'); g.addColorStop(clamp01(0.18 + sh * 0.2), '#D9DCE1'); g.addColorStop(clamp01(0.42 + sh * 0.15), '#8E949D'); g.addColorStop(clamp01(0.62 + sh * 0.1), '#F2F3F5'); g.addColorStop(1, '#9AA0A8');
   if (rim == null) { c.shadowColor = 'rgba(20,20,25,0.35)'; c.shadowBlur = s * 0.5; c.shadowOffsetY = s * 0.25; pathPts(c, pts); c.fillStyle = g; c.fill(); c.shadowColor = 'transparent';
@@ -207,7 +207,7 @@ const SHOTS = [
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: CREAM, shadow: 'rgba(30,20,10,0.4)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: CREAM, shadow: 'rgba(30,20,10,0.4)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
-      const L = liftState(lt); if (L) silverHeart(c, L.x, L.y, L.s, L.spin); },
+      const L = liftState(lt); if (L) { c.save(); c.globalAlpha = L.a; silverHeart(c, L.x, L.y, L.s, L.spin, null, L.asp, L.rot); c.restore(); } },
     out: { kind: 'silver' } },
   { key: 'tan', bg: '#8A553C', cam: lt => ({ z: 1.0 + 0.014 * lt, f: [631, 994] }),
     draw(c, lt) { plate(c, 'S6-tan-nomark');
@@ -238,14 +238,16 @@ const SHOTS = [
       // the last thing she needs you to know: her ordering policies (placeholder lines until her own policy text arrives)
       const S2 = IMG['logo-script'], lw = 300, lh = lw * S2.height / S2.width; c.drawImage(S2, 540 - lw / 2, 330 - lh / 2, lw, lh);
       words(c, 'Before you order', lt, 0.25, { y: 560, size: 76 });
-      POLICIES.forEach((ln, i) => { const y = 700 + i * 118, a = outCubic(prog(lt, 0.7 + i * 0.32, 1.3 + i * 0.32)); if (a <= 0) return;
+      POLICIES.forEach((ln, i) => { const y = 700 + i * 118, a = outCubic(prog(lt, 0.5 + i * 0.22, 1.0 + i * 0.22)); if (a <= 0) return;
         frameSpace(c); c.save(); c.globalAlpha = a; c.translate(0, (1 - a) * 18); c.fillStyle = MAG; c.beginPath(); c.arc(214, y - 12, 7, 0, TAU); c.fill();
         c.strokeStyle = 'rgba(203,8,112,0.35)'; c.lineWidth = 2; c.setLineDash([8, 7]); if (i < POLICIES.length - 1) { c.beginPath(); c.moveTo(214, y + 8); c.lineTo(214, y + 86); c.stroke(); } c.setLineDash([]);
         c.font = '500 38px Ui, sans-serif'; c.letterSpacing = '0.4px'; c.fillStyle = PLUM; c.textAlign = 'left'; c.fillText(ln, 252, y); c.restore(); });
-      words(c, 'DM @sm.threads_ to order', lt, 0.9 + POLICIES.length * 0.32, { y: 1500, size: 46, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1, col: MAG }); } },
+      words(c, 'Bank transfer, bank deposit or cash on collection.', lt, 0.6 + POLICIES.length * 0.22, { y: 1340, size: 28, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.7)' });
+      words(c, 'DM @sm.threads_ to order', lt, 0.75 + POLICIES.length * 0.22, { y: 1500, size: 46, face: 'Ui', weight: 700, track: 0.01, stagger: 0.1, col: MAG });
+      words(c, 'Replies within 24 hours, Monday to Friday.', lt, 1.0 + POLICIES.length * 0.22, { y: 1565, size: 26, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.6)' }); } },
 ];
 const mapText = (c, lt) => { words(c, 'Wherever you are,', lt, 0.25, { y: 250, out: 2.3 }); words(c, 'we\u2019ll get it to you.', lt, 0.7, { y: 330, size: 56, weight: 400, track: -0.01, out: 2.35 }); };
-const POLICIES = ['50% deposit to book your order', 'Ready in 7 to 14 days', 'Custom fit, XS to XXL', 'Pick up in Arouca', 'Islandwide delivery, small fee'];
+const POLICIES = ['50% non-refundable deposit to book', 'Ready in 7 to 14 days', 'XS to XXL, or made to your measurements', 'Collect within 14 days of completion', 'Delivery available at an extra cost'];
 function tagPose(lt) { const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3); return { th, ey: lerp(-900, 300, drop) }; }
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
   c.save(); c.font = `${weight} ${size}px ${face}, sans-serif`; c.letterSpacing = (size * (face === 'Ui' ? 0.02 : -0.01)) + 'px';
@@ -255,8 +257,11 @@ function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', w
 }
 // silver heart lift inside the card shot (shot-local frame px): rises off the buckle, one turn, drifts to centre, grows a little
 const LIFT0 = 4.5 * BT, LIFT1 = SHOT.tan - SHOT.card;   // until the transition starts
-function liftState(lt) { if (lt < LIFT0) return null; const k = inOutSine(prog(lt, LIFT0, LIFT1)), e = outCubic(prog(lt, LIFT0, LIFT0 + 0.5));
-  return { x: lerp(BUCKLE[0], 540, k), y: lerp(BUCKLE[1], 960, k) - e * 6, s: BUCKLE_S * (1 + 0.25 * e + 1.8 * k * k), spin: TAU * inOutCubic(prog(lt, LIFT0 + 0.2, LIFT1 - 0.1)) }; }
+function liftState(lt) { if (lt < LIFT0) return null;
+  // 1) the heart grows out of the inside of the real ring, exactly on it  2) lifts off, straightens, turns once and comes to the centre
+  const grow = outCubic(prog(lt, LIFT0, LIFT0 + 0.45)), k = inOutSine(prog(lt, LIFT0 + 0.45, LIFT1)), e = outCubic(prog(lt, LIFT0 + 0.45, LIFT0 + 0.9));
+  return { x: lerp(BUCKLE[0], 540, k), y: lerp(BUCKLE[1], 960, k) - e * 8, s: BUCKLE_S * lerp(0.35, 1, grow) * (1 + 0.2 * e + 1.9 * k * k), asp: lerp(BUCKLE_ASP, 1, k), rot: lerp(BUCKLE_ROT, 0, k),
+    spin: TAU * inOutCubic(prog(lt, LIFT0 + 0.6, LIFT1 - 0.1)), a: clamp01(grow * 3) }; }
 // a piece lying on the sand, centred, with a soft shadow to the lower right (the cut-outs come from this same beach shot)
 const SANDP = { 'sand-purple': [615, 732], 'sand-red': [608, 582], 'sand-orange': [557, 762] };
 function sandPiece(c, k, lt) {
