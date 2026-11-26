@@ -219,7 +219,7 @@ const SHOTS = [
       words(c, 'Leave with proof.', lt, 2.0, { x: 623, y: 1175, size: 70, col: CREAM, shadow: 'rgba(30,12,4,0.5)' }); },
     out: { kind: 'logo' } },
   { key: 'end', bg: BLUSH, cam: () => ({ z: 1, f: [540, 960] }),
-    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+    draw(c, lt) { brandBg(c, lt + (this.key === 'outro' ? 6 : 0));
       const { th, ey } = tagPose(lt), ex = 540;
       c.save(); c.fillStyle = MAG; c.fillRect(ex - 22, -20, 44, ey + 20); c.restore();
       c.save(); c.translate(ex, ey); c.rotate(th * DEG); c.shadowColor = 'rgba(42,10,28,0.16)'; c.shadowBlur = 40 * SCALE; c.shadowOffsetY = 18 * SCALE;
@@ -228,15 +228,15 @@ const SHOTS = [
       const border = [[-190, -50], [190, -50], [300, 60], [300, 1040], [-300, 1040], [-300, 60], [-190, -50]]; c.save(); c.strokeStyle = MAG; c.globalAlpha = 0.75; c.lineWidth = 3; c.setLineDash([10, 8]);
       const bp = prog(lt, 1.0, 2.4); let Lt = 0; const seg = []; for (let i = 1; i < border.length; i++) { const d = Math.hypot(border[i][0] - border[i - 1][0], border[i][1] - border[i - 1][1]); seg.push(d); Lt += d; }
       let rem = Lt * inOutSine(bp); c.beginPath(); c.moveTo(...border[0]); for (let i = 1; i < border.length && rem > 0; i++) { const k = Math.min(1, rem / seg[i - 1]); c.lineTo(lerp(border[i - 1][0], border[i][0], k), lerp(border[i - 1][1], border[i][1], k)); rem -= seg[i - 1]; } if (bp > 0) c.stroke(); c.restore();
-      const Lg = IMG.logo, la = inOutSine(prog(lt, TRD.end, TRD.end + 0.6)); if (Lg && lt >= TRD.end) { const lw = 460, lh = lw * Lg.height / Lg.width; c.save(); c.globalAlpha = la; c.drawImage(Lg, -lw / 2, 300 - lh / 2, lw, lh); c.restore(); if (la < 1) { const S2 = IMG['logo-script'], sw = 392, shh = sw * S2.height / S2.width; c.drawImage(S2, -sw / 2, 286 - shh / 2, sw, shh); } }
+      const Lg = IMG.logo, la = inOutSine(prog(lt, TRD.end, TRD.end + 0.6)); if (Lg && lt >= TRD.end) { const lw = 460, lh = lw * Lg.height / Lg.width; c.save(); c.globalAlpha = la; c.drawImage(Lg, -lw / 2, 300 - lh / 2, lw, lh); c.restore(); if (la < 1) { const S2 = IMG['logo-script'], sw = SCRIPT_W, shh = sw * S2.height / S2.width; c.drawImage(S2, -sw / 2, SCRIPT_Y - shh / 2, sw, shh); } }
       tagWords(c, 'Made in Trinidad.', lt, 1.7, 650, 52, PLUM, 0.09, 'Head', 600); tagWords(c, 'Made to you.', lt, 2.0, 724, 52, MAG, 0.09, 'Head', 400); tagWords(c, 'XS to XXL.  Custom fit.  7 to 14 days.', lt, 2.4, 840, 28, 'rgba(42,10,28,0.78)', 0.05, 'Ui', 500);
       c.restore();
       } ,
     out: { kind: 'rise' } },
   { key: 'outro', bg: BLUSH, cam: lt => ({ z: 1 + 0.006 * lt, f: [540, 960] }),
-    draw(c, lt) { frameSpace(c); c.fillStyle = this.bg; c.fillRect(0, 0, W, H);
+    draw(c, lt) { brandBg(c, lt + (this.key === 'outro' ? 6 : 0));
       // the last thing she needs you to know: her ordering policies (placeholder lines until her own policy text arrives)
-      const S2 = IMG['logo-script'], lw = 300, lh = lw * S2.height / S2.width; c.drawImage(S2, 540 - lw / 2, 330 - lh / 2, lw, lh);
+      const Lg = IMG.logo, lw = 330, lh = lw * Lg.height / Lg.width; c.save(); c.shadowColor = 'rgba(42,10,28,0.12)'; c.shadowBlur = 24; c.shadowOffsetY = 8; c.drawImage(Lg, 540 - lw / 2, 330 - lh / 2, lw, lh); c.restore();
       words(c, 'Before you order', lt, 0.25, { y: 560, size: 76 });
       POLICIES.forEach((ln, i) => { const y = 700 + i * 118, a = outCubic(prog(lt, 0.5 + i * 0.22, 1.0 + i * 0.22)); if (a <= 0) return;
         frameSpace(c); c.save(); c.globalAlpha = a; c.translate(0, (1 - a) * 18); c.fillStyle = MAG; c.beginPath(); c.arc(214, y - 12, 7, 0, TAU); c.fill();
@@ -247,6 +247,10 @@ const SHOTS = [
       words(c, 'Replies within 24 hours, Monday to Friday.', lt, 1.0 + POLICIES.length * 0.22, { y: 1565, size: 26, face: 'Ui', weight: 500, track: 0.01, stagger: 0.04, col: 'rgba(42,10,28,0.6)' }); } },
 ];
 const mapText = (c, lt) => { words(c, 'Wherever you are,', lt, 0.25, { y: 250, out: 2.3 }); words(c, 'we\u2019ll get it to you.', lt, 0.7, { y: 330, size: 56, weight: 400, track: -0.01, out: 2.35 }); };
+function brandBg(c, t) { frameSpace(c); c.fillStyle = BLUSH; c.fillRect(0, 0, W, H); if (!IMG.pattern) return; if (!PAT) PAT = c.createPattern(IMG.pattern, 'repeat');
+  const sc = 0.62, dx = (t * 9) % (IMG.pattern.width * sc), dy = (t * 5) % (IMG.pattern.height * sc); c.save(); c.globalAlpha = 0.6; c.translate(-dx, -dy); c.scale(sc, sc); c.fillStyle = PAT; c.fillRect(0, 0, (W + 400) / sc, (H + 400) / sc); c.restore(); }
+let PAT = null;
+const SCRIPT_W = 426.3, SCRIPT_Y = 284.4;   // the script inside the clean logo, when the logo is 460 wide on the tag
 const POLICIES = ['50% non-refundable deposit to book', 'Ready in 7 to 14 days', 'XS to XXL, or made to your measurements', 'Collect within 14 days of completion', 'Delivery available at an extra cost'];
 function tagPose(lt) { const drop = outQuint(prog(lt, 0.0, 1.5)), th = (lt > 0.9 ? 8 * Math.exp(-(lt - 0.9) / 1.0) * Math.sin((lt - 0.9) * 4.4) : 0) + 0.7 * Math.sin(lt * 1.3); return { th, ey: lerp(-900, 300, drop) }; }
 function tagWords(c, str, lt, t0, y, size, col, stagger = 0.09, face = 'Head', weight = 400) {
@@ -327,8 +331,8 @@ function render(t) {
   if (kind === 'logo') {   // her tanned logo lifts off the skin and turns magenta as it rises; the photo drops away and the tag comes down to catch it
     LIFT = prog(p, 0, 0.25); const A = framed(FA, drawShot(cur, lt), cc); LIFT = 0; const B = framed(FB, drawShot(nx, ln), nc), e = inOutCubic(prog(p, 0.1, 1)), sp = Math.sin(Math.PI * e);
     for (let i = 0; i < 6; i++) { const o = (i / 5 - 0.5) * sp * 120, al = i === 0 ? 1 : 1 / (i + 1); ctx.save(); ctx.globalAlpha = al; ctx.setTransform(1, 0, 0, 1, 0, (e * H + o) * SCALE); ctx.drawImage(A, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, (-(1 - e) * H + o) * SCALE); ctx.drawImage(B, 0, 0); ctx.restore(); }
-    const TP = tagPose(ln), [mx, my] = toScreen(cc, 623, 991), ey = TP.ey - (1 - e) * H, th = TP.th * DEG, tx = 540 - 286 * Math.sin(th), ty = ey + 286 * Math.cos(th);
-    const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 412 * cc.z, ww = lerp(w0, 392, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
+    const TP = tagPose(ln), [mx, my] = toScreen(cc, 623, 991), ey = TP.ey - (1 - e) * H, th = TP.th * DEG, tx = 540 - SCRIPT_Y * Math.sin(th), ty = ey + SCRIPT_Y * Math.cos(th);
+    const k = inOutCubic(prog(p, 0.05, 1)), x = lerp(mx, tx, k), y = lerp(my, ty, k) - Math.sin(Math.PI * k) * 220, w0 = 412 * cc.z, ww = lerp(w0, SCRIPT_W, k), S2 = IMG['logo-script'], hh = ww * S2.height / S2.width, rot = lerp(-0.05, th, k);
     ctx.save(); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.translate(x, y); ctx.rotate(rot); ctx.shadowColor = `rgba(42,10,28,${0.25 * Math.sin(Math.PI * k)})`; ctx.shadowBlur = 30; ctx.shadowOffsetY = 18;
     ctx.globalAlpha = 1 - k; ctx.drawImage(TANLOGO, -ww / 2, -hh / 2, ww, hh); ctx.globalAlpha = k; ctx.drawImage(S2, -ww / 2, -hh / 2, ww, hh); ctx.restore(); return; }
   if (kind === 'pin') {   // her studio pin swells into the wall: magenta ring first, flooded with the wall colour, the rail settles in inside it
@@ -368,7 +372,7 @@ ev('heart.lift', SHOT.card + LIFT0); ev('heart.fly', SHOT.tan); ev('tag.drop', S
 window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), load('S4-sand2-empty', '../assets/S4-sand2-empty.jpg'), load('S4-sand2-full', '../assets/S4-sand2-full.jpg'), load('S3-pegs-pink-full', '../assets/S3-pegs-pink-full.jpg'), ...['red', 'orange', 'purple'].map(k => load('s2mask-' + k, `data/sand2-mask-${k}.png`)), ...['top', 'bottom', 'skirt'].map(k => load('pgmask-' + k, `data/peg-pink-mask-${k}.png`)), ...['purple', 'red', 'orange'].map(k => load('smask-' + k, `data/sand-mask-${k}.png`)), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
-  ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'),
+  ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'), load('pattern', 'cut/pattern.jpg'),
   loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-song.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
 ]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#E9C6A4'; tg.fillRect(0, 0, S2.width, S2.height); ['purple', 'red', 'orange'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand-tops'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['smask-' + k], 0, 0, 1438, 2576); SANDL[k] = L; }); ['red', 'orange', 'purple'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand2-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['s2mask-' + k], 0, 0, 1438, 2576); SANDL2[k] = L; });
   ['top', 'bottom', 'skirt'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S3-pegs-pink-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['pgmask-' + k], 0, 0, 1438, 2576); PEGL[k] = L; }); const PL = DATA.tt.places; PIARCO = PL.piarco; AROUCA = PL.arouca; CROWN = PL.crownpoint; DIVE = PL.tobago_mid; ['peg-top', 'peg-bottom', 'peg-skirt'].forEach(makePuppet);
