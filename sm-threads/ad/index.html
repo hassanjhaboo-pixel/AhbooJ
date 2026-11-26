@@ -203,7 +203,7 @@ const SHOTS = [
     out: { kind: 'swell' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => ({ z: 1.0 + 0.008 * lt, f: [540, 960] }),
     draw(c, lt) { frameSpace(c); const f = Math.max(0, Math.min(SWIM_N - 1, Math.floor(lt * 24))); c.drawImage(IMG['swim' + f], 0, 0, 1080, 1920); },
-    out: ALT ? { kind: 'match', a: [600, 960], za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
+    out: ALT ? { kind: 'match', a: [655, 815], za: 9, b: [540, 900], zb: 7 } : { kind: 'whip' } },
   { key: 'card', bg: '#8E897F', cam: lt => ({ z: 1.02 + 0.016 * lt, f: [540, 1000] }),
     draw(c, lt) { plate(c, 'S5-card'); words(c, 'Sexy is', lt, 0.4, { y: 300, size: 60, weight: 400, track: -0.01, col: CREAM, shadow: 'rgba(30,20,10,0.4)' }); words(c, 'the standard.', lt, 0.75, { y: 400, size: 100, col: CREAM, shadow: 'rgba(30,20,10,0.4)' });
       // the buckle's heart lifts off in silver, turns once, and comes forward
