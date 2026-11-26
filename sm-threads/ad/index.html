@@ -194,7 +194,7 @@ const SHOTS = [
     out: { kind: 'tilt' } },
   { key: 'sand', bg: '#EDE3D3', cam: lt => { const k = inOutSine(lt / (12 * BT)); return { z: lerp(1.55, 1.04, k), f: [540, lerp(1240, 960, k)] }; },
     draw(c, lt) { plate(c, 'S4-sand2-empty');
-      const KEYS = ['purple', 'orange', 'red'], WAVES = [0.6, 0.6 + 4 * BT, 0.6 + 8 * BT], REACH = [1480, 1050, 640];   // plate-y the water climbs to
+      const KEYS = ['red', 'orange', 'purple'], WAVES = [0.6, 0.6 + 4 * BT, 0.6 + 8 * BT], REACH = [560, 1010, 1420];   // a big wave leaves the top piece, a medium one the middle, a short one the bottom (plate-y the water climbs to)
       KEYS.forEach((k, i) => { const wt = WAVES[i], back = prog(lt, wt + 1.0, wt + 2.0); if (back <= 0) return;   // revealed as the water slides back
         c.save(); frameSpace(c); const edge = lerp(REACH[i], 2700, inOutSine(back)) * K + OY; c.beginPath(); c.rect(-200, -200, W + 400, edge + 200); c.clip(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SANDL2[k], 0, 0); c.restore(); });
       KEYS.forEach((k, i) => { const wt = WAVES[i], up = outCubic(prog(lt, wt, wt + 1.0)), back = inOutSine(prog(lt, wt + 1.0, wt + 2.0)); if (lt < wt || back >= 1) return;
