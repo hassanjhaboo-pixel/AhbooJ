@@ -155,7 +155,7 @@ function screens(c, lt) {
 // ---------------- peg rail: puppet cloth, cut in on the beat with its shadow already on the wall ----------------
 const CUT = { 'peg-top': [173, 835, 648, 2092], 'peg-bottom': [669, 846, 1038, 1601], 'peg-skirt': [984, 797, 1365, 1981] };
 const PEG = { 'peg-top': [403, 846], 'peg-bottom': [814, 852], 'peg-skirt': [1219, 806] };
-const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(), TANMARK = mk(); const SWIM_N = 144; let LIFT = 0; const SANDL = {}, SANDL2 = {}, PEGL = {}; const TANLOGO = document.createElement('canvas');
+const PUP = {}, TMP = mk(), SHD = mk(), TANL = mk(), TANMARK = mk(); const SWIM_N = 144; let LIFT = 0; const SANDL = {}, SANDL2 = {}, PEGL = {}; const WTMP = mk(); let WAVES = { n: 0, t0: 0, fps: 24, reach: [] }; const TANLOGO = document.createElement('canvas');
 function makePuppet(k) { const [x0, y0, x1, y1] = CUT[k], w = x1 - x0, h = y1 - y0, ax = PEG[k][0] - x0;
   PUP[k] = Puppet.create(IMG[k], [{ x: ax, y: 4 }, { x: w * 0.5, y: h * 0.33 }, { x: w * 0.25, y: h * 0.93 }, { x: w * 0.75, y: h * 0.93 }], { cols: 40 }); }
 const breeze = (lt, ph) => (1.5 * Math.sin(lt * 1.15 + ph) + 0.6 * Math.sin(lt * 2.1 + ph * 2)) * DEG;
@@ -199,13 +199,22 @@ const SHOTS = [
         if (pop > 0) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'screen'; c.globalAlpha = pop * 0.25; c.drawImage(L, 0, 0); c.restore(); } });
     },
     out: { kind: 'tilt' } },
-  { key: 'sand', bg: '#EDE3D3', cam: lt => { const k = inOutSine(lt / (12 * BT)); return { z: lerp(1.55, 1.04, k), f: [540, lerp(1240, 960, k)] }; },
+  { key: 'sand', bg: '#EDE3D3', cam: lt => { const k = inOutSine(lt / (12 * BT)); return { z: lerp(1.42, 1.04, k), f: [540, lerp(1180, 960, k)] }; },
     draw(c, lt) { plate(c, 'S4-sand2-empty');
-      const KEYS = ['red', 'orange', 'purple'], WAVES = [0.6, 0.6 + 4 * BT, 0.6 + 8 * BT], REACH = [560, 1010, 1420];   // a big wave leaves the top piece, a medium one the middle, a short one the bottom (plate-y the water climbs to)
-      KEYS.forEach((k, i) => { const wt = WAVES[i], back = prog(lt, wt + 1.0, wt + 2.0); if (back <= 0) return;   // revealed as the water slides back
-        c.save(); frameSpace(c); const edge = lerp(REACH[i], 2700, inOutSine(back)) * K + OY; c.beginPath(); c.rect(-200, -200, W + 400, edge + 200); c.clip(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SANDL2[k], 0, 0); c.restore(); });
-      KEYS.forEach((k, i) => { const wt = WAVES[i], up = outCubic(prog(lt, wt, wt + 1.0)), back = inOutSine(prog(lt, wt + 1.0, wt + 2.0)); if (lt < wt || back >= 1) return;
-        const ey = lerp(lerp(1780, REACH[i], up), 2700, back) * K + OY; seaEdge(c, x => ey + Math.sin(x * 0.012 + lt * 2.1) * 18 + Math.sin(x * 0.031 + lt * 1.3) * 8, 1 - back); });
+      // three real waves (Gemini clip), each stretched from the shoreline to the height it needs; each one leaves a top behind
+      // [top, page start, clip from, clip peak, clip to, playback speed, stretch]
+      const WV = [['red', 0.5, 0.3, 2.6, 3.3, 1.35, 1.38], ['orange', 0.5 + 4 * BT, 3.45, 5.3, 6.0, 1.25, 1.05], ['purple', 0.5 + 8 * BT, 3.45, 5.3, 6.0, 1.3, 0.8]];
+      WV.forEach(([k, ws, c0, cp, c1, sp]) => { const tPeak = ws + (cp - c0) / sp; if (lt >= tPeak) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SANDL2[k], 0, 0); c.restore(); } });
+      WV.forEach(([k, ws, c0, cp, c1, sp, st]) => { if (lt < ws) return; const tPeak = ws + (cp - c0) / sp, tEnd = tPeak + 1.1;
+        if (lt > tEnd) return;
+        const ct = Math.min(c1, c0 + (lt - ws) * sp), fi = Math.max(0, Math.min(WAVES.n - 1, Math.round((ct - WAVES.t0) * WAVES.fps))), img = IMG['wave' + fi]; if (!img) return;
+        // as the water slides back, cut the layer away from the top down, with a soft lacy edge
+        const back = outCubic(prog(lt, tPeak + 0.05, tEnd)), peakUp = WAVES.reach[Math.round((cp - WAVES.t0) * WAVES.fps)] * st, upNow = lerp(peakUp + 0.03, 0.12, back);
+        const g = WTMP.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, WTMP.width, WTMP.height);
+        g.setTransform(SCALE, 0, 0, SCALE, 0, 0); g.drawImage(img, 0, H - H * st, W, H * st);
+        if (back > 0) { g.globalCompositeOperation = 'destination-in'; const ey = H * (1 - upNow); g.beginPath(); g.moveTo(-20, H + 20); for (let x = -20; x <= W + 20; x += 20) g.lineTo(x, ey + Math.sin(x * 0.02 + lt * 2.4) * 16 + Math.sin(x * 0.05 - lt * 1.7) * 7); g.lineTo(W + 20, H + 20); g.closePath();
+          const gr = g.createLinearGradient(0, ey - 40, 0, ey + 40); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = gr; g.fill(); }
+        c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1 - prog(lt, tEnd - 0.25, tEnd); c.drawImage(WTMP, 0, 0); c.restore(); });
     },
     out: { kind: 'swell' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => { const k = inOutSine(lt / 4.4); return { z: lerp(1.42, 1.28, k), f: [lerp(640, 470, k), lerp(735, 1185, k)] }; },   // the frame drifts back and across, so she swims up through it
@@ -384,7 +393,7 @@ window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
 window.ready = Promise.all([
   load('S1-cabin-empty', '../assets/S1-cabin-empty.jpg'), load('S3-pegs-empty', '../assets/S3-pegs-empty.jpg'), load('S4-sand-tops', '../assets/S4-sand-tops.jpg'), load('S4-sand-empty', '../assets/S4-sand-empty.jpg'), load('S4-sand2-empty', '../assets/S4-sand2-empty.jpg'), load('S4-sand2-full', '../assets/S4-sand2-full.jpg'), load('S3-pegs-pink-full', '../assets/S3-pegs-pink-full.jpg'), ...['red', 'orange', 'purple'].map(k => load('s2mask-' + k, `data/sand2-mask-${k}.png`)), ...['top', 'bottom', 'skirt'].map(k => load('pgmask-' + k, `data/peg-pink-mask-${k}.png`)), ...['purple', 'red', 'orange'].map(k => load('smask-' + k, `data/sand-mask-${k}.png`)), load('S5-card', '../assets/S5-card.jpg'), load('S7-water', '../assets/S7-water.jpg'), ...Array.from({ length: SWIM_N }, (_, i) => load('swim' + i, `../assets/swim/${String(i + 1).padStart(4, '0')}.jpg`)), load('logo-script', 'cut/logo-script.png'), load('S6-tan-reveal', '../assets/S6-tan-reveal.jpg'), load('S6-tan-nomark', '../assets/S6-tan-nomark.jpg'), load('mask', 'data/screen-mask.png'),
   ...['sand-purple', 'sand-red', 'sand-orange', 'peg-top', 'peg-bottom', 'peg-skirt'].map(k => load(k, `cut/${k}.png`)), load('logo', 'cut/logo.png'), load('pattern', 'cut/pattern.jpg'),
-  loadJSON('tt', 'data/tt-outline.json'), fetch('data/env-song.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
+  loadJSON('tt', 'data/tt-outline.json'), fetch('data/waves.json').then(r => r.json()).then(j => { WAVES = j; return Promise.all(Array.from({ length: j.n }, (_, i) => load('wave' + i, `../assets/waves/${String(i).padStart(3, '0')}.webp`))); }), fetch('data/env-song.json').then(r => r.json()).then(j => ENV = j), loadJSON('quads', 'data/screens-quad.json'), document.fonts.load('400 60px Head'), document.fonts.load('600 60px Head'), document.fonts.load('500 30px Ui'), document.fonts.load('700 30px Ui'),
 ]).then(() => { const S2 = IMG['logo-script']; TANLOGO.width = S2.width; TANLOGO.height = S2.height; const tg = TANLOGO.getContext('2d'); tg.drawImage(S2, 0, 0); tg.globalCompositeOperation = 'source-in'; tg.fillStyle = '#C69675'; tg.fillRect(0, 0, S2.width, S2.height); ['purple', 'red', 'orange'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand-tops'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['smask-' + k], 0, 0, 1438, 2576); SANDL[k] = L; }); ['red', 'orange', 'purple'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S4-sand2-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['s2mask-' + k], 0, 0, 1438, 2576); SANDL2[k] = L; });
   ['top', 'bottom', 'skirt'].forEach(k => { const L = mk(), g = L.getContext('2d'); plateSpace(g); g.drawImage(IMG['S3-pegs-pink-full'], 0, 0, 1438, 2576); g.globalCompositeOperation = 'destination-in'; g.drawImage(IMG['pgmask-' + k], 0, 0, 1438, 2576); PEGL[k] = L; }); { const g = TANMARK.getContext('2d'); plateSpace(g); g.drawImage(IMG['S6-tan-nomark'], 0, 0, 1438, 2576);   // her real logo, needle and all, tanned into the skin
     const L = document.createElement('canvas'); L.width = S2.width; L.height = S2.height; const lg = L.getContext('2d'); lg.drawImage(S2, 0, 0); lg.globalCompositeOperation = 'source-in'; lg.fillStyle = 'rgb(112,84,64)'; lg.fillRect(0, 0, L.width, L.height);
