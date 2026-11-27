@@ -203,18 +203,12 @@ const SHOTS = [
     draw(c, lt) { plate(c, 'S4-sand2-empty');
       // three real waves (Gemini clip), each stretched from the shoreline to the height it needs; each one leaves a top behind
       // [top, page start, clip from, clip peak, clip to, playback speed, stretch]
-      const WV = [['red', 0.5, 0.3, 2.6, 3.3, 1.35, 1.38], ['orange', 0.5 + 4 * BT, 3.45, 5.3, 6.0, 1.25, 1.05], ['purple', 0.5 + 8 * BT, 3.45, 5.3, 6.0, 1.3, 0.8]];
+      const WV = [['red', 0.5, 0.5, 2.32, 3.4, 1.4, 1.19], ['orange', 0.5 + 4 * BT, 3.5, 5.44, 6.7, 1.5, 0.88], ['purple', 0.5 + 8 * BT, 6.8, 8.65, 9.2, 1.15, 0.92]];
       WV.forEach(([k, ws, c0, cp, c1, sp]) => { const tPeak = ws + (cp - c0) / sp; if (lt >= tPeak) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(SANDL2[k], 0, 0); c.restore(); } });
-      WV.forEach(([k, ws, c0, cp, c1, sp, st]) => { if (lt < ws) return; const tPeak = ws + (cp - c0) / sp, tEnd = tPeak + 1.1;
-        if (lt > tEnd) return;
-        const ct = Math.min(c1, c0 + (lt - ws) * sp), fi = Math.max(0, Math.min(WAVES.n - 1, Math.round((ct - WAVES.t0) * WAVES.fps))), img = IMG['wave' + fi]; if (!img) return;
-        // as the water slides back, cut the layer away from the top down, with a soft lacy edge
-        const back = outCubic(prog(lt, tPeak + 0.05, tEnd)), peakUp = WAVES.reach[Math.round((cp - WAVES.t0) * WAVES.fps)] * st, upNow = lerp(peakUp + 0.03, 0.12, back);
-        const g = WTMP.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, WTMP.width, WTMP.height);
-        g.setTransform(SCALE, 0, 0, SCALE, 0, 0); g.drawImage(img, 0, H - H * st, W, H * st);
-        if (back > 0) { g.globalCompositeOperation = 'destination-in'; const ey = H * (1 - upNow); g.beginPath(); g.moveTo(-20, H + 20); for (let x = -20; x <= W + 20; x += 20) g.lineTo(x, ey + Math.sin(x * 0.02 + lt * 2.4) * 16 + Math.sin(x * 0.05 - lt * 1.7) * 7); g.lineTo(W + 20, H + 20); g.closePath();
-          const gr = g.createLinearGradient(0, ey - 40, 0, ey + 40); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = gr; g.fill(); }
-        c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1 - prog(lt, tEnd - 0.25, tEnd); c.drawImage(WTMP, 0, 0); c.restore(); });
+      // the real clip, played at its own pace: the water runs up, peaks over the top, and its own pull-back reveals it
+      WV.forEach(([k, ws, c0, cp, c1, sp, st]) => { const tEnd = ws + (c1 - c0) / sp; if (lt < ws || lt > tEnd) return;
+        const ct = c0 + (lt - ws) * sp, fi = Math.max(0, Math.min(WAVES.n - 1, Math.round((ct - WAVES.t0) * WAVES.fps))), img = IMG['wave' + fi]; if (!img) return;
+        c.save(); c.setTransform(SCALE, 0, 0, SCALE, 0, 0); c.globalAlpha = Math.min(prog(lt, ws, ws + 0.15), 1 - prog(lt, tEnd - 0.2, tEnd)); c.drawImage(img, 0, H - H * st, W, H * st); c.restore(); });
     },
     out: { kind: 'swell' } },
   { key: 'water', bg: '#7FD3CF', cam: lt => { const k = inOutSine(lt / 4.4); return { z: lerp(1.42, 1.28, k), f: [lerp(640, 470, k), lerp(735, 1185, k)] }; },   // the frame drifts back and across, so she swims up through it
